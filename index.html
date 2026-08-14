@@ -142,6 +142,13 @@
   }
   .dict-panel .dp-word{font-family:'Playfair Display','Noto Serif KR',serif;font-size:17px;color:var(--ink);}
   .dict-panel .dp-phon{font-size:12px;color:#A39E92;margin-left:6px;}
+  .speak-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;margin-left:6px;padding:0;vertical-align:middle;
+    border:1px solid #DBD7CE;background:transparent;color:var(--ink);
+    border-radius:2px;cursor:pointer;
+  }
+  .speak-btn:active{background:var(--ink);color:#fff;}
   .dict-panel .dp-pos{font-size:11px;letter-spacing:1px;color:var(--lavender);text-transform:uppercase;margin:8px 0 2px;}
   .dict-panel .dp-def{font-size:13px;color:var(--ink);line-height:1.5;}
   .dict-panel .dp-ex{font-size:12px;color:#A39E92;margin-top:3px;font-style:italic;}
@@ -1015,6 +1022,21 @@ import {
 
 // ---------- 클릭 사운드 (파일 없이 코드로 생성) ----------
 let audioCtx = null;
+const SPEAKER_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 8 9 13 4 13 20 8 15 3 15 3 9"></polygon><path d="M16 8a5 5 0 0 1 0 8"></path></svg>';
+function speakWord(text){
+  if(!text) return;
+  try{
+    if(!('speechSynthesis' in window)){
+      alert('이 브라우저에서는 발음 듣기를 지원하지 않아요.');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    utter.rate = 0.92;
+    window.speechSynthesis.speak(utter);
+  }catch(e){ /* 조용히 무시 */ }
+}
 function playClick(){
   try{
     if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1053,6 +1075,11 @@ function playCorrectSound(){
 }
 document.addEventListener('click', (e) => {
   if(e.target.closest('button')) playClick();
+  const speakBtn = e.target.closest('.speak-btn');
+  if(speakBtn){
+    e.stopPropagation();
+    speakWord(speakBtn.dataset.word);
+  }
 });
 
 const firebaseConfig = {
@@ -1719,6 +1746,19 @@ async function fetchFromFreeDictionary(word){
     definition: m.definitions?.[0]?.definition || '',
     example: m.definitions?.[0]?.example || ''
   })).filter(m => m.definition);
+
+  // 첫 번째 뜻풀이엔 예문이 없고 다른 뜻풀이에 있는 경우가 많아서, 전체를 뒤져 하나 찾음
+  if(meanings.length && !meanings.some(m => m.example)){
+    let found = '';
+    outer:
+    for(const m of (entry.meanings || [])){
+      for(const d of (m.definitions || [])){
+        if(d.example){ found = d.example; break outer; }
+      }
+    }
+    if(found) meanings[0].example = found;
+  }
+
   return { word: entry.word, phonetic, meanings };
 }
 async function fetchFromDatamuse(word){
@@ -1771,38 +1811,24 @@ async function lookupWord(){
 
   try{
     const { word: foundWord, phonetic, meanings } = entryData;
+    const pos = meanings[0] ? (POS_KO[meanings[0].partOfSpeech] || meanings[0].partOfSpeech) : '';
 
-    // 품사별 정의 + 예문을 한글로 번역 (병렬 처리)
-    const translated = await Promise.all(meanings.map(async m => {
-      const [defKo, exKo] = await Promise.all([
-        translateToKo(m.definition),
-        m.example ? translateToKo(m.example) : Promise.resolve('')
-      ]);
-      return {
-        pos: POS_KO[m.partOfSpeech] || m.partOfSpeech,
-        defKo: defKo || m.definition,
-        exKo: exKo,
-        example: m.example || ''
-      };
-    }));
+    // 단어 자체를 직접 번역해 짧고 정확한 뜻 한 줄만 보여줌 (뜻풀이 문장 번역은 장황해서 생략)
+    const directKo = await translateToKo(word);
+    const shortKo = (directKo && directKo.trim() && directKo.trim().toLowerCase() !== word.toLowerCase())
+      ? directKo.trim().split(/[,;]/)[0].trim()
+      : (meanings[0] ? meanings[0].definition : '');
 
-    let html = `<div><span class="dp-word">${escapeHtml(foundWord)}</span><span class="dp-phon">${escapeHtml(phonetic)}</span></div>`;
-    translated.filter(Boolean).forEach(t => {
-      html += `<div class="dp-pos">${escapeHtml(t.pos)}</div>`;
-      html += `<div class="dp-def">${escapeHtml(t.defKo)}</div>`;
-      if(t.exKo) html += `<div class="dp-ex">“${escapeHtml(t.exKo)}”</div>`;
-    });
-    panel.innerHTML = html || `<div class="dp-empty">뜻을 찾을 수 없어요</div>`;
+    let html = `<div><span class="dp-word">${escapeHtml(foundWord)}</span><span class="dp-phon">${escapeHtml(phonetic)}</span><button type="button" class="speak-btn" data-word="${escapeHtml(foundWord)}" title="발음 듣기">${SPEAKER_SVG}</button></div>`;
+    if(pos) html += `<div class="dp-pos">${escapeHtml(pos)}</div>`;
+    html += `<div class="dp-def">${escapeHtml(shortKo || '뜻을 찾을 수 없어요')}</div>`;
+    const exampleMeaning = meanings.find(m => m.example);
+    if(exampleMeaning) html += `<div class="dp-ex">“${escapeHtml(exampleMeaning.example)}”</div>`;
+    panel.innerHTML = html;
 
     // 한글 뜻 자동 채우기 (이미 입력되어 있으면 건드리지 않음)
-    // 정의 문장을 번역하면 부자연스러워서, 단어 자체를 직접 번역해 짧고 정확한 뜻을 넣어요
-    if(!koInput.value.trim()){
-      const directKo = await translateToKo(word);
-      if(directKo && directKo.trim() && directKo.trim().toLowerCase() !== word.toLowerCase()){
-        koInput.value = directKo.trim().split(/[,;]/)[0].trim();
-      }else if(translated[0]){
-        koInput.value = translated[0].defKo.split(/[,.;]/)[0].trim();
-      }
+    if(!koInput.value.trim() && shortKo){
+      koInput.value = shortKo;
     }
   }catch(e){
     panel.innerHTML = `<div class="dp-empty">사전에서 찾을 수 없어요</div>`;
@@ -1871,7 +1897,7 @@ function renderList(){
       ${byDate[d].slice().reverse().map(w => `
         <div class="word-card">
           <div>
-            <div class="en">${escapeHtml(w.en)}</div>
+            <div class="en">${escapeHtml(w.en)}<button type="button" class="speak-btn" data-word="${escapeHtml(w.en)}" title="발음 듣기">${SPEAKER_SVG}</button></div>
             <div class="ko">${escapeHtml(w.ko)}</div>
           </div>
           <button class="del" data-id="${w.id}" title="삭제">✕</button>
@@ -2679,7 +2705,7 @@ function renderMemCard(){
   const total = memQueue.length;
   const w = memQueue[memIndex];
   document.getElementById('memProgressText').textContent = `${memIndex+1} / ${total}`;
-  document.getElementById('memEnWord').textContent = w.en;
+  document.getElementById('memEnWord').innerHTML = `${escapeHtml(w.en)}<button type="button" class="speak-btn" data-word="${escapeHtml(w.en)}" title="발음 듣기">${SPEAKER_SVG}</button>`;
   document.getElementById('memKoWord').textContent = w.ko;
 }
 function goMemCard(delta){
