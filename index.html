@@ -477,6 +477,12 @@
   .lb-body{flex:1;min-width:0;}
   .lb-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
   .lb-name{font-family:'Noto Serif KR',serif;font-size:13px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lb-status{
+    display:inline-block;width:7px;height:7px;border-radius:50%;
+    margin-right:5px;flex-shrink:0;vertical-align:middle;
+  }
+  .lb-status.on{background:#4A9D5F;box-shadow:0 0 4px rgba(74,157,95,.7);}
+  .lb-status.off{background:#C2705F;}
   .lb-name.me{font-weight:700;}
   .lb-count{font-family:'Playfair Display','Noto Serif KR',serif;font-size:13px;color:var(--ink);flex-shrink:0;margin-left:8px;}
   .lb-gauge-bg{background:#EFEDE7;height:5px;border-radius:99px;overflow:hidden;}
@@ -1138,6 +1144,7 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById('authPw').value = '';
     showAuthError('');
     subscribeWords();
+    startHeartbeat();
   }else{
     authView.classList.remove('hidden');
     appView.classList.add('hidden');
@@ -1148,6 +1155,7 @@ onAuthStateChanged(auth, (user) => {
     closeGacha();
     closeBattle();
     closeMenu();
+    stopHeartbeat();
     if(unsubscribeGroup){ unsubscribeGroup(); unsubscribeGroup = null; }
     if(unsubscribeChat){ unsubscribeChat(); unsubscribeChat = null; }
     groupCode = null;
@@ -1244,6 +1252,17 @@ async function saveWords(){
     alert('저장에 실패했어요. 인터넷 연결을 확인해주세요.');
   }
   updateGroupCount();
+}
+const ACTIVE_THRESHOLD_MS = 2 * 60 * 1000; // 최근 2분 안에 활동했으면 "활동중"으로 표시
+let heartbeatTimer = null;
+function startHeartbeat(){
+  stopHeartbeat();
+  heartbeatTimer = setInterval(() => {
+    if(groupCode) updateGroupCount();
+  }, 45000);
+}
+function stopHeartbeat(){
+  if(heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer = null; }
 }
 async function updateGroupCount(){
   if(!currentUser || !groupCode) return;
@@ -1347,6 +1366,7 @@ function renderLeaderboard(members){
     return;
   }
   const maxCount = Math.max(...members.map(m => m.count || 0), 1);
+  const now = Date.now();
   area.innerHTML = members.map((m, i) => {
     const isMe = currentUser && m.uid === currentUser.uid;
     const pct = Math.round(((m.count||0) / maxCount) * 100);
@@ -1355,12 +1375,14 @@ function renderLeaderboard(members){
     const ess = m.battle && m.battle.essence ? `<span class="lb-ess">${escapeHtml(m.battle.essence)}</span>` : '';
     const fightBtn = (!isMe && power > 0)
       ? `<button type="button" class="lb-fight-btn" data-uid="${m.uid}">대결</button>` : '';
+    const isActive = m.updatedAt && (now - m.updatedAt) < ACTIVE_THRESHOLD_MS;
+    const statusDot = `<span class="lb-status ${isActive ? 'on' : 'off'}" title="${isActive ? '활동중' : '자리비움'}"></span>`;
     return `
       <div class="lb-row${i===0 ? ' lb-first' : ''}">
         <div class="lb-rank">${i+1}</div>
         <div class="lb-body">
           <div class="lb-top">
-            <span class="lb-name${isMe ? ' me' : ''}">${escapeHtml(name)}${isMe ? ' (나)' : ''}${ess}</span>
+            <span class="lb-name${isMe ? ' me' : ''}">${statusDot}${escapeHtml(name)}${isMe ? ' (나)' : ''}${ess}</span>
             <span class="lb-count">${m.count||0}개</span>
           </div>
           <div class="lb-gauge-bg"><div class="lb-gauge-fill" style="width:${pct}%"></div></div>
@@ -1683,6 +1705,38 @@ async function translateToKo(text){
     return '';
   }
 }
+async function fetchFromFreeDictionary(word){
+  const res = await withTimeout(
+    fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`),
+    7000, '사전(1)'
+  );
+  if(!res.ok) throw new Error(`not found (${res.status})`);
+  const data = await res.json();
+  const entry = data[0];
+  const phonetic = entry.phonetic || (entry.phonetics.find(p => p.text)?.text) || '';
+  const meanings = (entry.meanings || []).slice(0, 3).map(m => ({
+    partOfSpeech: m.partOfSpeech,
+    definition: m.definitions?.[0]?.definition || '',
+    example: m.definitions?.[0]?.example || ''
+  })).filter(m => m.definition);
+  return { word: entry.word, phonetic, meanings };
+}
+async function fetchFromDatamuse(word){
+  const res = await withTimeout(
+    fetch(`https://api.datamuse.com/words?sp=${encodeURIComponent(word)}&md=dp&max=1`),
+    7000, '사전(2)'
+  );
+  if(!res.ok) throw new Error(`not found (${res.status})`);
+  const data = await res.json();
+  const entry = (data || []).find(d => d.word && d.word.toLowerCase() === word.toLowerCase()) || data[0];
+  if(!entry || !entry.defs || entry.defs.length === 0) throw new Error('no definitions');
+  const posMap = { n:'noun', v:'verb', adj:'adjective', adv:'adverb' };
+  const meanings = entry.defs.slice(0, 3).map(d => {
+    const [posCode, ...rest] = d.split('\t');
+    return { partOfSpeech: posMap[posCode] || posCode, definition: rest.join('\t'), example: '' };
+  });
+  return { word: entry.word, phonetic: '', meanings };
+}
 async function lookupWord(){
   const enInput = document.getElementById('enInput');
   const koInput = document.getElementById('koInput');
@@ -1695,31 +1749,44 @@ async function lookupWord(){
   panel.classList.remove('hidden');
   panel.innerHTML = `<div class="dp-empty">찾는 중...</div>`;
 
+  let entryData = null;
+  let lastError = null;
   try{
-    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
-    if(!res.ok) throw new Error('not found');
-    const data = await res.json();
-    const entry = data[0];
-    const phonetic = entry.phonetic || (entry.phonetics.find(p => p.text)?.text) || '';
-    const meanings = (entry.meanings || []).slice(0, 3);
+    entryData = await fetchFromFreeDictionary(word);
+  }catch(e1){
+    lastError = e1;
+    try{
+      panel.innerHTML = `<div class="dp-empty">다른 사전에서 찾는 중...</div>`;
+      entryData = await fetchFromDatamuse(word);
+    }catch(e2){
+      lastError = e2;
+    }
+  }
+
+  if(!entryData){
+    panel.innerHTML = `<div class="dp-empty">사전에서 찾을 수 없어요<br><span style="font-size:10px;">(${escapeHtml((lastError && lastError.message) || '알 수 없는 오류')})</span></div>`;
+    btn.disabled = false;
+    return;
+  }
+
+  try{
+    const { word: foundWord, phonetic, meanings } = entryData;
 
     // 품사별 정의 + 예문을 한글로 번역 (병렬 처리)
     const translated = await Promise.all(meanings.map(async m => {
-      const def = m.definitions?.[0];
-      if(!def) return null;
       const [defKo, exKo] = await Promise.all([
-        translateToKo(def.definition),
-        def.example ? translateToKo(def.example) : Promise.resolve('')
+        translateToKo(m.definition),
+        m.example ? translateToKo(m.example) : Promise.resolve('')
       ]);
       return {
         pos: POS_KO[m.partOfSpeech] || m.partOfSpeech,
-        defKo: defKo || def.definition,
+        defKo: defKo || m.definition,
         exKo: exKo,
-        example: def.example || ''
+        example: m.example || ''
       };
     }));
 
-    let html = `<div><span class="dp-word">${escapeHtml(entry.word)}</span><span class="dp-phon">${escapeHtml(phonetic)}</span></div>`;
+    let html = `<div><span class="dp-word">${escapeHtml(foundWord)}</span><span class="dp-phon">${escapeHtml(phonetic)}</span></div>`;
     translated.filter(Boolean).forEach(t => {
       html += `<div class="dp-pos">${escapeHtml(t.pos)}</div>`;
       html += `<div class="dp-def">${escapeHtml(t.defKo)}</div>`;
