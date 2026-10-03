@@ -2292,15 +2292,15 @@ async function initChar3D(){
   let THREE, GLTFLoader, OrbitControls;
   try{
     const THREE_VER = '0.128.0';
+    // esm.sh는 라이브러리끼리 서로 부르는 이름('three')을 자동으로 올바른 주소로 이어줘요
     const BASES = [
-      'https://cdn.jsdelivr.net/npm/three' + '@' + THREE_VER,
-      'https://unpkg.com/three' + '@' + THREE_VER
+      'https://esm.sh/three' + '@' + THREE_VER
     ];
     let mods = null, lastErr = null;
     for(const base of BASES){
       try{
         mods = await Promise.all([
-          import(base + '/build/three.module.js'),
+          import(base),
           import(base + '/examples/jsm/loaders/GLTFLoader.js'),
           import(base + '/examples/jsm/controls/OrbitControls.js')
         ]);
@@ -2332,7 +2332,8 @@ async function initChar3D(){
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.outputEncoding = THREE.sRGBEncoding;
+  if(THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
+  else if(THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
 
   const hemi = new THREE.HemisphereLight(0xffffff, 0x5a5248, 2.2);
   scene.add(hemi);
