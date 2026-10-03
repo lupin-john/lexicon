@@ -455,7 +455,7 @@
   .char-preview-box{
     position:relative;
     width:100%;height:220px;display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(180deg,#E8EEE4,#D7E0D1);border:1px solid #EAE7E0;border-radius:2px;margin-bottom:16px;
+    border:1px solid #EAE7E0;border-radius:2px;margin-bottom:16px;
     overflow:hidden;
   }
   .char-preview-box .char-widget-inner{width:100%;height:100%;}
@@ -767,7 +767,7 @@
 
       <!-- 캐릭터 본문 -->
       <div id="charBody" class="hidden">
-        <div class="char-preview-box" id="charPreviewBox">
+        <div class="char-preview-box char-scene" id="charPreviewBox">
           <div class="char3d-loading" id="char3dLoading">3D 모델 불러오는 중...</div>
           <span class="char3d-hint">드래그해서 돌려보세요</span>
         </div>
@@ -2132,7 +2132,8 @@ function renderCharacterWidget(){
 }
 
 // ---------- 캐릭터 3D 뷰어 ----------
-const SOLDIER_GLB_URL = 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb';
+const ROBOT_GLB_URL = 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
+const ROBOT_GESTURES = ['Wave', 'ThumbsUp', 'Yes', 'Dance', 'Jump'];
 let char3d = {
   inited: false,
   renderer: null, scene: null, camera: null, controls: null,
@@ -2197,7 +2198,11 @@ function updateWeaponAttachment3D(){
   }
   if(equippedWeapon){
     const mesh = buildWeaponMesh(equippedWeapon);
-    mesh.position.set(0, 0.02, 0.02);
+    const ws = new THREE_MOD.Vector3();
+    char3d.handBone.getWorldScale(ws);
+    const inv = ws.x ? 1 / ws.x : 1;
+    mesh.scale.setScalar(inv);
+    mesh.position.set(0, 0, 0);
     mesh.rotation.set(Math.PI / 2, 0, 0);
     if(equippedEssence && mesh.userData.tint){
       mesh.userData.tint.emissive = new THREE_MOD.Color(0xC9A227);
@@ -2235,6 +2240,38 @@ function stopChar3DLoop(){
   char3d.running = false;
   if(char3d.rafId){ cancelAnimationFrame(char3d.rafId); char3d.rafId = null; }
 }
+function show2DFallback(){
+  const loadingEl = document.getElementById('char3dLoading');
+  if(loadingEl) loadingEl.remove();
+  const box = document.getElementById('charPreviewBox');
+  if(!box || !myGender) return;
+  if(box.querySelector('.char-fallback-img')) return;
+  const img = document.createElement('img');
+  img.className = 'char-fallback-img';
+  img.src = currentSprite(CHAR_SPRITES[myGender]);
+  img.alt = '캐릭터';
+  img.style.cssText = 'position:absolute;bottom:8%;left:50%;transform:translateX(-50%);height:78%;image-rendering:pixelated;';
+  box.appendChild(img);
+}
+let robotGestureTimer = null;
+function scheduleRobotGesture(){
+  clearTimeout(robotGestureTimer);
+  robotGestureTimer = setTimeout(() => {
+    if(char3d.running && char3d.mixer && char3d.clips){
+      const name = ROBOT_GESTURES[Math.floor(Math.random() * ROBOT_GESTURES.length)];
+      const clip = char3d.clips.find(c => c.name === name);
+      if(clip){
+        const act = char3d.mixer.clipAction(clip);
+        act.reset();
+        act.setLoop(THREE_MOD.LoopOnce, 1);
+        act.clampWhenFinished = false;
+        if(char3d.idleAction) char3d.idleAction.fadeOut(0.3);
+        act.fadeIn(0.3).play();
+      }
+    }
+    scheduleRobotGesture();
+  }, 5000 + Math.random() * 4000);
+}
 let THREE_MOD = null; // 동적으로 불러온 Three.js 모듈을 담아둠 (실패해도 앱 핵심 기능엔 영향 없도록 분리)
 async function initChar3D(){
   if(char3d.inited) return;
@@ -2257,8 +2294,8 @@ async function initChar3D(){
     THREE_MOD = THREE;
   }catch(e){
     console.error('3D 라이브러리 로드 실패', e);
-    const loadingEl = document.getElementById('char3dLoading');
-    if(loadingEl) loadingEl.textContent = '3D를 불러오지 못했어요 (네트워크 문제일 수 있어요)';
+    char3d.inited = false;
+    show2DFallback();
     return;
   }
 
@@ -2270,7 +2307,7 @@ async function initChar3D(){
   scene.background = null;
 
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
-  camera.position.set(0, 1.5, 3.4);
+  camera.position.set(0, 1.3, 4.6);
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -2285,7 +2322,7 @@ async function initChar3D(){
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enablePan = false;
   controls.enableZoom = false;
-  controls.target.set(0, 0.95, 0);
+  controls.target.set(0, 0.85, 0);
   controls.minPolarAngle = Math.PI * 0.3;
   controls.maxPolarAngle = Math.PI * 0.55;
   controls.autoRotate = true;
@@ -2299,9 +2336,9 @@ async function initChar3D(){
   char3d.clock = new THREE.Clock();
 
   const loader = new GLTFLoader();
-  loader.load(SOLDIER_GLB_URL, (gltf) => {
+  loader.load(ROBOT_GLB_URL, (gltf) => {
     const model = gltf.scene;
-    model.scale.setScalar(1.05);
+    model.scale.setScalar(0.4);
     scene.add(model);
     char3d.model = model;
 
@@ -2313,7 +2350,26 @@ async function initChar3D(){
       char3d.idleAction = action;
     }
     char3d.mixer = mixer;
-    char3d.handBone = model.getObjectByName('mixamorigRightHand') || null;
+    char3d.clips = gltf.animations;
+
+    // 로봇 오른손 뼈대 찾기 (이름이 모델마다 달라서 'hand' + 오른쪽 표시로 검색)
+    let rightHand = null, anyHand = null;
+    model.traverse(o => {
+      if(!o.isBone) return;
+      if(/hand/i.test(o.name)){
+        if(!anyHand) anyHand = o;
+        if(!rightHand && /(\.r$|_r$|r$|right)/i.test(o.name)) rightHand = o;
+      }
+    });
+    char3d.handBone = rightHand || anyHand || null;
+
+    // 몇 초마다 랜덤 동작(손 흔들기, 엄지척, 춤 등) 하고 다시 대기 자세로
+    mixer.addEventListener('finished', () => {
+      if(char3d.idleAction){
+        char3d.idleAction.reset().fadeIn(0.3).play();
+      }
+    });
+    scheduleRobotGesture();
 
     updateWeaponAttachment3D();
 
@@ -2324,8 +2380,7 @@ async function initChar3D(){
     startChar3DLoop();
   }, undefined, (err) => {
     console.error('3D 모델 로드 실패', err);
-    const loadingEl = document.getElementById('char3dLoading');
-    if(loadingEl) loadingEl.textContent = '3D 모델을 불러오지 못했어요';
+    show2DFallback();
   });
 
   window.addEventListener('resize', resizeChar3D);
