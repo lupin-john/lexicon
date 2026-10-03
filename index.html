@@ -1658,7 +1658,7 @@ function hitFlash(which, dmgAmount){
   }
 }
 function meleeSwing(which, weaponType){
-  if(b3d.active){ b3dMelee(which); return; }
+  if(b3d.active){ b3dMelee(which, weaponType); return; }
   const box = document.getElementById(which === 'me' ? 'battleMeSprite' : 'battleFoeSprite');
   const img = box.querySelector('img');
   if(!img) return;
@@ -1696,7 +1696,8 @@ function castProjectile(attSide, defSide, onImpact){
   arena.appendChild(orb);
   setTimeout(() => { orb.remove(); onImpact && onImpact(); }, 420);
 }
-function performAttackAnim(attSide, weaponType, onImpact){
+function performAttackAnim(attSide, weaponType, onImpact, miss){
+  if(b3d.active){ b3dAttack(attSide, weaponType, onImpact, miss); return; }
   if(weaponType === 'staff'){
     castCue(attSide);
     const defSide = attSide === 'me' ? 'foe' : 'me';
@@ -1709,8 +1710,8 @@ function performAttackAnim(attSide, weaponType, onImpact){
 function doAttack(att, def, attSide, defSide){
   // 사랑의 정수 — 25% 회피 후 반격
   if(def.essence === '사랑의 정수' && Math.random() < 0.25){
-    if(b3d.active) b3dPlay(b3d.rob[defSide], 'Jump', true);
-    performAttackAnim(attSide, att.weaponType, () => { /* 빗나감, 임팩트 없음 */ });
+    if(b3d.active) b3dEvade(defSide);
+    performAttackAnim(attSide, att.weaponType, () => { /* 빗나감, 임팩트 없음 */ }, true);
     setTimeout(() => {
       const counter = Math.round(4 + def.agi * 0.6);
       att.hp -= counter;
@@ -1807,9 +1808,9 @@ function startBattle(foeUid){
     res.classList.remove('hidden');
     if(win) playFanfare();
     if(b3d.active){
-      if(draw){ b3dPlay(b3d.rob.me, 'Idle', false); b3dPlay(b3d.rob.foe, 'Idle', false); }
-      else if(win){ b3dPlay(b3d.rob.me, 'Dance', false); b3dPlay(b3d.rob.foe, 'Death', true); }
-      else { b3dPlay(b3d.rob.foe, 'Dance', false); b3dPlay(b3d.rob.me, 'Death', true); }
+      if(draw) b3dEnd(null, null, true);
+      else if(win) b3dEnd('me', 'foe', false);
+      else b3dEnd('foe', 'me', false);
     }
   }
   const timer = setInterval(() => {
@@ -2331,44 +2332,154 @@ function buildWeaponMesh(type, tier, essName){
   tier = tier || '일반';
   const col = sfColor(tier, essName);
   const dim = tier === '낡은';
-  const group = new T.Group();
+  const top = tier === '정수';
+  const g = new T.Group();
   const metal = new T.MeshStandardMaterial({ color: 0x2b3440, metalness: 0.85, roughness: 0.35 });
-  const light = new T.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: dim ? 0.5 : 1.7, roughness: 0.3 });
+  const dark = new T.MeshStandardMaterial({ color: 0x151a21, metalness: 0.7, roughness: 0.5 });
+  const light = new T.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: dim ? 0.45 : 1.7, roughness: 0.3 });
   const halo = (op) => new T.MeshBasicMaterial({ color: col, transparent: true, opacity: dim ? op * 0.5 : op, blending: T.AdditiveBlending, depthWrite: false });
-  if(type === 'sword'){          // 광선검
-    const len = dim ? 0.4 : 0.6;
-    const hilt = new T.Mesh(new T.CylinderGeometry(0.02, 0.022, 0.17, 10), metal); hilt.position.y = 0.02;
-    const ring = new T.Mesh(new T.CylinderGeometry(0.034, 0.034, 0.03, 12), metal); ring.position.y = 0.115;
-    const core = new T.Mesh(new T.CylinderGeometry(0.011, 0.011, len, 10), light); core.position.y = 0.13 + len / 2;
-    const glow = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, len, 12), halo(0.35)); glow.position.y = core.position.y;
-    const tip = new T.Mesh(new T.SphereGeometry(0.014, 10, 10), light); tip.position.y = 0.13 + len;
-    group.add(hilt, ring, core, glow, tip);
-  }else if(type === 'staff'){    // 플라즈마 지팡이
-    const pole = new T.Mesh(new T.CylinderGeometry(0.013, 0.016, 0.9, 10), metal); pole.position.y = 0.3;
-    const cradle = new T.Mesh(new T.TorusGeometry(0.06, 0.009, 8, 20), light); cradle.position.y = 0.78; cradle.rotation.x = Math.PI / 2;
-    const orb = new T.Mesh(new T.SphereGeometry(0.045, 14, 14), light); orb.position.y = 0.78;
-    const aura = new T.Mesh(new T.SphereGeometry(0.09, 14, 14), halo(0.3)); aura.position.y = 0.78;
-    group.add(pole, cradle, orb, aura);
-    if(tier !== '낡은'){
-      const ring2 = new T.Mesh(new T.TorusGeometry(0.075, 0.006, 8, 20), light); ring2.position.y = 0.78;
-      group.add(ring2);
+  const M = (geo, mat, x, y, z) => { const m = new T.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); g.add(m); return m; };
+  const anims = [];
+
+  if(type === 'sword'){
+    M(new T.CylinderGeometry(0.02, 0.022, 0.17, 10), dark, 0, 0.02, 0);
+    if(dim){
+      // 낡은 광선검: 짧고 끊어진 불안정한 칼날 (깜빡임)
+      const a = M(new T.CylinderGeometry(0.009, 0.009, 0.2, 8), light, 0, 0.24, 0);
+      const b = M(new T.CylinderGeometry(0.007, 0.007, 0.09, 8), light, 0, 0.42, 0);
+      M(new T.BoxGeometry(0.05, 0.015, 0.02), metal, 0, 0.11, 0);
+      anims.push((t) => { const f = 0.25 + Math.abs(Math.sin(t * 23) * Math.sin(t * 7.3)); a.material.emissiveIntensity = f; b.visible = Math.sin(t * 17) > -0.3; });
+    }else if(!top){
+      // 일반 광선검: 깔끔한 십자 가드 + 긴 칼날
+      M(new T.BoxGeometry(0.14, 0.022, 0.03), metal, 0, 0.115, 0);
+      M(new T.CylinderGeometry(0.034, 0.034, 0.04, 12), metal, 0, 0.145, 0);
+      const core = M(new T.CylinderGeometry(0.011, 0.011, 0.62, 10), light, 0, 0.47, 0);
+      const gl = M(new T.CylinderGeometry(0.03, 0.03, 0.62, 12), halo(0.3), 0, 0.47, 0);
+      M(new T.SphereGeometry(0.014, 10, 10), light, 0, 0.78, 0);
+      anims.push((t) => { gl.material.opacity = 0.25 + Math.sin(t * 6) * 0.07; });
+    }else{
+      // 검의 정수: 넓고 거대한 대검 + 양옆 가시 + 날개 가드
+      M(new T.BoxGeometry(0.22, 0.03, 0.04), metal, 0, 0.115, 0);
+      const w1 = M(new T.BoxGeometry(0.1, 0.02, 0.02), light, 0.15, 0.14, 0); w1.rotation.z = 0.5;
+      const w2 = M(new T.BoxGeometry(0.1, 0.02, 0.02), light, -0.15, 0.14, 0); w2.rotation.z = -0.5;
+      const blade = M(new T.BoxGeometry(0.075, 0.82, 0.016), light, 0, 0.57, 0);
+      M(new T.BoxGeometry(0.014, 0.8, 0.02), new T.MeshBasicMaterial({ color: 0xffffff }), 0, 0.57, 0);
+      for(let i = 0; i < 5; i++){
+        const y = 0.28 + i * 0.14;
+        const sL = M(new T.ConeGeometry(0.03, 0.09, 5), light, -0.075, y, 0); sL.rotation.z = Math.PI / 2 + 0.2;
+        const sR = M(new T.ConeGeometry(0.03, 0.09, 5), light, 0.075, y, 0); sR.rotation.z = -Math.PI / 2 - 0.2;
+      }
+      M(new T.ConeGeometry(0.04, 0.12, 6), light, 0, 1.04, 0);
+      const gl = M(new T.BoxGeometry(0.16, 0.9, 0.05), halo(0.28), 0, 0.6, 0);
+      anims.push((t) => { gl.material.opacity = 0.22 + Math.abs(Math.sin(t * 4)) * 0.2; blade.material.emissiveIntensity = 1.4 + Math.sin(t * 9) * 0.5; });
     }
-  }else if(type === 'shield'){   // 에너지 방패 (육각형)
-    const plate = new T.Mesh(new T.CylinderGeometry(0.25, 0.25, 0.025, 6), metal); plate.rotation.x = Math.PI / 2;
-    const pane = new T.Mesh(new T.CylinderGeometry(0.21, 0.21, 0.03, 6), new T.MeshBasicMaterial({ color: col, transparent: true, opacity: dim ? 0.25 : 0.5, blending: T.AdditiveBlending, depthWrite: false }));
-    pane.rotation.x = Math.PI / 2;
-    const rim = new T.Mesh(new T.TorusGeometry(0.25, 0.012, 6, 6), light);
-    const emblem = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 0.035, 6), light); emblem.rotation.x = Math.PI / 2;
-    group.add(plate, pane, rim, emblem);
-  }else{                         // 에너지 건틀렛
-    const fist = new T.Mesh(new T.BoxGeometry(0.09, 0.1, 0.09), metal);
-    const cuff = new T.Mesh(new T.TorusGeometry(0.052, 0.01, 8, 16), light); cuff.position.y = 0.06; cuff.rotation.x = Math.PI / 2;
-    const knuckles = new T.Mesh(new T.BoxGeometry(0.095, 0.02, 0.095), light); knuckles.position.y = -0.045;
-    const aura = new T.Mesh(new T.BoxGeometry(0.13, 0.14, 0.13), halo(0.25));
-    group.add(fist, cuff, knuckles, aura);
+  }else if(type === 'staff'){
+    if(dim){
+      // 낡은 지팡이: 휜 막대 + 꺼져가는 작은 구슬
+      const p1 = M(new T.CylinderGeometry(0.014, 0.017, 0.45, 8), dark, 0, 0.15, 0);
+      const p2 = M(new T.CylinderGeometry(0.012, 0.014, 0.3, 8), dark, 0.035, 0.5, 0); p2.rotation.z = -0.25;
+      const orb = M(new T.SphereGeometry(0.03, 10, 10), light, 0.075, 0.68, 0);
+      anims.push((t) => { orb.material.emissiveIntensity = 0.2 + Math.abs(Math.sin(t * 5 + Math.sin(t * 13))) * 0.5; });
+    }else if(!top){
+      // 일반 플라즈마 지팡이: 링 받침 속의 구슬
+      M(new T.CylinderGeometry(0.013, 0.016, 0.9, 10), metal, 0, 0.3, 0);
+      const cradle = M(new T.TorusGeometry(0.06, 0.009, 8, 20), light, 0, 0.78, 0); cradle.rotation.x = Math.PI / 2;
+      const f1 = M(new T.BoxGeometry(0.012, 0.12, 0.012), metal, 0.07, 0.72, 0); f1.rotation.z = -0.3;
+      const f2 = M(new T.BoxGeometry(0.012, 0.12, 0.012), metal, -0.07, 0.72, 0); f2.rotation.z = 0.3;
+      const orb = M(new T.SphereGeometry(0.045, 14, 14), light, 0, 0.78, 0);
+      const au = M(new T.SphereGeometry(0.09, 14, 14), halo(0.28), 0, 0.78, 0);
+      anims.push((t) => { const s = 1 + Math.sin(t * 5) * 0.12; orb.scale.setScalar(s); au.scale.setScalar(s); });
+    }else{
+      // 번개의 정수: 떠 있는 결정 + 돌아가는 고리 2개 + 튀는 번개
+      M(new T.CylinderGeometry(0.012, 0.016, 1.0, 10), metal, 0, 0.35, 0);
+      const crystal = M(new T.OctahedronGeometry(0.075, 0), light, 0, 0.98, 0); crystal.scale.y = 1.5;
+      const au = M(new T.SphereGeometry(0.14, 14, 14), halo(0.22), 0, 0.98, 0);
+      const r1 = M(new T.TorusGeometry(0.11, 0.006, 6, 24), light, 0, 0.98, 0);
+      const r2 = M(new T.TorusGeometry(0.13, 0.006, 6, 24), light, 0, 0.98, 0);
+      const bolts = [];
+      for(let i = 0; i < 4; i++){
+        const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(new Float32Array(5 * 3), 3));
+        const ln = new T.Line(geo, new T.LineBasicMaterial({ color: 0xcfe4ff, transparent: true, opacity: 0.9, blending: T.AdditiveBlending }));
+        ln.position.set(0, 0.98, 0); g.add(ln); bolts.push(ln);
+      }
+      let last = 0;
+      anims.push((t) => {
+        crystal.rotation.y = t * 2; crystal.position.y = 0.98 + Math.sin(t * 3) * 0.02;
+        r1.rotation.x = t * 2.2; r2.rotation.y = t * 1.7; r2.rotation.x = 1.0;
+        au.material.opacity = 0.16 + Math.abs(Math.sin(t * 8)) * 0.14;
+        if(t - last > 0.06){
+          last = t;
+          bolts.forEach((ln) => {
+            const a = Math.random() * Math.PI * 2, el = (Math.random() - 0.5) * 1.6;
+            const pos = ln.geometry.attributes.position;
+            for(let k = 0; k < 5; k++){
+              const rr = (k / 4) * (0.16 + Math.random() * 0.08);
+              pos.setXYZ(k, Math.cos(a) * rr + (Math.random() - 0.5) * 0.03, Math.sin(el) * rr + (Math.random() - 0.5) * 0.03, Math.sin(a) * rr + (Math.random() - 0.5) * 0.03);
+            }
+            pos.needsUpdate = true; ln.visible = Math.random() > 0.25;
+          });
+        }
+      });
+    }
+  }else if(type === 'shield'){
+    if(dim){
+      // 낡은 방패: 작고 둥근 버클러
+      const disk = M(new T.CylinderGeometry(0.17, 0.17, 0.03, 16), metal, 0, 0, 0); disk.rotation.x = Math.PI / 2;
+      const rim = M(new T.TorusGeometry(0.17, 0.012, 6, 16, Math.PI * 1.7), light, 0, 0, 0);
+      const boss = M(new T.SphereGeometry(0.04, 8, 8), dark, 0, 0, 0.03);
+      anims.push((t) => { rim.material.emissiveIntensity = 0.35 + Math.abs(Math.sin(t * 6 + Math.sin(t * 15))) * 0.4; });
+    }else if(!top){
+      // 일반 에너지 방패: 육각형 + 에너지 면 + 모서리 노드
+      const plate = M(new T.CylinderGeometry(0.25, 0.25, 0.025, 6), metal, 0, 0, 0); plate.rotation.x = Math.PI / 2;
+      const pane = M(new T.CylinderGeometry(0.21, 0.21, 0.03, 6), new T.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.45, blending: T.AdditiveBlending, depthWrite: false }), 0, 0, 0); pane.rotation.x = Math.PI / 2;
+      M(new T.TorusGeometry(0.25, 0.012, 6, 6), light, 0, 0, 0);
+      for(let i = 0; i < 6; i++){ const a = i * Math.PI / 3; M(new T.SphereGeometry(0.022, 8, 8), light, Math.cos(a) * 0.25, Math.sin(a) * 0.25, 0.01); }
+      anims.push((t) => { pane.material.opacity = 0.35 + Math.sin(t * 4) * 0.12; });
+    }else{
+      // 성기사의 정수: 뾰족한 대형 방패 + 십자 + 날개 + 후광
+      const sh = new T.Shape();
+      sh.moveTo(-0.22, 0.28); sh.lineTo(0.22, 0.28); sh.lineTo(0.22, -0.02); sh.quadraticCurveTo(0.2, -0.22, 0, -0.4); sh.quadraticCurveTo(-0.2, -0.22, -0.22, -0.02); sh.lineTo(-0.22, 0.28);
+      const body = M(new T.ExtrudeGeometry(sh, { depth: 0.03, bevelEnabled: false }), light, 0, 0, 0);
+      M(new T.BoxGeometry(0.06, 0.4, 0.04), new T.MeshBasicMaterial({ color: 0xffffff }), 0, 0.06, 0.03);
+      M(new T.BoxGeometry(0.26, 0.06, 0.04), new T.MeshBasicMaterial({ color: 0xffffff }), 0, 0.12, 0.03);
+      const wl = M(new T.BoxGeometry(0.2, 0.05, 0.015), halo(0.6), -0.3, 0.2, 0); wl.rotation.z = 0.6;
+      const wr = M(new T.BoxGeometry(0.2, 0.05, 0.015), halo(0.6), 0.3, 0.2, 0); wr.rotation.z = -0.6;
+      const ring = M(new T.TorusGeometry(0.36, 0.01, 6, 32), halo(0.5), 0, 0.05, -0.02);
+      anims.push((t) => { ring.scale.setScalar(1 + Math.sin(t * 3) * 0.05); ring.material.opacity = 0.35 + Math.abs(Math.sin(t * 3)) * 0.3; body.material.emissiveIntensity = 1.3 + Math.sin(t * 5) * 0.4; });
+    }
+  }else{
+    if(dim){
+      // 낡은 건틀렛: 밋밋한 주먹
+      M(new T.BoxGeometry(0.085, 0.095, 0.085), metal, 0, 0, 0);
+      M(new T.TorusGeometry(0.05, 0.008, 6, 14), light, 0, 0.06, 0).rotation.x = Math.PI / 2;
+    }else if(!top){
+      // 일반 건틀렛: 등판 지느러미 + 빛나는 손목 링 + 주먹 라이트
+      M(new T.BoxGeometry(0.09, 0.1, 0.09), metal, 0, 0, 0);
+      for(let i = -1; i <= 1; i++){ const f = M(new T.BoxGeometry(0.012, 0.09, 0.05), metal, i * 0.03, 0.01, -0.06); f.rotation.x = 0.4; }
+      const cuff = M(new T.TorusGeometry(0.055, 0.011, 8, 16), light, 0, 0.065, 0); cuff.rotation.x = Math.PI / 2;
+      const kn = M(new T.BoxGeometry(0.095, 0.02, 0.095), light, 0, -0.048, 0);
+      anims.push((t) => { kn.material.emissiveIntensity = 1.2 + Math.sin(t * 7) * 0.5; });
+    }else{
+      // 사랑의 정수: 가시 달린 큰 주먹 + 분홍 오라 + 주위를 도는 하트
+      M(new T.BoxGeometry(0.11, 0.12, 0.11), metal, 0, 0, 0);
+      for(let i = 0; i < 4; i++){ const sp = M(new T.ConeGeometry(0.018, 0.06, 5), light, -0.045 + i * 0.03, -0.07, 0.04); sp.rotation.x = Math.PI; }
+      const cuff = M(new T.TorusGeometry(0.07, 0.013, 8, 16), light, 0, 0.075, 0); cuff.rotation.x = Math.PI / 2;
+      const aura = M(new T.SphereGeometry(0.12, 14, 14), halo(0.28), 0, 0, 0);
+      const hs = new T.Shape(); hs.moveTo(0.25, 0.25); hs.bezierCurveTo(0.25, 0.25, 0.2, 0, 0, 0); hs.bezierCurveTo(-0.3, 0, -0.3, 0.35, -0.3, 0.35); hs.bezierCurveTo(-0.3, 0.55, -0.1, 0.77, 0.25, 0.95); hs.bezierCurveTo(0.6, 0.77, 0.8, 0.55, 0.8, 0.35); hs.bezierCurveTo(0.8, 0.35, 0.8, 0, 0.5, 0); hs.bezierCurveTo(0.35, 0, 0.25, 0.25, 0.25, 0.25);
+      const hgeo = new T.ExtrudeGeometry(hs, { depth: 0.12, bevelEnabled: false }); hgeo.center();
+      const hearts = [0, 1, 2].map(() => { const h = new T.Mesh(hgeo, light); h.scale.setScalar(0.09); g.add(h); return h; });
+      anims.push((t) => {
+        aura.scale.setScalar(1 + Math.sin(t * 6) * 0.15);
+        hearts.forEach((h, i) => { const a = t * 2.4 + i * 2.094; h.position.set(Math.cos(a) * 0.16, 0.02 + Math.sin(t * 3 + i) * 0.03, Math.sin(a) * 0.16); h.rotation.y = a; });
+      });
+    }
   }
-  group.userData.tint = light;
-  return group;
+  g.userData.tint = light;
+  if(anims.length) g.userData.anim = (t) => anims.forEach(f => f(t));
+  return g;
+}
+function tickWeaponAnim(mesh, t){
+  if(mesh && mesh.userData && mesh.userData.anim) mesh.userData.anim(t);
 }
 // 로봇 손 뼈대 찾기 (모델마다 이름이 달라서 여러 규칙으로 탐색)
 function findHandBones(model){
@@ -2439,6 +2550,7 @@ function animateChar3D(){
     if(char3d.controls) char3d.controls.update();
     char3d.renderer.render(char3d.scene, char3d.camera);
   }
+  { const tt = performance.now() / 1000; tickWeaponAnim(char3d.weaponMesh, tt); tickWeaponAnim(char3d.shieldMesh, tt); }
   // 오른쪽 아래 작은 원형 위젯 (배터리를 아끼려고 초당 약 20번만 그림)
   widgetAccum += dt;
   if(char3d.wRenderer && widgetAccum >= 0.05){
@@ -2745,7 +2857,7 @@ function loadGLBFromUrls(urls){
   });
 }
 const CLIP_ALIASES = {
-  Idle:/idle/i, Punch:/punch|attack|strike|slash|kick/i, Wave:/wave|thumbs|agree|yes/i,
+  Idle:/idle/i, Run:/run|walk|sprint/i, Punch:/punch|attack|strike|slash|kick/i, Wave:/wave|thumbs|agree|yes/i,
   Jump:/jump/i, Dance:/dance|victory|mixamo|agree/i, Death:/death|die|sad|fall|lose/i
 };
 function resolveClip(clips, name){
@@ -2938,7 +3050,8 @@ async function ensureBattle3D(){
     const camera = new T.PerspectiveCamera(32, 2, 0.1, 60);
     camera.position.set(0, 1.0, 6.4);
     camera.lookAt(0, 0.9, 0);
-    Object.assign(b3d, { renderer, scene, camera, canvas, clock: new T.Clock() });
+    Object.assign(b3d, { renderer, scene, camera, canvas, clock: new T.Clock(), fx: [], hitStop: 0, shake: 0, camZ: 6.4, camZTarget: 6.4,
+      sparkGeo: new T.SphereGeometry(0.035, 6, 6), orbGeo: new T.SphereGeometry(0.17, 12, 12), ringGeo: new T.RingGeometry(0.12, 0.17, 32) });
     b3d.ready = true;
     return true;
   })().catch(e => { console.warn('대결 3D 준비 실패', e); return false; });
@@ -2954,26 +3067,31 @@ async function b3dEnsureModel(key, modelKey){
     clearTimeout(cur.t);
     if(cur.weapon && cur.weapon.parent) cur.weapon.parent.remove(cur.weapon);
     if(cur.shield && cur.shield.parent) cur.shield.parent.remove(cur.shield);
-    b3d.scene.remove(cur.model);
+    b3d.scene.remove(cur.pivot);
     cur.mixer.stopAllAction();
   }
-  const x = key === 'me' ? -1.9 : 1.9;
-  const rotY = key === 'me' ? Math.PI / 2 : -Math.PI / 2;
+  const dir = key === 'me' ? 1 : -1;
+  const x = dir * -1.9;
+  const baseRot = dir * Math.PI / 2;
   const em = key === 'me' ? 0x00262e : 0x2e1400;
+  const pivot = new T.Group();
+  pivot.position.set(x, 0, 0);
   const model = g.scene;
   model.scale.setScalar(cfg.scale);
-  model.position.set(x, 0, 0);
-  model.rotation.y = rotY;
+  model.rotation.y = baseRot;
   const emissive = new T.Color(em);
   model.traverse(o => {
     if(o.isMesh && o.material){
       (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if(m.emissive){ m.emissive.copy(emissive); m.userData.baseEm = emissive.clone(); } });
     }
   });
-  b3d.scene.add(model);
+  pivot.add(model);
+  b3d.scene.add(pivot);
   const hb = findHandBones(model);
-  b3d.rob[key] = { model, modelKey, mixer: new T.AnimationMixer(model), clips: g.animations, hand: hb.r || hb.l || null, handL: hb.l || null,
-    baseX: x, offX: 0, jitter: 0, cur: null, weapon: null, shield: null, t: null };
+  b3d.rob[key] = { pivot, model, modelKey, dir, baseRot, mixer: new T.AnimationMixer(model), clips: g.animations, hand: hb.r || hb.l || null, handL: hb.l || null,
+    baseX: x, offX: 0, jitter: 0, knock: 0, lean: 0, leanTarget: 0, drift: 0, driftTarget: 0, nextDrift: 0, hopY: 0, hopV: 0,
+    fallen: false, fallP: 0, celebrate: false, dashing: false, swing: null, shieldFlash: 0, shieldBase: 1,
+    cur: null, weapon: null, shield: null, t: null, accent: 0x29e5ff };
 }
 function b3dPlay(rob, name, once){
   if(!rob || !THREE_MOD) return 0;
@@ -2993,13 +3111,6 @@ function b3dPlay(rob, name, once){
   }
   return clip.duration * 1000;
 }
-function b3dMelee(which){
-  const rob = b3d.rob[which];
-  if(!rob) return;
-  b3dPlay(rob, 'Punch', true);
-  rob.offX = (which === 'me' ? 1 : -1) * 1.25;
-  setTimeout(() => { rob.offX = 0; }, 330);
-}
 function b3dSetEmissive(rob, colorOrNull){
   rob.model.traverse(o => {
     if(o.isMesh && o.material){
@@ -3011,10 +3122,141 @@ function b3dSetEmissive(rob, colorOrNull){
     }
   });
 }
+// ----- 이펙트 (불꽃, 충격 고리, 베기 궤적, 마법구) -----
+function b3dFxAdd(mesh, kind, max, extra){
+  b3d.scene.add(mesh);
+  b3d.fx.push(Object.assign({ mesh, kind, life: 0, max }, extra || {}));
+}
+function b3dBasic(color, op){
+  return new THREE_MOD.MeshBasicMaterial({ color, transparent: true, opacity: op == null ? 1 : op, blending: THREE_MOD.AdditiveBlending, depthWrite: false });
+}
+function b3dSparks(x, y, color, count, speed){
+  const T = THREE_MOD;
+  for(let i = 0; i < count; i++){
+    const m = new T.Mesh(b3d.sparkGeo, b3dBasic(color));
+    m.position.set(x, y, 0.15);
+    const a = Math.random() * Math.PI * 2, sp = (0.5 + Math.random()) * speed;
+    b3dFxAdd(m, 'spark', 0.35 + Math.random() * 0.3, { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp + 0.8 });
+  }
+}
+function b3dRing(x, y, color, size){
+  const m = new THREE_MOD.Mesh(b3d.ringGeo, b3dBasic(color, 0.9));
+  m.position.set(x, y, 0.2);
+  b3dFxAdd(m, 'ring', 0.4, { size });
+}
+function b3dSlash(x, y, color, dir){
+  const T = THREE_MOD;
+  const m = new T.Mesh(new T.RingGeometry(0.5, 0.66, 28, 1, -0.2, Math.PI * 0.75), b3dBasic(color, 0.95));
+  m.position.set(x, y, 0.25);
+  m.rotation.z = dir > 0 ? 0.9 : Math.PI - 0.9 - Math.PI * 0.75 + 0.4;
+  if(dir < 0) m.scale.x = -1;
+  b3dFxAdd(m, 'slash', 0.28, {});
+}
+function b3dOrb(fromX, fromY, toX, toY, color){
+  const T = THREE_MOD;
+  const m = new T.Mesh(b3d.orbGeo, b3dBasic(color, 0.95));
+  m.position.set(fromX, fromY, 0.2);
+  b3dFxAdd(m, 'orb', 0.38, { fx: fromX, fy: fromY, tx: toX, ty: toY, color });
+}
+function b3dFxUpdate(dt){
+  for(let i = b3d.fx.length - 1; i >= 0; i--){
+    const f = b3d.fx[i];
+    f.life += dt;
+    const p = Math.min(1, f.life / f.max);
+    if(f.kind === 'spark'){ f.mesh.position.x += f.vx * dt; f.mesh.position.y += f.vy * dt; f.vy -= 3.2 * dt; f.mesh.material.opacity = 1 - p; }
+    else if(f.kind === 'ring'){ f.mesh.scale.setScalar(1 + p * f.size); f.mesh.material.opacity = 0.9 * (1 - p); }
+    else if(f.kind === 'slash'){ f.mesh.scale.y = 1 + p * 0.3; f.mesh.material.opacity = 0.95 * (1 - p); }
+    else if(f.kind === 'orb'){
+      const e = p * p * (3 - 2 * p);
+      f.mesh.position.x = f.fx + (f.tx - f.fx) * e;
+      f.mesh.position.y = f.fy + (f.ty - f.fy) * e + Math.sin(p * Math.PI) * 0.25;
+      f.mesh.scale.setScalar(0.8 + Math.sin(f.life * 40) * 0.2);
+      if(Math.random() < 0.7) b3dSparks(f.mesh.position.x, f.mesh.position.y, f.color, 1, 0.5);
+    }
+    if(p >= 1){
+      b3d.scene.remove(f.mesh);
+      if(f.kind !== 'spark' && f.kind !== 'ring' && f.kind !== 'orb' && f.mesh.geometry) f.mesh.geometry.dispose();
+      f.mesh.material.dispose();
+      b3d.fx.splice(i, 1);
+    }
+  }
+}
+// ----- 공격 연출 (무기마다 다르게) -----
+function b3dSwing(rob, dur, from, to){
+  rob.swing = { t: performance.now(), dur, from, to };
+}
+function b3dAttack(which, weaponType, onImpact, miss){
+  const A = b3d.rob[which], D = b3d.rob[which === 'me' ? 'foe' : 'me'];
+  if(!A || !D){ onImpact && onImpact(); return; }
+  const dir = A.dir, col = A.accent || 0x29e5ff;
+  const dist = Math.abs(D.pivot.position.x - A.pivot.position.x);
+  const T = (ms, fn) => setTimeout(() => { if(b3d.active) fn(); }, ms);
+  const dx = () => D.pivot.position.x, cy = 1.05;
+  b3d.camZTarget = 5.7; T(950, () => { b3d.camZTarget = 6.4; });
+  const impact = (power, sparks, color) => {
+    onImpact && onImpact();
+    if(miss) return;
+    b3d.hitStop = 0.05 + power * 0.045;
+    b3d.shake = 0.1 + power * 0.2;
+    b3dSparks(dx() - dir * 0.25, cy, color || col, sparks, 2.4);
+    b3dRing(dx() - dir * 0.2, cy, color || col, 2.2 + power);
+    D.knock = 0.3 + power * 0.35; D.leanTarget = -0.4;
+    T(240, () => { D.knock = 0; D.leanTarget = 0; });
+  };
+  const back = (ms) => T(ms, () => { A.offX = 0; A.leanTarget = 0; A.dashing = false; b3dPlay(A, 'Idle', false); });
+  A.driftTarget = 0;
+  if(weaponType === 'staff'){
+    // 뒤로 물러나 마법을 모아 쏘기
+    A.offX = -0.35; A.leanTarget = -0.28; A.hopV = 3.2;
+    b3dPlay(A, 'Wave', true);
+    T(260, () => {
+      b3dRing(A.pivot.position.x + dir * 0.3, 1.3, col, 3);
+      b3dOrb(A.pivot.position.x + dir * 0.45, 1.3, dx(), cy, col);
+    });
+    T(650, () => { impact(1.2, 24, col); b3dRing(dx(), cy, col, 4.5); });
+    back(760);
+  }else if(weaponType === 'sword'){
+    // 달려가서 크게 한 번 베기
+    const gap = Math.max(0.3, dist - 1.15);
+    A.offX = gap; A.leanTarget = 0.35; A.dashing = true;
+    b3dPlay(A, 'Run', false);
+    T(210, () => { A.dashing = false; A.leanTarget = 0.6; b3dSwing(A, 190, -1.2, 1.3); b3dPlay(A, 'Punch', true); });
+    T(300, () => b3dSlash(dx() - dir * 0.2, 1.1, col, dir));
+    T(350, () => impact(1, 16, col));
+    back(720);
+  }else{
+    // 건틀렛/맨손: 빠르게 연속 3타
+    const gap = Math.max(0.3, dist - 0.95);
+    A.offX = gap; A.leanTarget = 0.3; A.dashing = true;
+    b3dPlay(A, 'Run', false);
+    T(200, () => { A.dashing = false; A.offX = gap + 0.22; A.leanTarget = 0.5; b3dPlay(A, 'Punch', true); b3dSparks(dx() - dir * 0.3, cy, col, 5, 1.6); b3d.shake = 0.1; });
+    T(290, () => { A.offX = gap; });
+    T(330, () => { A.offX = gap + 0.28; b3dPlay(A, 'Punch', true); });
+    T(360, () => impact(0.8, 12, col));
+    T(430, () => { A.offX = gap; });
+    T(470, () => { A.offX = gap + 0.34; b3dPlay(A, 'Punch', true); b3dSparks(dx() - dir * 0.3, cy, col, 8, 2); b3d.shake = 0.18; });
+    back(760);
+  }
+}
+function b3dMelee(which, weaponType){ b3dAttack(which, weaponType || 'gauntlet', () => {}, false); }
+function b3dEvade(which){
+  const r = b3d.rob[which];
+  if(!r) return;
+  r.hopV = 5.5; r.offX = -0.6; r.leanTarget = -0.2;
+  setTimeout(() => { r.offX = 0; r.leanTarget = 0; }, 320);
+}
+function b3dEnd(winKey, loseKey, draw){
+  ['me','foe'].forEach(k => { const r = b3d.rob[k]; if(r){ r.offX = 0; r.leanTarget = 0; r.driftTarget = 0; r.over = true; } });
+  if(draw){ b3dPlay(b3d.rob.me, 'Idle', false); b3dPlay(b3d.rob.foe, 'Idle', false); return; }
+  const W = b3d.rob[winKey], L = b3d.rob[loseKey];
+  if(!b3dPlay(W, 'Dance', false)) W.celebrate = true;
+  if(!b3dPlay(L, 'Death', true)){ L.fallen = true; L.fallP = 0; }
+}
 function b3dHit(which){
   const rob = b3d.rob[which];
   if(!rob) return;
   rob.jitter = 0.16;
+  if(rob.shield) rob.shieldFlash = 0.3;
   b3dSetEmissive(rob, new THREE_MOD.Color(0xff2a2a));
   setTimeout(() => b3dSetEmissive(rob, null), 260);
 }
@@ -3034,7 +3276,9 @@ function b3dAttachWeapon(rob, f){
     m.position.set(0, 0.05, 0);
     attachSF(rob.handL, m);
     rob.shield = m;
+    rob.shieldBase = m.scale.x;
   }
+  rob.accent = f.rawWeapon ? sfColor(f.wTier || '일반', f.wEss) : 0x29e5ff;
 }
 function b3dLayout(){
   const arena = document.querySelector('.battle-arena');
@@ -3049,19 +3293,62 @@ function b3dLayout(){
 function b3dLoop(){
   if(!b3d.active) return;
   b3d.raf = requestAnimationFrame(b3dLoop);
-  const dt = Math.min(b3d.clock.getDelta(), 0.1);
+  const rdt = Math.min(b3d.clock.getDelta(), 0.1);
   const t = performance.now() / 1000;
+  let dt = rdt;
+  if(b3d.hitStop > 0){ b3d.hitStop -= rdt; dt = 0; }
   ['me','foe'].forEach(k => {
     const r = b3d.rob[k];
     if(!r) return;
     r.mixer.update(dt);
-    const target = r.baseX + r.offX;
-    r.model.position.x += (target - r.model.position.x) * Math.min(1, dt * 14);
-    if(r.jitter > 0.001){
-      r.model.position.x += Math.sin(t * 90) * r.jitter;
-      r.jitter *= 0.86;
+    const alive = !r.fallen && !r.over;
+    // 발걸음: 일정 간격으로 앞뒤로 위치를 바꿔요
+    if(alive && !r.dashing && t > r.nextDrift){
+      r.driftTarget = Math.random() * 0.95 - 0.3;
+      r.nextDrift = t + 0.8 + Math.random() * 0.9;
+    }
+    r.drift += (r.driftTarget - r.drift) * Math.min(1, rdt * 2.4);
+    const sway = alive ? Math.sin(t * 2.1 + (r.dir > 0 ? 0 : 1.7)) * 0.06 : 0;
+    const tx = r.baseX + r.dir * (r.drift + r.offX + sway) - r.dir * r.knock;
+    r.pivot.position.x += (tx - r.pivot.position.x) * Math.min(1, rdt * (r.dashing ? 24 : 11));
+    // 통통 튀는 자세 + 점프
+    if(r.celebrate && r.hopY === 0 && r.hopV === 0) r.hopV = 4.2;
+    r.hopV -= 14 * rdt; r.hopY += r.hopV * rdt;
+    if(r.hopY < 0){ r.hopY = 0; r.hopV = 0; }
+    const bob = alive ? Math.abs(Math.sin(t * 4.2 + (r.dir > 0 ? 0 : 1))) * 0.03 : 0;
+    r.pivot.position.y = r.hopY + bob;
+    // 기울기 / 몸 흔들림
+    r.lean += (r.leanTarget - r.lean) * Math.min(1, rdt * 12);
+    r.pivot.rotation.z = -r.dir * (r.lean + (alive ? 0.04 * Math.sin(t * 2) : 0));
+    r.model.rotation.y = r.baseRot + (alive ? Math.sin(t * 1.6 + r.dir) * 0.1 : 0);
+    if(r.jitter > 0.001){ r.pivot.position.x += Math.sin(t * 90) * r.jitter; r.jitter *= 0.86; }
+    // 쓰러지기(전용 동작이 없는 모델)
+    if(r.fallen){
+      r.fallP = Math.min(1, r.fallP + rdt * 2.2);
+      const e = 1 - Math.pow(1 - r.fallP, 3);
+      r.pivot.rotation.z = r.dir * (Math.PI / 2) * e;
+      r.pivot.position.y = -0.12 * e;
+    }
+    // 무기 휘두르기 + 무기/방패 자체 움직임
+    if(r.weapon){
+      if(r.swing){
+        const p = (performance.now() - r.swing.t) / r.swing.dur;
+        if(p >= 1){ r.swing = null; r.weapon.rotation.x = Math.PI / 2; }
+        else{ const e = 1 - Math.pow(1 - p, 3); r.weapon.rotation.x = Math.PI / 2 + r.swing.from + (r.swing.to - r.swing.from) * e; }
+      }
+      tickWeaponAnim(r.weapon, t);
+    }
+    if(r.shield){
+      if(r.shieldFlash > 0.001){ r.shield.scale.setScalar(r.shieldBase * (1 + r.shieldFlash)); r.shieldFlash *= 0.85; }
+      tickWeaponAnim(r.shield, t);
     }
   });
+  b3dFxUpdate(rdt);
+  // 카메라: 공격할 때 살짝 다가가고, 맞으면 흔들려요
+  b3d.camZ += (b3d.camZTarget - b3d.camZ) * Math.min(1, rdt * 6);
+  b3d.shake *= 0.86;
+  b3d.camera.position.set((Math.random() - 0.5) * b3d.shake, 1.0 + (Math.random() - 0.5) * b3d.shake * 0.6, b3d.camZ);
+  b3d.camera.lookAt(0, 0.9, 0);
   b3d.renderer.render(b3d.scene, b3d.camera);
 }
 async function prepareBattle3D(me, foe){
@@ -3074,13 +3361,18 @@ async function prepareBattle3D(me, foe){
   const fighters = { me, foe };
   ['me','foe'].forEach(k => {
     const r = b3d.rob[k];
-    r.offX = 0; r.jitter = 0;
-    r.model.position.x = r.baseX;
+    Object.assign(r, { offX: 0, jitter: 0, knock: 0, lean: 0, leanTarget: 0, drift: 0, driftTarget: 0, nextDrift: 0, hopY: 0, hopV: 0,
+      fallen: false, over: false, fallP: 0, celebrate: false, dashing: false, swing: null, shieldFlash: 0 });
+    r.pivot.position.set(r.baseX, 0, 0);
+    r.pivot.rotation.set(0, 0, 0);
     b3dSetEmissive(r, null);
     applyRobotColor(r.model, (CHAR_MODELS[r.modelKey] && CHAR_MODELS[r.modelKey].paint) ? fighters[k].color : null);
     b3dPlay(r, 'Idle', false);
     b3dAttachWeapon(r, fighters[k]);
   });
+  b3d.fx.forEach(f => { b3d.scene.remove(f.mesh); });
+  b3d.fx = [];
+  b3d.hitStop = 0; b3d.shake = 0; b3d.camZ = 6.4; b3d.camZTarget = 6.4;
   b3dLayout();
   b3d.active = true;
   b3d.clock.getDelta();
@@ -3089,6 +3381,7 @@ async function prepareBattle3D(me, foe){
 }
 function b3dStop(){
   b3d.active = false;
+  if(b3d.fx && b3d.scene){ b3d.fx.forEach(f => b3d.scene.remove(f.mesh)); b3d.fx = []; }
   if(b3d.raf){ cancelAnimationFrame(b3d.raf); b3d.raf = null; }
   const arena = document.querySelector('.battle-arena');
   if(arena) arena.classList.remove('b3d-on');
