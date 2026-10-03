@@ -57,7 +57,23 @@
     letter-spacing:1px;
     color:var(--ink);
     margin:0;
+    position:relative;
+    display:inline-block;
   }
+  .title-svg{
+    width:230px;height:auto;display:block;margin:0 auto;overflow:visible;
+  }
+  .title-stroke-text{
+    font-family:'Parisienne', cursive;
+    font-size:60px;
+    fill:none;
+    stroke:var(--ink);
+    stroke-width:1.1;
+    stroke-dasharray:1200;
+    stroke-dashoffset:1200;
+    animation:threadDraw 2.6s cubic-bezier(.45,.05,.55,.95) forwards;
+  }
+  @keyframes threadDraw{ to{ stroke-dashoffset:0; } }
   header p{margin:6px 0 0;font-size:11px;letter-spacing:2px;color:var(--lavender);font-weight:500;text-transform:uppercase;}
 
   /* tabs */
@@ -672,7 +688,7 @@
   .hidden{display:none!important;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/[email protected]/dist/tesseract.min.js"></script>
+
 </head>
 <body>
 <div class="wrap">
@@ -680,7 +696,11 @@
     <button id="menuBtn" class="hidden" aria-label="메뉴">
       <span></span><span></span><span></span>
     </button>
-    <h1>Lexicon</h1>
+    <h1>
+      <svg class="title-svg" viewBox="0 0 340 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lexicon">
+        <text x="170" y="70" text-anchor="middle" class="title-stroke-text">Lexicon</text>
+      </svg>
+    </h1>
   </header>
 
   <!-- 메뉴 선택 오버레이 -->
@@ -851,7 +871,9 @@
   </div>
 
   <!-- 초기 로딩 (자동 로그인 확인 중) -->
-  <div id="bootLoading" style="text-align:center;padding:60px 0;color:#A39E92;font-family:'Noto Serif KR',serif;font-size:12px;letter-spacing:1px;">확인 중...</div>
+  <div id="bootLoading" style="text-align:center;padding:60px 0;color:#A39E92;font-family:'Noto Serif KR',serif;font-size:12px;letter-spacing:1px;">
+    <div id="bootLoadingText">확인 중...</div>
+  </div>
 
   <!-- 로그인 / 회원가입 화면 -->
   <section id="authView" class="hidden">
@@ -1031,9 +1053,7 @@ import {
   getFirestore, initializeFirestore, doc, setDoc, getDoc, onSnapshot, collection, deleteDoc,
   addDoc, query, orderBy, limit, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-import * as THREE from "https://cdn.jsdelivr.net/npm/[email protected]/build/three.module.js";
-import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/[email protected]/examples/jsm/loaders/GLTFLoader.js";
-import { OrbitControls } from "https://cdn.jsdelivr.net/npm/[email protected]/examples/jsm/controls/OrbitControls.js";
+
 
 // ---------- 클릭 사운드 (파일 없이 코드로 생성) ----------
 let audioCtx = null;
@@ -1169,7 +1189,12 @@ async function doLogout(){
   words = [];
   await signOut(auth);
 }
+const bootTimeoutTimer = setTimeout(() => {
+  const el = document.getElementById('bootLoadingText');
+  if(el) el.innerHTML = '연결이 지연되고 있어요...<br><span style="font-size:10px;">네트워크 연결을 확인해주세요</span>';
+}, 8000);
 onAuthStateChanged(auth, (user) => {
+  clearTimeout(bootTimeoutTimer);
   currentUser = user;
   document.getElementById('bootLoading').classList.add('hidden');
   const authView = document.getElementById('authView');
@@ -2115,6 +2140,7 @@ let char3d = {
   weaponMesh: null, clock: null, rafId: null, running: false
 };
 function buildWeaponMesh(type){
+  const THREE = THREE_MOD;
   const group = new THREE.Group();
   if(type === 'sword'){
     const blade = new THREE.Mesh(
@@ -2164,7 +2190,7 @@ function buildWeaponMesh(type){
   return group;
 }
 function updateWeaponAttachment3D(){
-  if(!char3d.inited || !char3d.handBone) return;
+  if(!char3d.inited || !char3d.handBone || !THREE_MOD) return;
   if(char3d.weaponMesh){
     char3d.handBone.remove(char3d.weaponMesh);
     char3d.weaponMesh = null;
@@ -2174,7 +2200,7 @@ function updateWeaponAttachment3D(){
     mesh.position.set(0, 0.02, 0.02);
     mesh.rotation.set(Math.PI / 2, 0, 0);
     if(equippedEssence && mesh.userData.tint){
-      mesh.userData.tint.emissive = new THREE.Color(0xC9A227);
+      mesh.userData.tint.emissive = new THREE_MOD.Color(0xC9A227);
       mesh.userData.tint.emissiveIntensity = 0.6;
     }
     char3d.handBone.add(mesh);
@@ -2209,11 +2235,32 @@ function stopChar3DLoop(){
   char3d.running = false;
   if(char3d.rafId){ cancelAnimationFrame(char3d.rafId); char3d.rafId = null; }
 }
-function initChar3D(){
+let THREE_MOD = null; // 동적으로 불러온 Three.js 모듈을 담아둠 (실패해도 앱 핵심 기능엔 영향 없도록 분리)
+async function initChar3D(){
   if(char3d.inited) return;
   const box = document.getElementById('charPreviewBox');
   if(!box) return;
   char3d.inited = true; // 중복 초기화 방지(로드 중에도)
+
+  let THREE, GLTFLoader, OrbitControls;
+  try{
+    const THREE_VER = '0.128.0';
+    const THREE_BASE = 'https://cdn.jsdelivr.net/npm/three' + '@' + THREE_VER;
+    const [threeMod, gltfMod, controlsMod] = await Promise.all([
+      import(THREE_BASE + '/build/three.module.js'),
+      import(THREE_BASE + '/examples/jsm/loaders/GLTFLoader.js'),
+      import(THREE_BASE + '/examples/jsm/controls/OrbitControls.js')
+    ]);
+    THREE = threeMod;
+    GLTFLoader = gltfMod.GLTFLoader;
+    OrbitControls = controlsMod.OrbitControls;
+    THREE_MOD = THREE;
+  }catch(e){
+    console.error('3D 라이브러리 로드 실패', e);
+    const loadingEl = document.getElementById('char3dLoading');
+    if(loadingEl) loadingEl.textContent = '3D를 불러오지 못했어요 (네트워크 문제일 수 있어요)';
+    return;
+  }
 
   const canvas = document.createElement('canvas');
   canvas.id = 'char3dCanvas';
@@ -2227,7 +2274,7 @@ function initChar3D(){
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.outputEncoding = THREE.sRGBEncoding;
 
   const hemi = new THREE.HemisphereLight(0xffffff, 0x5a5248, 2.2);
   scene.add(hemi);
@@ -2680,7 +2727,23 @@ async function extractTextLayer(pdf, onProgress){
 
 const OCR_PAGE_LIMIT = 40;
 
+let tesseractLoadPromise = null;
+function loadTesseractScript(){
+  if(window.Tesseract) return Promise.resolve();
+  if(tesseractLoadPromise) return tesseractLoadPromise;
+  tesseractLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    const parts = ['https://cdn.jsdelivr.net/npm/tesseract.js', '5', '/dist/tesseract.min.js'];
+    script.src = parts[0] + '@' + parts[1] + parts[2];
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('OCR 라이브러리 로드 실패'));
+    document.head.appendChild(script);
+  });
+  return tesseractLoadPromise;
+}
+
 async function extractTextViaOcr(pdf, onProgress){
+  await loadTesseractScript();
   const pageCount = Math.min(pdf.numPages, OCR_PAGE_LIMIT);
   const worker = await Tesseract.createWorker('eng+kor');
   let fullText = '';
