@@ -474,6 +474,7 @@
   .master-field input{width:80px;border:none;background:transparent;text-align:right;font-family:'Playfair Display',serif;font-size:16px;color:var(--ink);outline:none;}
   .master-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #EAE7E0;font-size:13px;}
   .master-item .mi-sub{font-size:10px;color:#A39E92;margin-left:6px;}
+  .motion-chip.sel{background:var(--ink);color:#fff;border-color:var(--ink);}
   .motion-chip:active{background:var(--ink);color:#fff;}
   #battle3dCanvas{position:absolute;left:0;top:0;z-index:0;pointer-events:none;}
   .battle-arena .battle-side{position:relative;z-index:1;}
@@ -837,6 +838,7 @@
         </div>
         <div class="motion-bar" id="robotMotionBar"></div>
         <div class="color-bar" id="robotColorBar"></div>
+        <div class="motion-bar" id="robotModelBar" style="margin-top:-6px;"></div>
 
         <div class="char-points">포인트 <b id="charRemaining">0</b> / <span id="charTotal">0</span></div>
         <p class="hint" style="margin:2px 0 14px;">단어를 저장할 때마다 포인트가 1씩 생겨요. 원하는 스탯에 자유롭게 배분하세요.</p>
@@ -930,6 +932,9 @@
       <div class="char-divider"></div>
       <div class="char-points" style="margin-bottom:8px;">장비 지급</div>
       <div id="masterItemList"></div>
+      <div class="char-divider"></div>
+      <div class="char-points" style="margin-bottom:8px;">캐릭터 모델 해금</div>
+      <div id="masterModelList"></div>
       <div style="display:flex;gap:8px;margin-top:10px;">
         <button type="button" class="add-btn" id="masterGiveAllBtn">전부 지급</button>
         <button type="button" class="add-btn" id="masterClearBtn" style="background:transparent;color:var(--ink);">장비 모두 삭제</button>
@@ -1324,6 +1329,7 @@ onAuthStateChanged(auth, (user) => {
     equippedEssence = null;
     equippedShield = false;
     robotColor = null;
+    selectedModel = 'robot'; unlockedModels = ['robot'];
     charStats = { atk:0, def:0, agi:0, int:0 };
     tickets = 0; totalCorrect = 0; equipment = [];
     charDataLoaded = false;
@@ -1402,6 +1408,11 @@ function subscribeWords(){
       needEquipReset = true;
     }
     robotColor = data.robotColor || null;
+    unlockedModels = Array.isArray(data.unlockedModels) ? data.unlockedModels : ['robot'];
+    selectedModel = data.selectedModel || 'robot';
+    normalizeModelState();
+    if(char3d.model && char3d.modelKey !== selectedModel) loadCharModel(selectedModel);
+    else if(char3d.model) buildModelBar();
     applyRobotColorEverywhere();
     if(document.getElementById('robotColorBar') && char3d.model) buildColorBar();
     charDataLoaded = true;
@@ -1452,6 +1463,7 @@ async function updateGroupCount(){
         weapon: equippedWeapon || null,
         ...battleLoadout(),
         color: robotColor || null,
+        model: selectedModel,
         power: powerScore(st)
       }
     }, { merge:true });
@@ -1601,6 +1613,7 @@ function makeFighter(name, b){
     wTier: b ? (b.wTier || null) : null, wEss: b ? (b.wEss || null) : null,
     shieldOn: !!(b && b.shield), sTier: b ? (b.sTier || null) : null, sEss: b ? (b.sEss || null) : null,
     color: (b && b.color) ? b.color : null,
+    model: (b && CHAR_MODELS[b.model]) ? b.model : 'robot',
     atk: st.atk||0, def: st.def||0, agi: st.agi||0, int: st.int||0,
     maxHp: 100 + (st.def||0) * 3,
     hp: 100 + (st.def||0) * 3,
@@ -1749,7 +1762,7 @@ function startBattle(foeUid){
 
   const me = makeFighter(
     (meM && (meM.nickname || (meM.email||'').split('@')[0])) || '나',
-    meM ? meM.battle : { stats: totalStats(), gender: myGender, essence: equippedEssence, weapon: equippedWeapon, color: robotColor, ...battleLoadout() }
+    meM ? meM.battle : { stats: totalStats(), gender: myGender, essence: equippedEssence, weapon: equippedWeapon, color: robotColor, model: selectedModel, ...battleLoadout() }
   );
   const foe = makeFighter(foeM.nickname || (foeM.email||'').split('@')[0], foeM.battle);
 
@@ -2479,8 +2492,8 @@ function scheduleRobotGesture(){
   clearTimeout(robotGestureTimer);
   robotGestureTimer = setTimeout(() => {
     if(char3d.running && char3d.mixer && char3d.clips){
-      const name = ROBOT_GESTURES[Math.floor(Math.random() * ROBOT_GESTURES.length)];
-      const clip = char3d.clips.find(c => c.name === name);
+      const cand = char3d.clips.filter(c => /(wave|thumbs|yes|dance|jump|agree|headshake|^no$)/i.test(c.name));
+      const clip = cand.length ? cand[Math.floor(Math.random() * cand.length)] : null;
       if(clip){
         const act = char3d.mixer.clipAction(clip);
         act.reset();
@@ -2508,6 +2521,20 @@ function renderMaster(){
     `<label class="master-field"><span>${STAT_LABELS[k]}</span><input type="number" min="0" inputmode="numeric" data-mstat="${k}" value="${charStats[k]}"></label>`
   ).join('');
   document.getElementById('masterTickets').value = tickets;
+  const ml = document.getElementById('masterModelList');
+  ml.innerHTML = Object.keys(CHAR_MODELS).filter(k => k !== 'robot').map(k => {
+    const on = unlockedModels.includes(k);
+    return `<div class="master-item"><div><b>${CHAR_MODELS[k].label}</b></div>
+      <button type="button" class="stat-btn" data-unlock="${k}" style="width:auto;padding:0 10px;font-size:11px;${on ? 'background:var(--ink);color:#fff;' : ''}">${on ? '해금됨' : '해금'}</button></div>`;
+  }).join('');
+  ml.querySelectorAll('[data-unlock]').forEach(btn => btn.addEventListener('click', () => {
+    const k = btn.dataset.unlock;
+    if(unlockedModels.includes(k)){
+      unlockedModels = unlockedModels.filter(x => x !== k);
+      if(selectedModel === k){ selectedModel = 'robot'; loadCharModel('robot'); }
+    }else unlockedModels.push(k);
+    buildModelBar(); saveCharacter(); renderMaster();
+  }));
   const list = document.getElementById('masterItemList');
   list.innerHTML = EQUIPMENT_POOL.map((it, i) => `
     <div class="master-item">
@@ -2556,11 +2583,15 @@ function applyRobotColor(model, hex){
   });
 }
 function applyRobotColorEverywhere(){
-  if(char3d.model) applyRobotColor(char3d.model, robotColor);
+  const paintable = !!(CHAR_MODELS[char3d.modelKey] && CHAR_MODELS[char3d.modelKey].paint);
+  if(char3d.model) applyRobotColor(char3d.model, paintable ? robotColor : null);
 }
 function buildColorBar(){
   const bar = document.getElementById('robotColorBar');
   if(!bar) return;
+  const paintable = !!(CHAR_MODELS[char3d.modelKey] && CHAR_MODELS[char3d.modelKey].paint);
+  bar.style.display = paintable ? '' : 'none';
+  if(!paintable){ bar.innerHTML = ''; return; }
   bar.innerHTML = '<span class="hint" style="margin:0 4px 0 0;">몸 색</span>';
   ROBOT_COLORS.forEach(hex => {
     const b = document.createElement('button');
@@ -2673,61 +2704,137 @@ async function initChar3D(){
   char3d.controls = controls;
   char3d.clock = new THREE.Clock();
 
-  const loader = new GLTFLoader();
-  const MODEL_URLS = [
-    ROBOT_GLB_URL,
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js' + '@' + 'r128/examples/models/gltf/RobotExpressive/RobotExpressive.glb',
-    'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb'
-  ];
-  let modelTry = 0;
-  const tryLoadModel = () => loader.load(MODEL_URLS[modelTry], onModelLoaded, undefined, (err) => {
-    console.warn('모델 경로 실패:', MODEL_URLS[modelTry], err);
-    modelTry++;
-    if(modelTry < MODEL_URLS.length) tryLoadModel();
-    else show2DFallback('모델: ' + (err && err.message ? err.message : '불러오기 실패'));
-  });
-  tryLoadModel();
-  function onModelLoaded(gltf){
-    const model = gltf.scene;
-    model.scale.setScalar(0.4);
-    scene.add(model);
-    char3d.model = model;
-
-    const mixer = new THREE.AnimationMixer(model);
-    const idleClip = gltf.animations.find(c => c.name === 'Idle') || gltf.animations[0];
-    if(idleClip){
-      const action = mixer.clipAction(idleClip);
-      action.play();
-      char3d.idleAction = action;
-    }
-    char3d.mixer = mixer;
-    char3d.clips = gltf.animations;
-
-    const hb = findHandBones(model);
-    char3d.handBone = hb.r || hb.l || null;
-    char3d.handBoneL = hb.l || null;
-
-    // 몇 초마다 랜덤 동작(손 흔들기, 엄지척, 춤 등) 하고 다시 대기 자세로
-    mixer.addEventListener('finished', () => {
-      if(char3d.idleAction){
-        char3d.idleAction.reset().fadeIn(0.3).play();
-      }
-    });
-    scheduleRobotGesture();
-    buildMotionBar();
-    applyRobotColorEverywhere();
-    buildColorBar();
-
-    updateWeaponAttachment3D();
-
-    const loadingEl = document.getElementById('char3dLoading');
-    if(loadingEl) loadingEl.remove();
-
-    resizeChar3D();
-    startChar3DLoop();
-  }
+  loadCharModel(selectedModel);
 
   window.addEventListener('resize', resizeChar3D);
+}
+
+// ---------- 캐릭터 모델 (선택 / 해금) ----------
+const CHAR_MODELS = {
+  robot:    { label:'로봇',   file:'RobotExpressive/RobotExpressive.glb', scale:0.4, paint:true },
+  michelle: { label:'미셸',   file:'Michelle.glb', scale:0.9 },
+  xbot:     { label:'엑스봇', file:'Xbot.glb',     scale:0.9 },
+  soldier:  { label:'군인',   file:'Soldier.glb',  scale:0.9 }
+};
+function modelUrls(key){
+  const f = (CHAR_MODELS[key] || CHAR_MODELS.robot).file;
+  return [
+    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/' + f,
+    'https://threejs.org/examples/models/gltf/' + f,
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js' + '@' + 'dev/examples/models/gltf/' + f
+  ];
+}
+let selectedModel = 'robot';
+let unlockedModels = ['robot'];
+function normalizeModelState(){
+  if(!Array.isArray(unlockedModels)) unlockedModels = ['robot'];
+  unlockedModels = unlockedModels.filter(k => CHAR_MODELS[k]);
+  if(!unlockedModels.includes('robot')) unlockedModels.unshift('robot');
+  if(!CHAR_MODELS[selectedModel] || !unlockedModels.includes(selectedModel)) selectedModel = 'robot';
+}
+function loadGLBFromUrls(urls){
+  return new Promise((resolve, reject) => {
+    const loader = new char3d.GLTFLoader();
+    let i = 0;
+    const next = () => loader.load(urls[i], resolve, undefined, (err) => {
+      console.warn('모델 경로 실패:', urls[i], err);
+      i++;
+      if(i < urls.length) next(); else reject(err);
+    });
+    next();
+  });
+}
+const CLIP_ALIASES = {
+  Idle:/idle/i, Punch:/punch|attack|strike|slash|kick/i, Wave:/wave|thumbs|agree|yes/i,
+  Jump:/jump/i, Dance:/dance|victory|mixamo|agree/i, Death:/death|die|sad|fall|lose/i
+};
+function resolveClip(clips, name){
+  if(!clips || !clips.length) return null;
+  const ex = clips.find(c => c.name.toLowerCase() === name.toLowerCase());
+  if(ex) return ex;
+  const re = CLIP_ALIASES[name];
+  if(re){ const m = clips.find(c => re.test(c.name)); if(m) return m; }
+  if(name === 'Idle') return clips.find(c => !/tpose/i.test(c.name)) || clips[0] || null;
+  return null;
+}
+async function loadCharModel(key){
+  if(!char3d.scene || !THREE_MOD || !char3d.GLTFLoader) return;
+  const cfg = CHAR_MODELS[key] || CHAR_MODELS.robot;
+  const T = THREE_MOD;
+  const seq = (char3d.loadSeq = (char3d.loadSeq || 0) + 1);
+  let gltf;
+  try{ gltf = await loadGLBFromUrls(modelUrls(key)); }
+  catch(err){
+    if(!char3d.model) show2DFallback('모델: ' + (err && err.message ? err.message : '불러오기 실패'));
+    return;
+  }
+  if(seq !== char3d.loadSeq) return;
+
+  clearTimeout(robotGestureTimer); clearTimeout(char3d.motionTimer);
+  if(char3d.model){
+    if(char3d.weaponMesh && char3d.weaponMesh.parent) char3d.weaponMesh.parent.remove(char3d.weaponMesh);
+    if(char3d.shieldMesh && char3d.shieldMesh.parent) char3d.shieldMesh.parent.remove(char3d.shieldMesh);
+    char3d.weaponMesh = null; char3d.shieldMesh = null;
+    char3d.scene.remove(char3d.model);
+    if(char3d.mixer) char3d.mixer.stopAllAction();
+  }
+  const model = gltf.scene;
+  model.scale.setScalar(cfg.scale);
+  char3d.scene.add(model);
+  char3d.model = model;
+  char3d.modelKey = key;
+
+  const mixer = new T.AnimationMixer(model);
+  const idleClip = resolveClip(gltf.animations, 'Idle');
+  char3d.idleAction = null; char3d.curMotion = null;
+  if(idleClip){
+    const action = mixer.clipAction(idleClip);
+    action.play();
+    char3d.idleAction = action;
+  }
+  char3d.mixer = mixer;
+  char3d.clips = gltf.animations;
+
+  const hb = findHandBones(model);
+  char3d.handBone = hb.r || hb.l || null;
+  char3d.handBoneL = hb.l || null;
+
+  mixer.addEventListener('finished', () => {
+    if(char3d.idleAction) char3d.idleAction.reset().fadeIn(0.3).play();
+  });
+  scheduleRobotGesture();
+  buildMotionBar();
+  applyRobotColorEverywhere();
+  buildColorBar();
+  buildModelBar();
+  updateWeaponAttachment3D();
+
+  const loadingEl = document.getElementById('char3dLoading');
+  if(loadingEl) loadingEl.remove();
+  resizeChar3D();
+  startChar3DLoop();
+}
+function buildModelBar(){
+  const bar = document.getElementById('robotModelBar');
+  if(!bar) return;
+  bar.innerHTML = '<span class="hint" style="margin:0 4px 0 0;">캐릭터</span>';
+  Object.keys(CHAR_MODELS).forEach(key => {
+    const unlocked = unlockedModels.includes(key);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'motion-chip' + (key === selectedModel ? ' sel' : '');
+    b.textContent = CHAR_MODELS[key].label + (unlocked ? '' : ' (잠김)');
+    b.disabled = !unlocked;
+    if(!unlocked) b.style.opacity = '.45';
+    b.addEventListener('click', () => {
+      if(!unlocked || key === selectedModel) return;
+      selectedModel = key;
+      loadCharModel(key);
+      buildModelBar();
+      saveCharacter();
+    });
+    bar.appendChild(b);
+  });
 }
 
 // ---------- 로봇 동작 전부 (13가지) ----------
@@ -2741,7 +2848,7 @@ function buildMotionBar(){
   if(!bar || !char3d.clips) return;
   bar.innerHTML = '';
   char3d.clips.forEach(c => {
-    if(c.name === 'TPose') return;
+    if(/tpose/i.test(c.name)) return;
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'motion-chip';
@@ -2756,9 +2863,10 @@ function playRobotMotion(name){
   if(!clip) return;
   const T = THREE_MOD;
   const act = char3d.mixer.clipAction(clip);
-  const oneShot = ROBOT_ONE_SHOT.includes(name) || name === 'Death' || name === 'Standing' || name === 'Sitting';
+  const oneShot = !/(idle|walk|run|dance|sneak|mixamo)/i.test(name);
+  const holdEnd = /(death|sitting|sad)/i.test(name);
   act.reset();
-  if(oneShot){ act.setLoop(T.LoopOnce, 1); act.clampWhenFinished = (name === 'Death' || name === 'Sitting'); }
+  if(oneShot){ act.setLoop(T.LoopOnce, 1); act.clampWhenFinished = holdEnd; }
   else act.setLoop(T.LoopRepeat, Infinity);
   if(char3d.curMotion && char3d.curMotion !== act) char3d.curMotion.fadeOut(0.25);
   if(char3d.idleAction) char3d.idleAction.fadeOut(0.25);
@@ -2766,7 +2874,7 @@ function playRobotMotion(name){
   char3d.curMotion = act;
   clearTimeout(char3d.motionTimer);
   let ms = oneShot ? clip.duration * 1000 + 700 : 3600;
-  if(name === 'Death' || name === 'Sitting') ms = clip.duration * 1000 + 1200;
+  if(holdEnd) ms = clip.duration * 1000 + 1200;
   char3d.motionTimer = setTimeout(() => {
     act.fadeOut(0.3);
     if(char3d.idleAction) char3d.idleAction.reset().fadeIn(0.3).play();
@@ -2831,32 +2939,45 @@ async function ensureBattle3D(){
     camera.position.set(0, 1.0, 6.4);
     camera.lookAt(0, 0.9, 0);
     Object.assign(b3d, { renderer, scene, camera, canvas, clock: new T.Clock() });
-
-    const [g1, g2] = await Promise.all([loadRobotGLB(), loadRobotGLB()]);
-    [['me', g1, -1.9, Math.PI/2, 0x00262e], ['foe', g2, 1.9, -Math.PI/2, 0x2e1400]].forEach(([key, g, x, rotY, em]) => {
-      const model = g.scene;
-      model.scale.setScalar(0.4);
-      model.position.set(x, 0, 0);
-      model.rotation.y = rotY;
-      const emissive = new T.Color(em);
-      model.traverse(o => {
-        if(o.isMesh && o.material){
-          const mats = Array.isArray(o.material) ? o.material : [o.material];
-          mats.forEach(m => { if(m.emissive){ m.emissive.copy(emissive); m.userData.baseEm = emissive.clone(); } });
-        }
-      });
-      scene.add(model);
-      b3d.rob[key] = { model, mixer: new T.AnimationMixer(model), clips: g.animations, hand: (() => { const h = findHandBones(model); return h.r || h.l || null; })(), handL: findHandBones(model).l,
-        baseX: x, offX: 0, jitter: 0, cur: null, weapon: null, t: null };
-    });
     b3d.ready = true;
     return true;
   })().catch(e => { console.warn('대결 3D 준비 실패', e); return false; });
   return b3d.loading;
 }
+async function b3dEnsureModel(key, modelKey){
+  const cur = b3d.rob[key];
+  if(cur && cur.modelKey === modelKey) return;
+  const T = THREE_MOD;
+  const cfg = CHAR_MODELS[modelKey] || CHAR_MODELS.robot;
+  const g = await loadGLBFromUrls(modelUrls(modelKey));
+  if(cur){
+    clearTimeout(cur.t);
+    if(cur.weapon && cur.weapon.parent) cur.weapon.parent.remove(cur.weapon);
+    if(cur.shield && cur.shield.parent) cur.shield.parent.remove(cur.shield);
+    b3d.scene.remove(cur.model);
+    cur.mixer.stopAllAction();
+  }
+  const x = key === 'me' ? -1.9 : 1.9;
+  const rotY = key === 'me' ? Math.PI / 2 : -Math.PI / 2;
+  const em = key === 'me' ? 0x00262e : 0x2e1400;
+  const model = g.scene;
+  model.scale.setScalar(cfg.scale);
+  model.position.set(x, 0, 0);
+  model.rotation.y = rotY;
+  const emissive = new T.Color(em);
+  model.traverse(o => {
+    if(o.isMesh && o.material){
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if(m.emissive){ m.emissive.copy(emissive); m.userData.baseEm = emissive.clone(); } });
+    }
+  });
+  b3d.scene.add(model);
+  const hb = findHandBones(model);
+  b3d.rob[key] = { model, modelKey, mixer: new T.AnimationMixer(model), clips: g.animations, hand: hb.r || hb.l || null, handL: hb.l || null,
+    baseX: x, offX: 0, jitter: 0, cur: null, weapon: null, shield: null, t: null };
+}
 function b3dPlay(rob, name, once){
   if(!rob || !THREE_MOD) return 0;
-  const clip = rob.clips.find(c => c.name === name);
+  const clip = resolveClip(rob.clips, name);
   if(!clip) return 0;
   const T = THREE_MOD;
   const act = rob.mixer.clipAction(clip);
@@ -2946,6 +3067,7 @@ function b3dLoop(){
 async function prepareBattle3D(me, foe){
   const ok = await ensureBattle3D();
   if(!ok) return false;
+  try{ await Promise.all([b3dEnsureModel('me', me.model), b3dEnsureModel('foe', foe.model)]); }catch(e){ console.warn('대결 모델 로드 실패', e); return false; }
   const arena = document.querySelector('.battle-arena');
   arena.classList.add('b3d-on');
   b3d.canvas.style.display = 'block';
@@ -2955,7 +3077,7 @@ async function prepareBattle3D(me, foe){
     r.offX = 0; r.jitter = 0;
     r.model.position.x = r.baseX;
     b3dSetEmissive(r, null);
-    applyRobotColor(r.model, fighters[k].color);
+    applyRobotColor(r.model, (CHAR_MODELS[r.modelKey] && CHAR_MODELS[r.modelKey].paint) ? fighters[k].color : null);
     b3dPlay(r, 'Idle', false);
     b3dAttachWeapon(r, fighters[k]);
   });
@@ -3214,7 +3336,7 @@ async function doSaveCharacter(){
   }
   try{
     await setDoc(doc(db, 'vocab', currentUser.uid), {
-      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, equipmentVersion: 3
+      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 3
     }, { merge:true });
   }catch(e){ console.error('캐릭터 저장 실패', e); }
   updateGroupCount();
