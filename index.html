@@ -469,6 +469,11 @@
   .color-bar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:-6px 0 16px;}
   .color-dot{width:26px;height:26px;border-radius:50%;border:2px solid #DBD7CE;cursor:pointer;padding:0;}
   .color-dot.sel{border-color:var(--ink);box-shadow:0 0 0 2px #fff, 0 0 0 3px var(--ink);}
+  .master-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .master-field{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #DBD7CE;padding:4px 0;font-size:13px;}
+  .master-field input{width:80px;border:none;background:transparent;text-align:right;font-family:'Playfair Display',serif;font-size:16px;color:var(--ink);outline:none;}
+  .master-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #EAE7E0;font-size:13px;}
+  .master-item .mi-sub{font-size:10px;color:#A39E92;margin-left:6px;}
   .motion-chip:active{background:var(--ink);color:#fff;}
   #battle3dCanvas{position:absolute;left:0;top:0;z-index:0;pointer-events:none;}
   .battle-arena .battle-side{position:relative;z-index:1;}
@@ -782,6 +787,10 @@
           <span class="mc-title">PDF로 단어 가져오기</span>
           <span class="mc-sub">단어장 PDF에서 자동으로 찾기</span>
         </button>
+        <button type="button" id="menuMasterBtn" class="menu-choice-btn hidden">
+          <span class="mc-title">마스터피스</span>
+          <span class="mc-sub">레벨(스탯)과 장비를 원하는 대로 설정</span>
+        </button>
       </div>
     </div>
   </div>
@@ -902,6 +911,32 @@
   </div>
 
   <!-- PDF 가져오기 안내 드로어 -->
+  <div id="masterOverlay" class="drawer-overlay hidden">
+    <div class="drawer">
+      <div class="drawer-header">
+        <h2>마스터피스</h2>
+        <button id="closeMasterBtn">✕</button>
+      </div>
+      <p class="hint" style="margin:0 0 14px;text-align:left;">내 계정에서만 보이는 설정이에요. 스탯과 티켓을 원하는 숫자로 바꾸고, 장비를 바로 받을 수 있어요.</p>
+      <div class="char-points" style="margin-bottom:8px;">스탯 직접 설정</div>
+      <div id="masterStatInputs" class="master-grid"></div>
+      <div class="master-grid" style="margin-top:8px;">
+        <label class="master-field"><span>티켓</span><input type="number" id="masterTickets" min="0" inputmode="numeric"></label>
+      </div>
+      <div style="display:flex;gap:8px;margin:12px 0 4px;">
+        <button type="button" class="add-btn" id="masterApplyBtn">적용</button>
+        <button type="button" class="add-btn" id="masterMaxBtn" style="background:transparent;color:var(--ink);">스탯 전부 999</button>
+      </div>
+      <div class="char-divider"></div>
+      <div class="char-points" style="margin-bottom:8px;">장비 지급</div>
+      <div id="masterItemList"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button type="button" class="add-btn" id="masterGiveAllBtn">전부 지급</button>
+        <button type="button" class="add-btn" id="masterClearBtn" style="background:transparent;color:var(--ink);">장비 모두 삭제</button>
+      </div>
+    </div>
+  </div>
+
   <div id="pdfMenuOverlay" class="drawer-overlay hidden">
     <div class="drawer">
       <div class="drawer-header">
@@ -1279,6 +1314,7 @@ onAuthStateChanged(auth, (user) => {
     closeGacha();
     closeBattle();
     closeMenu();
+    closeMaster();
     stopHeartbeat();
     if(unsubscribeGroup){ unsubscribeGroup(); unsubscribeGroup = null; }
     if(unsubscribeChat){ unsubscribeChat(); unsubscribeChat = null; }
@@ -2116,6 +2152,7 @@ function calNextMonth(){
 
 // ---------- 메뉴 선택 ----------
 function openMenu(){
+  updateMasterVisibility();
   document.getElementById('menuOverlay').classList.remove('hidden');
 }
 function closeMenu(){
@@ -2456,6 +2493,50 @@ function scheduleRobotGesture(){
     scheduleRobotGesture();
   }, 5000 + Math.random() * 4000);
 }
+// ---------- 마스터피스 (내 계정 전용) ----------
+const MASTER_EMAIL = 'suhyoungjun2010' + '@' + 'gmail' + '.com';
+function isMaster(){
+  return !!(currentUser && currentUser.email && currentUser.email.toLowerCase() === MASTER_EMAIL);
+}
+function updateMasterVisibility(){
+  const b = document.getElementById('menuMasterBtn');
+  if(b) b.classList.toggle('hidden', !isMaster());
+}
+function renderMaster(){
+  const box = document.getElementById('masterStatInputs');
+  box.innerHTML = Object.keys(STAT_LABELS).map(k =>
+    `<label class="master-field"><span>${STAT_LABELS[k]}</span><input type="number" min="0" inputmode="numeric" data-mstat="${k}" value="${charStats[k]}"></label>`
+  ).join('');
+  document.getElementById('masterTickets').value = tickets;
+  const list = document.getElementById('masterItemList');
+  list.innerHTML = EQUIPMENT_POOL.map((it, i) => `
+    <div class="master-item">
+      <div><b>${escapeHtml(it.name)}</b><span class="mi-sub">${it.rarity} · ${STAT_LABELS[it.stat]} +${it.bonus}</span></div>
+      <button type="button" class="stat-btn" data-give="${i}" style="width:auto;padding:0 10px;font-size:11px;">+ 받기</button>
+    </div>`).join('');
+  list.querySelectorAll('[data-give]').forEach(btn => btn.addEventListener('click', () => {
+    giveItem(EQUIPMENT_POOL[+btn.dataset.give]);
+    btn.textContent = '받음 ✓';
+  }));
+}
+function giveItem(it){
+  equipment.push({ name: it.name, rarity: it.rarity, stat: it.stat, bonus: it.bonus, obtainedAt: Date.now() + Math.random() });
+  renderCharacterWidget(); renderCharacter(); saveCharacter();
+}
+function masterApply(){
+  document.querySelectorAll('[data-mstat]').forEach(inp => {
+    charStats[inp.dataset.mstat] = Math.max(0, parseInt(inp.value, 10) || 0);
+  });
+  tickets = Math.max(0, parseInt(document.getElementById('masterTickets').value, 10) || 0);
+  renderCharacterWidget(); renderCharacter(); saveCharacter();
+}
+function openMaster(){
+  if(!isMaster()) return;
+  renderMaster();
+  document.getElementById('masterOverlay').classList.remove('hidden');
+}
+function closeMaster(){ document.getElementById('masterOverlay').classList.add('hidden'); }
+
 let robotColor = null; // 로봇 몸 색 (null이면 원래 흰색)
 const ROBOT_COLORS = [null, '#4FC3F7', '#FF5252', '#FFC107', '#B388FF', '#69F0AE', '#FF80AB', '#37474F'];
 function applyRobotColor(model, hex){
@@ -2999,7 +3080,7 @@ async function pickGender(gender){
 function renderCharacter(){
   const total = words.length;
   const allocated = charStats.atk + charStats.def + charStats.agi + charStats.int;
-  const remaining = total - allocated;
+  const remaining = Math.max(0, total - allocated);
   document.getElementById('charTotal').textContent = total;
   document.getElementById('charRemaining').textContent = remaining;
 
@@ -3862,6 +3943,24 @@ document.getElementById('menuOverlay').addEventListener('click', (e) => { if(e.t
 document.getElementById('menuCalBtn').addEventListener('click', () => { closeMenu(); openCalendar(); });
 document.getElementById('menuCharBtn').addEventListener('click', () => { closeMenu(); openCharacter(); });
 document.getElementById('menuGachaBtn').addEventListener('click', () => { closeMenu(); openGacha(); });
+document.getElementById('menuMasterBtn').addEventListener('click', () => { closeMenu(); openMaster(); });
+document.getElementById('closeMasterBtn').addEventListener('click', closeMaster);
+document.getElementById('masterOverlay').addEventListener('click', (e) => { if(e.target.id === 'masterOverlay') closeMaster(); });
+document.getElementById('masterApplyBtn').addEventListener('click', () => { masterApply(); const b = document.getElementById('masterApplyBtn'); b.textContent = '적용됨 ✓'; setTimeout(() => b.textContent = '적용', 1200); });
+document.getElementById('masterMaxBtn').addEventListener('click', () => {
+  document.querySelectorAll('[data-mstat]').forEach(inp => inp.value = 999);
+  masterApply();
+});
+document.getElementById('masterGiveAllBtn').addEventListener('click', () => {
+  EQUIPMENT_POOL.forEach(it => equipment.push({ name: it.name, rarity: it.rarity, stat: it.stat, bonus: it.bonus, obtainedAt: Date.now() + Math.random() }));
+  renderCharacterWidget(); renderCharacter(); saveCharacter();
+  document.querySelectorAll('[data-give]').forEach(b => b.textContent = '받음 ✓');
+});
+document.getElementById('masterClearBtn').addEventListener('click', () => {
+  equipment = []; equippedWeapon = null; equippedEssence = null; equippedShield = false;
+  renderCharacterWidget(); renderCharacter(); saveCharacter();
+  renderMaster();
+});
 document.getElementById('menuPdfBtn').addEventListener('click', () => { closeMenu(); document.getElementById('pdfMenuOverlay').classList.remove('hidden'); });
 document.getElementById('closePdfMenuBtn').addEventListener('click', () => document.getElementById('pdfMenuOverlay').classList.add('hidden'));
 document.getElementById('pdfMenuOverlay').addEventListener('click', (e) => { if(e.target.id === 'pdfMenuOverlay') e.target.classList.add('hidden'); });
