@@ -437,11 +437,22 @@
   }
   @keyframes charIdle{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
   .char-preview-box{
-    width:100%;height:180px;display:flex;align-items:center;justify-content:center;
-    background:#FAF9F7;border:1px solid #EAE7E0;border-radius:2px;margin-bottom:16px;
+    position:relative;
+    width:100%;height:220px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,#E8EEE4,#D7E0D1);border:1px solid #EAE7E0;border-radius:2px;margin-bottom:16px;
     overflow:hidden;
   }
   .char-preview-box .char-widget-inner{width:100%;height:100%;}
+  #char3dCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;}
+  #char3dCanvas:active{cursor:grabbing;}
+  .char3d-hint{
+    position:absolute;bottom:6px;left:0;right:0;text-align:center;
+    font-size:10px;color:#A39E92;font-family:'Noto Serif KR',serif;pointer-events:none;
+  }
+  .char3d-loading{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:12px;color:#A39E92;font-family:'Noto Serif KR',serif;
+  }
 
   /* 장비 뽑기 상자 */
   .gacha-box-wrap{display:flex;justify-content:center;padding:26px 0 10px;}
@@ -736,8 +747,9 @@
 
       <!-- 캐릭터 본문 -->
       <div id="charBody" class="hidden">
-        <div class="char-preview-box">
-          <div id="charPreview" class="char-widget-inner"></div>
+        <div class="char-preview-box" id="charPreviewBox">
+          <div class="char3d-loading" id="char3dLoading">3D 모델 불러오는 중...</div>
+          <span class="char3d-hint">드래그해서 돌려보세요</span>
         </div>
 
         <div class="char-points">포인트 <b id="charRemaining">0</b> / <span id="charTotal">0</span></div>
@@ -1019,6 +1031,9 @@ import {
   getFirestore, initializeFirestore, doc, setDoc, getDoc, onSnapshot, collection, deleteDoc,
   addDoc, query, orderBy, limit, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import * as THREE from "https://cdn.jsdelivr.net/npm/[email protected]/build/three.module.js";
+import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/[email protected]/examples/jsm/loaders/GLTFLoader.js";
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/[email protected]/examples/jsm/controls/OrbitControls.js";
 
 // ---------- 클릭 사운드 (파일 없이 코드로 생성) ----------
 let audioCtx = null;
@@ -1191,6 +1206,7 @@ onAuthStateChanged(auth, (user) => {
     equippedEssence = null;
     charStats = { atk:0, def:0, agi:0, int:0 };
     tickets = 0; totalCorrect = 0; equipment = [];
+    charDataLoaded = false;
     showGroupJoin();
     words = [];
   }
@@ -1258,6 +1274,7 @@ function subscribeWords(){
     }
     equippedWeapon = data.equippedWeapon || null;
     equippedEssence = data.equippedEssence || null;
+    charDataLoaded = true;
     renderCharacterWidget();
     if(!document.getElementById('charOverlay').classList.contains('hidden')){
       renderCharacter();
@@ -1792,12 +1809,12 @@ async function lookupWord(){
   let entryData = null;
   let lastError = null;
   try{
-    entryData = await fetchFromFreeDictionary(word);
+    entryData = await fetchFromDatamuse(word);
   }catch(e1){
     lastError = e1;
     try{
       panel.innerHTML = `<div class="dp-empty">다른 사전에서 찾는 중...</div>`;
-      entryData = await fetchFromDatamuse(word);
+      entryData = await fetchFromFreeDictionary(word);
     }catch(e2){
       lastError = e2;
     }
@@ -1985,6 +2002,7 @@ let tickets = 0;
 let totalCorrect = 0;
 let equipment = [];
 let myGender = null;
+let charDataLoaded = false; // 서버에서 진짜 캐릭터 데이터를 한 번이라도 받았는지
 
 const EQUIPMENT_POOL = [
   // 낡은 등급 — 스탯 +10
@@ -2084,12 +2102,189 @@ function renderCharacterWidget(){
     </div>
   `;
   const a = document.getElementById('floatingCharInner');
-  const b = document.getElementById('charPreview');
   if(a) a.innerHTML = html;
-  if(b) b.innerHTML = html;
+  updateWeaponAttachment3D();
 }
 
-// ---------- 캐릭터 좌우 걷기 ----------
+// ---------- 캐릭터 3D 뷰어 ----------
+const SOLDIER_GLB_URL = 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb';
+let char3d = {
+  inited: false,
+  renderer: null, scene: null, camera: null, controls: null,
+  model: null, mixer: null, idleAction: null, handBone: null,
+  weaponMesh: null, clock: null, rafId: null, running: false
+};
+function buildWeaponMesh(type){
+  const group = new THREE.Group();
+  if(type === 'sword'){
+    const blade = new THREE.Mesh(
+      new THREE.BoxGeometry(0.035, 0.46, 0.012),
+      new THREE.MeshStandardMaterial({ color: 0xC9CDD3, metalness: 0.8, roughness: 0.3 })
+    );
+    blade.position.y = 0.33;
+    const guard = new THREE.Mesh(
+      new THREE.BoxGeometry(0.14, 0.025, 0.03),
+      new THREE.MeshStandardMaterial({ color: 0xB08B3C, metalness: 0.7, roughness: 0.35 })
+    );
+    guard.position.y = 0.09;
+    const grip = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.018, 0.018, 0.12, 10),
+      new THREE.MeshStandardMaterial({ color: 0x4A3A2A, roughness: 0.8 })
+    );
+    grip.position.y = 0.02;
+    const pommel = new THREE.Mesh(
+      new THREE.SphereGeometry(0.024, 10, 10),
+      new THREE.MeshStandardMaterial({ color: 0xB08B3C, metalness: 0.7, roughness: 0.35 })
+    );
+    pommel.position.y = -0.045;
+    group.add(blade, guard, grip, pommel);
+    group.userData.tint = blade.material;
+  }else if(type === 'staff'){
+    const pole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.014, 0.016, 0.85, 10),
+      new THREE.MeshStandardMaterial({ color: 0x5C4324, roughness: 0.85 })
+    );
+    pole.position.y = 0.3;
+    const orb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05, 14, 14),
+      new THREE.MeshStandardMaterial({ color: 0x6FB7E8, emissive: 0x3A8FD6, emissiveIntensity: 0.8, roughness: 0.3 })
+    );
+    orb.position.y = 0.74;
+    group.add(pole, orb);
+    group.userData.tint = orb.material;
+  }else{
+    // 건틀렛 / 맨손
+    const fist = new THREE.Mesh(
+      new THREE.BoxGeometry(0.075, 0.09, 0.075),
+      new THREE.MeshStandardMaterial({ color: 0x8A9199, metalness: 0.6, roughness: 0.4 })
+    );
+    group.add(fist);
+    group.userData.tint = fist.material;
+  }
+  return group;
+}
+function updateWeaponAttachment3D(){
+  if(!char3d.inited || !char3d.handBone) return;
+  if(char3d.weaponMesh){
+    char3d.handBone.remove(char3d.weaponMesh);
+    char3d.weaponMesh = null;
+  }
+  if(equippedWeapon){
+    const mesh = buildWeaponMesh(equippedWeapon);
+    mesh.position.set(0, 0.02, 0.02);
+    mesh.rotation.set(Math.PI / 2, 0, 0);
+    if(equippedEssence && mesh.userData.tint){
+      mesh.userData.tint.emissive = new THREE.Color(0xC9A227);
+      mesh.userData.tint.emissiveIntensity = 0.6;
+    }
+    char3d.handBone.add(mesh);
+    char3d.weaponMesh = mesh;
+  }
+}
+function resizeChar3D(){
+  if(!char3d.inited) return;
+  const box = document.getElementById('charPreviewBox');
+  if(!box) return;
+  const w = box.clientWidth, h = box.clientHeight;
+  if(w === 0 || h === 0) return;
+  char3d.camera.aspect = w / h;
+  char3d.camera.updateProjectionMatrix();
+  char3d.renderer.setSize(w, h);
+}
+function animateChar3D(){
+  if(!char3d.running) return;
+  char3d.rafId = requestAnimationFrame(animateChar3D);
+  const dt = char3d.clock.getDelta();
+  if(char3d.mixer) char3d.mixer.update(dt);
+  if(char3d.controls) char3d.controls.update();
+  char3d.renderer.render(char3d.scene, char3d.camera);
+}
+function startChar3DLoop(){
+  if(!char3d.inited || char3d.running) return;
+  char3d.running = true;
+  resizeChar3D();
+  animateChar3D();
+}
+function stopChar3DLoop(){
+  char3d.running = false;
+  if(char3d.rafId){ cancelAnimationFrame(char3d.rafId); char3d.rafId = null; }
+}
+function initChar3D(){
+  if(char3d.inited) return;
+  const box = document.getElementById('charPreviewBox');
+  if(!box) return;
+  char3d.inited = true; // 중복 초기화 방지(로드 중에도)
+
+  const canvas = document.createElement('canvas');
+  canvas.id = 'char3dCanvas';
+  box.insertBefore(canvas, box.firstChild);
+
+  const scene = new THREE.Scene();
+  scene.background = null;
+
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
+  camera.position.set(0, 1.5, 3.4);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x5a5248, 2.2);
+  scene.add(hemi);
+  const dir = new THREE.DirectionalLight(0xffffff, 2);
+  dir.position.set(2, 4, 3);
+  scene.add(dir);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enablePan = false;
+  controls.enableZoom = false;
+  controls.target.set(0, 0.95, 0);
+  controls.minPolarAngle = Math.PI * 0.3;
+  controls.maxPolarAngle = Math.PI * 0.55;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 1.1;
+  controls.addEventListener('start', () => { controls.autoRotate = false; });
+
+  char3d.scene = scene;
+  char3d.camera = camera;
+  char3d.renderer = renderer;
+  char3d.controls = controls;
+  char3d.clock = new THREE.Clock();
+
+  const loader = new GLTFLoader();
+  loader.load(SOLDIER_GLB_URL, (gltf) => {
+    const model = gltf.scene;
+    model.scale.setScalar(1.05);
+    scene.add(model);
+    char3d.model = model;
+
+    const mixer = new THREE.AnimationMixer(model);
+    const idleClip = gltf.animations.find(c => c.name === 'Idle') || gltf.animations[0];
+    if(idleClip){
+      const action = mixer.clipAction(idleClip);
+      action.play();
+      char3d.idleAction = action;
+    }
+    char3d.mixer = mixer;
+    char3d.handBone = model.getObjectByName('mixamorigRightHand') || null;
+
+    updateWeaponAttachment3D();
+
+    const loadingEl = document.getElementById('char3dLoading');
+    if(loadingEl) loadingEl.remove();
+
+    resizeChar3D();
+    startChar3DLoop();
+  }, undefined, (err) => {
+    console.error('3D 모델 로드 실패', err);
+    const loadingEl = document.getElementById('char3dLoading');
+    if(loadingEl) loadingEl.textContent = '3D 모델을 불러오지 못했어요';
+  });
+
+  window.addEventListener('resize', resizeChar3D);
+}
+
+// ---------- 캐릭터 좌우 걷기 (떠다니는 위젯 전용) ----------
 function stepWalk(container){
   if(!myGender) return;
   const wrap = container.querySelector('.char-walk-wrap');
@@ -2112,10 +2307,8 @@ function stepWalk(container){
   }, duration * 1000);
 }
 function walkTick(){
-  ['floatingCharInner', 'charPreview'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el && el.querySelector('.char-scene')) stepWalk(el);
-  });
+  const el = document.getElementById('floatingCharInner');
+  if(el && el.querySelector('.char-scene')) stepWalk(el);
 }
 function scheduleWalk(){
   walkTick();
@@ -2172,6 +2365,8 @@ function openCharacter(){
     document.getElementById('charBody').classList.remove('hidden');
     renderCharacterWidget();
     renderCharacter();
+    if(!char3d.inited) initChar3D();
+    else{ startChar3DLoop(); updateWeaponAttachment3D(); }
   }
   document.getElementById('charOverlay').classList.remove('hidden');
   startBirdAmbience();
@@ -2179,6 +2374,7 @@ function openCharacter(){
 function closeCharacter(){
   document.getElementById('charOverlay').classList.add('hidden');
   stopBirdAmbience();
+  stopChar3DLoop();
 }
 async function pickGender(gender){
   myGender = gender;
@@ -2186,6 +2382,8 @@ async function pickGender(gender){
   document.getElementById('charBody').classList.remove('hidden');
   renderCharacterWidget();
   renderCharacter();
+  if(!char3d.inited) initChar3D();
+  else{ startChar3DLoop(); updateWeaponAttachment3D(); }
   try{
     await setDoc(doc(db, 'vocab', currentUser.uid), { gender }, { merge:true });
   }catch(e){ console.error('성별 저장 실패', e); }
@@ -2302,8 +2500,19 @@ function pickWeightedEquipment(){
   }
   return EQUIPMENT_POOL[0];
 }
-async function saveCharacter(){
+let saveCharacterQueue = Promise.resolve();
+function saveCharacter(){
+  // 저장 요청이 겹쳐서 순서가 뒤바뀌면 최신 데이터가 예전 데이터에 덮어써질 수 있어서,
+  // 한 번에 하나씩, 호출된 순서대로만 서버에 보내도록 줄 세워요.
+  saveCharacterQueue = saveCharacterQueue.then(() => doSaveCharacter());
+  return saveCharacterQueue;
+}
+async function doSaveCharacter(){
   if(!currentUser) return;
+  if(!charDataLoaded){
+    console.warn('캐릭터 데이터 로딩 전이라 저장을 건너뜀 (기존 데이터 보호)');
+    return;
+  }
   try{
     await setDoc(doc(db, 'vocab', currentUser.uid), {
       stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence
