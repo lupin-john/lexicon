@@ -461,6 +461,56 @@
     overflow:hidden;
   }
   .char-preview-box .char-widget-inner{width:100%;height:100%;}
+  .motion-bar{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 16px;}
+  .motion-chip{
+    border:1px solid #DBD7CE;background:transparent;color:var(--ink);
+    font-family:'Noto Serif KR',serif;font-size:11px;padding:5px 9px;border-radius:99px;cursor:pointer;
+  }
+  .motion-chip:active{background:var(--ink);color:#fff;}
+  #battle3dCanvas{position:absolute;left:0;top:0;z-index:0;pointer-events:none;}
+  .battle-arena .battle-side{position:relative;z-index:1;}
+  .battle-arena .battle-vs{position:relative;z-index:1;}
+  .battle-arena.b3d-on{background:linear-gradient(180deg,#02040f 0%,#081833 60%,#0b2a55 100%);}
+  .battle-arena.b3d-on .battle-name{color:#bfefff;}
+  .battle-arena.b3d-on .battle-vs{color:#7fdcff;}
+  .battle-arena.b3d-on .hp-text{color:#9fdcf0;}
+  .battle-arena.b3d-on .dmg-pop{color:#ff6b6b;text-shadow:0 0 6px rgba(0,0,0,.8);}
+  /* 미래적 배경: 어두운 네이비 + 움직이는 네온 격자 바닥 + 떠다니는 빛 입자 */
+  .fut-bg{
+    position:relative;overflow:hidden;
+    background:
+      radial-gradient(ellipse at 50% 105%, rgba(0,229,255,.45), transparent 55%),
+      linear-gradient(180deg,#02040f 0%,#081833 55%,#0b2a55 100%);
+  }
+  .fut-bg::before{
+    content:'';position:absolute;left:-60%;right:-60%;bottom:0;height:52%;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(0,229,255,.55) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,.55) 1px, transparent 1px);
+    background-size:34px 34px;
+    transform:perspective(160px) rotateX(62deg);
+    transform-origin:center bottom;
+    animation:futGrid 1.6s linear infinite;
+    -webkit-mask-image:linear-gradient(to top,#000 10%,transparent 95%);
+    mask-image:linear-gradient(to top,#000 10%,transparent 95%);
+  }
+  .fut-bg::after{
+    content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      radial-gradient(circle, rgba(160,240,255,.95) 0 1.2px, transparent 2px),
+      radial-gradient(circle, rgba(0,229,255,.7) 0 1px, transparent 2px);
+    background-size:70px 90px, 110px 130px;
+    background-position:0 0, 35px 45px;
+    animation:futParticles 7s linear infinite;
+    opacity:.8;
+  }
+  @keyframes futGrid{ from{ background-position:0 0, 0 0; } to{ background-position:0 34px, 0 0; } }
+  @keyframes futParticles{ from{ background-position:0 0, 35px 45px; } to{ background-position:0 -90px, 35px -85px; } }
+  .floating-char.fut-wrap{ border-color:#0ae; box-shadow:0 0 14px rgba(0,229,255,.55), 0 6px 18px rgba(40,35,25,.25); }
+  #floatingCharInner canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;}
+  .char3d-hint{z-index:2;color:#7fdcff !important;}
+  .char3d-loading{z-index:2;color:#7fdcff !important;}
+  #char3dCanvas{z-index:1;}
   #char3dCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;}
   #char3dCanvas:active{cursor:grabbing;}
   .char3d-hint{
@@ -617,7 +667,7 @@
     overflow:hidden;
   }
   .battle-side{flex:1;text-align:center;min-width:0;}
-  .battle-sprite{position:relative;height:110px;display:flex;align-items:flex-end;justify-content:center;}
+  .battle-sprite{position:relative;height:150px;display:flex;align-items:flex-end;justify-content:center;}
   .battle-sprite img{height:100%;width:auto;image-rendering:pixelated;}
   .battle-sprite img.hit{animation:battleHit .35s ease;}
   @keyframes battleHit{
@@ -769,10 +819,11 @@
 
       <!-- 캐릭터 본문 -->
       <div id="charBody" class="hidden">
-        <div class="char-preview-box char-scene" id="charPreviewBox">
+        <div class="char-preview-box fut-bg" id="charPreviewBox">
           <div class="char3d-loading" id="char3dLoading">3D 모델 불러오는 중...</div>
           <span class="char3d-hint">드래그해서 돌려보세요</span>
         </div>
+        <div class="motion-bar" id="robotMotionBar"></div>
 
         <div class="char-points">포인트 <b id="charRemaining">0</b> / <span id="charTotal">0</span></div>
         <p class="hint" style="margin:2px 0 14px;">단어를 저장할 때마다 포인트가 1씩 생겨요. 원하는 스탯에 자유롭게 배분하세요.</p>
@@ -902,7 +953,7 @@
 
   <!-- 항상 화면에 떠있는 캐릭터 위젯 -->
   <button type="button" id="floatingCharBtn" class="floating-char" aria-label="캐릭터 보기">
-    <div id="floatingCharInner" class="char-widget-inner"></div>
+    <div id="floatingCharInner" class="char-widget-inner fut-bg"></div>
   </button>
 
   <nav class="tabs">
@@ -1491,6 +1542,7 @@ function makeFighter(name, b){
     name,
     essence: b ? b.essence : null,
     weaponType: weaponType || 'gauntlet', // 무기가 없으면 맨손(건틀렛 동작)으로
+    rawWeapon: weaponType,
     atk: st.atk||0, def: st.def||0, agi: st.agi||0, int: st.int||0,
     maxHp: 100 + (st.def||0) * 3,
     hp: 100 + (st.def||0) * 3,
@@ -1513,15 +1565,19 @@ function setHp(which, f){
 }
 function hitFlash(which, dmgAmount){
   const box = document.getElementById(which === 'me' ? 'battleMeSprite' : 'battleFoeSprite');
-  const img = box.querySelector('img');
-  if(img){
-    img.classList.add('hit');
-    setTimeout(() => img.classList.remove('hit'), 350);
+  if(b3d.active){
+    b3dHit(which);
+  }else{
+    const img = box.querySelector('img');
+    if(img){
+      img.classList.add('hit');
+      setTimeout(() => img.classList.remove('hit'), 350);
+    }
+    const overlay = document.createElement('div');
+    overlay.className = 'hit-red';
+    box.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 360);
   }
-  const overlay = document.createElement('div');
-  overlay.className = 'hit-red';
-  box.appendChild(overlay);
-  setTimeout(() => overlay.remove(), 360);
   if(dmgAmount != null){
     const pop = document.createElement('div');
     pop.className = 'dmg-pop';
@@ -1531,6 +1587,7 @@ function hitFlash(which, dmgAmount){
   }
 }
 function meleeSwing(which, weaponType){
+  if(b3d.active){ b3dMelee(which); return; }
   const box = document.getElementById(which === 'me' ? 'battleMeSprite' : 'battleFoeSprite');
   const img = box.querySelector('img');
   if(!img) return;
@@ -1540,6 +1597,7 @@ function meleeSwing(which, weaponType){
   setTimeout(() => img.classList.remove(cls), 340);
 }
 function castCue(which){
+  if(b3d.active){ b3dPlay(b3d.rob[which], 'Wave', true); return; }
   const box = document.getElementById(which === 'me' ? 'battleMeSprite' : 'battleFoeSprite');
   const img = box.querySelector('img');
   if(!img) return;
@@ -1580,6 +1638,7 @@ function performAttackAnim(attSide, weaponType, onImpact){
 function doAttack(att, def, attSide, defSide){
   // 사랑의 정수 — 25% 회피 후 반격
   if(def.essence === '사랑의 정수' && Math.random() < 0.25){
+    if(b3d.active) b3dPlay(b3d.rob[defSide], 'Jump', true);
     performAttackAnim(attSide, att.weaponType, () => { /* 빗나감, 임팩트 없음 */ });
     setTimeout(() => {
       const counter = Math.round(4 + def.agi * 0.6);
@@ -1638,13 +1697,25 @@ function startBattle(foeUid){
 
   document.getElementById('battleMeName').textContent = me.name;
   document.getElementById('battleFoeName').textContent = foe.name;
-  document.getElementById('battleMeSprite').innerHTML = `<img src="${me.sprite}" alt="">`;
-  document.getElementById('battleFoeSprite').innerHTML = `<img src="${foe.sprite}" alt="">`;
+  document.getElementById('battleMeSprite').innerHTML = '';
+  document.getElementById('battleFoeSprite').innerHTML = '';
   document.getElementById('battleLog').innerHTML = '';
   document.getElementById('battleResult').classList.add('hidden');
   setHp('me', me); setHp('foe', foe);
   document.getElementById('battleOverlay').classList.remove('hidden');
 
+  logBattle('로봇을 불러오는 중...');
+  prepareBattle3D(me, foe).catch(() => false).then(ok => {
+    if(document.getElementById('battleOverlay').classList.contains('hidden')) return;
+    if(!ok){
+      document.getElementById('battleMeSprite').innerHTML = `<img src="${me.sprite}" alt="">`;
+      document.getElementById('battleFoeSprite').innerHTML = `<img src="${foe.sprite}" alt="">`;
+    }
+    document.getElementById('battleLog').innerHTML = '';
+    beginFight();
+  });
+
+  function beginFight(){
   me.cd = me.speed;
   foe.cd = foe.speed;
   logBattle(`<b>${escapeHtml(me.speed <= foe.speed ? me.name : foe.name)}</b>이(가) 더 민첩해서 먼저 공격합니다!`);
@@ -1664,6 +1735,11 @@ function startBattle(foeUid){
     res.style.color = draw ? '#A39E92' : (win ? 'var(--yellow)' : 'var(--wrong)');
     res.classList.remove('hidden');
     if(win) playFanfare();
+    if(b3d.active){
+      if(draw){ b3dPlay(b3d.rob.me, 'Idle', false); b3dPlay(b3d.rob.foe, 'Idle', false); }
+      else if(win){ b3dPlay(b3d.rob.me, 'Dance', false); b3dPlay(b3d.rob.foe, 'Death', true); }
+      else { b3dPlay(b3d.rob.foe, 'Dance', false); b3dPlay(b3d.rob.me, 'Death', true); }
+    }
   }
   const timer = setInterval(() => {
     if(ended) return;
@@ -1682,10 +1758,12 @@ function startBattle(foeUid){
     }
   }, TICK);
   battleTimer = timer;
+  }
 }
 let battleTimer = null;
 function closeBattle(){
   if(battleTimer){ clearInterval(battleTimer); battleTimer = null; }
+  b3dStop();
   document.getElementById('battleOverlay').classList.add('hidden');
 }
 
@@ -2121,15 +2199,20 @@ function powerScore(st){ return st.atk + st.def + st.agi + st.int; }
 function renderCharacterWidget(){
   if(!myGender) return;
   const sprites = CHAR_SPRITES[myGender];
-  const html = `
-    <div class="char-scene">
-      <div class="char-walk-wrap" style="left:50%;">
-        <img class="char-sprite char-root" src="${currentSprite(sprites)}" alt="캐릭터">
-      </div>
-    </div>
-  `;
   const a = document.getElementById('floatingCharInner');
-  if(a) a.innerHTML = html;
+  if(char3d.failed){
+    // 3D를 못 불러온 경우에만 기존 2D 캐릭터를 보여줘요
+    const html = `
+      <div class="char-scene">
+        <div class="char-walk-wrap" style="left:50%;">
+          <img class="char-sprite char-root" src="${currentSprite(sprites)}" alt="캐릭터">
+        </div>
+      </div>
+    `;
+    if(a){ a.classList.remove('fut-bg'); a.innerHTML = html; }
+  }else if(!char3d.inited){
+    initChar3D();
+  }
   updateWeaponAttachment3D();
 }
 
@@ -2224,13 +2307,27 @@ function resizeChar3D(){
   char3d.camera.updateProjectionMatrix();
   char3d.renderer.setSize(w, h);
 }
+let widgetAccum = 0;
 function animateChar3D(){
   if(!char3d.running) return;
   char3d.rafId = requestAnimationFrame(animateChar3D);
-  const dt = char3d.clock.getDelta();
+  const dt = Math.min(char3d.clock.getDelta(), 0.1);
   if(char3d.mixer) char3d.mixer.update(dt);
-  if(char3d.controls) char3d.controls.update();
-  char3d.renderer.render(char3d.scene, char3d.camera);
+  const box = document.getElementById('charPreviewBox');
+  if(box && box.clientWidth > 0){
+    if(box.clientWidth !== char3d.lastW || box.clientHeight !== char3d.lastH){
+      char3d.lastW = box.clientWidth; char3d.lastH = box.clientHeight;
+      resizeChar3D();
+    }
+    if(char3d.controls) char3d.controls.update();
+    char3d.renderer.render(char3d.scene, char3d.camera);
+  }
+  // 오른쪽 아래 작은 원형 위젯 (배터리를 아끼려고 초당 약 20번만 그림)
+  widgetAccum += dt;
+  if(char3d.wRenderer && widgetAccum >= 0.05){
+    widgetAccum = 0;
+    char3d.wRenderer.render(char3d.scene, char3d.wCamera);
+  }
 }
 function startChar3DLoop(){
   if(!char3d.inited || char3d.running) return;
@@ -2239,10 +2336,20 @@ function startChar3DLoop(){
   animateChar3D();
 }
 function stopChar3DLoop(){
-  char3d.running = false;
-  if(char3d.rafId){ cancelAnimationFrame(char3d.rafId); char3d.rafId = null; }
+  // 위젯 속 로봇이 계속 움직이도록 루프는 유지하고, 화면이 숨겨졌을 때만 멈춰요
 }
+document.addEventListener('visibilitychange', () => {
+  if(!char3d.inited || !char3d.model) return;
+  if(document.hidden){
+    char3d.running = false;
+    if(char3d.rafId){ cancelAnimationFrame(char3d.rafId); char3d.rafId = null; }
+  }else{
+    startChar3DLoop();
+  }
+});
 function show2DFallback(reason){
+  char3d.failed = true;
+  try{ renderCharacterWidget(); }catch(e){}
   const loadingEl = document.getElementById('char3dLoading');
   if(loadingEl) loadingEl.remove();
   const box0 = document.getElementById('charPreviewBox');
@@ -2313,9 +2420,9 @@ async function initChar3D(){
     GLTFLoader = gltfMod.GLTFLoader;
     OrbitControls = controlsMod.OrbitControls;
     THREE_MOD = THREE;
+    char3d.GLTFLoader = GLTFLoader;
   }catch(e){
     console.error('3D 라이브러리 로드 실패', e);
-    char3d.inited = false;
     show2DFallback('라이브러리: ' + (e && e.message ? e.message : e));
     return;
   }
@@ -2350,6 +2457,27 @@ async function initChar3D(){
   controls.autoRotate = true;
   controls.autoRotateSpeed = 1.1;
   controls.addEventListener('start', () => { controls.autoRotate = false; });
+
+  // 오른쪽 아래 원형 위젯용 작은 렌더러
+  const wHost = document.getElementById('floatingCharInner');
+  if(wHost){
+    wHost.innerHTML = '';
+    wHost.classList.add('fut-bg');
+    const wCanvas = document.createElement('canvas');
+    wHost.appendChild(wCanvas);
+    const wRenderer = new THREE.WebGLRenderer({ canvas: wCanvas, alpha: true, antialias: true });
+    wRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    wRenderer.setSize(64, 64, false);
+    if(THREE.SRGBColorSpace) wRenderer.outputColorSpace = THREE.SRGBColorSpace;
+    else if(THREE.sRGBEncoding) wRenderer.outputEncoding = THREE.sRGBEncoding;
+    const wCamera = new THREE.PerspectiveCamera(34, 1, 0.1, 50);
+    wCamera.position.set(0, 1.25, 6.4);
+    wCamera.lookAt(0, 0.8, 0);
+    char3d.wRenderer = wRenderer;
+    char3d.wCamera = wCamera;
+    const fb = document.getElementById('floatingCharBtn');
+    if(fb) fb.classList.add('fut-wrap');
+  }
 
   char3d.scene = scene;
   char3d.camera = camera;
@@ -2405,6 +2533,7 @@ async function initChar3D(){
       }
     });
     scheduleRobotGesture();
+    buildMotionBar();
 
     updateWeaponAttachment3D();
 
@@ -2416,6 +2545,245 @@ async function initChar3D(){
   }
 
   window.addEventListener('resize', resizeChar3D);
+}
+
+// ---------- 로봇 동작 전부 (13가지) ----------
+const ROBOT_MOTION_LABELS = {
+  Idle:'대기', Walking:'걷기', Running:'달리기', Dance:'춤', Death:'쓰러지기', Sitting:'앉기', Standing:'일어서기',
+  Jump:'점프', Yes:'끄덕끄덕', No:'도리도리', Wave:'손 흔들기', Punch:'펀치', ThumbsUp:'엄지척'
+};
+const ROBOT_ONE_SHOT = ['Jump','Yes','No','Wave','Punch','ThumbsUp'];
+function buildMotionBar(){
+  const bar = document.getElementById('robotMotionBar');
+  if(!bar || !char3d.clips) return;
+  bar.innerHTML = '';
+  char3d.clips.forEach(c => {
+    if(c.name === 'TPose') return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'motion-chip';
+    b.textContent = ROBOT_MOTION_LABELS[c.name] || c.name;
+    b.addEventListener('click', () => playRobotMotion(c.name));
+    bar.appendChild(b);
+  });
+}
+function playRobotMotion(name){
+  if(!char3d.mixer || !char3d.clips || !THREE_MOD) return;
+  const clip = char3d.clips.find(c => c.name === name);
+  if(!clip) return;
+  const T = THREE_MOD;
+  const act = char3d.mixer.clipAction(clip);
+  const oneShot = ROBOT_ONE_SHOT.includes(name) || name === 'Death' || name === 'Standing' || name === 'Sitting';
+  act.reset();
+  if(oneShot){ act.setLoop(T.LoopOnce, 1); act.clampWhenFinished = (name === 'Death' || name === 'Sitting'); }
+  else act.setLoop(T.LoopRepeat, Infinity);
+  if(char3d.curMotion && char3d.curMotion !== act) char3d.curMotion.fadeOut(0.25);
+  if(char3d.idleAction) char3d.idleAction.fadeOut(0.25);
+  act.fadeIn(0.25).play();
+  char3d.curMotion = act;
+  clearTimeout(char3d.motionTimer);
+  let ms = oneShot ? clip.duration * 1000 + 700 : 3600;
+  if(name === 'Death' || name === 'Sitting') ms = clip.duration * 1000 + 1200;
+  char3d.motionTimer = setTimeout(() => {
+    act.fadeOut(0.3);
+    if(char3d.idleAction) char3d.idleAction.reset().fadeIn(0.3).play();
+    char3d.curMotion = null;
+  }, ms);
+}
+
+// ---------- 대결 화면 3D 로봇 ----------
+const ROBOT_URLS_B = [
+  ROBOT_GLB_URL,
+  'https://cdn.jsdelivr.net/gh/mrdoob/three.js' + '@' + 'r128/examples/models/gltf/RobotExpressive/RobotExpressive.glb',
+  'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb'
+];
+const b3d = { ready:false, active:false, loading:null, renderer:null, scene:null, camera:null, canvas:null, clock:null, raf:null, rob:{} };
+
+function findRightHandBone(model){
+  let rightHand = null, anyHand = null;
+  model.traverse(o => {
+    if(!o.isBone) return;
+    if(/hand/i.test(o.name)){
+      if(!anyHand) anyHand = o;
+      if(!rightHand && /(\.r$|_r$|r$|right)/i.test(o.name)) rightHand = o;
+    }
+  });
+  return rightHand || anyHand || null;
+}
+function loadRobotGLB(){
+  return new Promise((resolve, reject) => {
+    const loader = new char3d.GLTFLoader();
+    let i = 0;
+    const next = () => loader.load(ROBOT_URLS_B[i], resolve, undefined, (err) => {
+      i++;
+      if(i < ROBOT_URLS_B.length) next(); else reject(err);
+    });
+    next();
+  });
+}
+async function ensureBattle3D(){
+  if(b3d.ready) return true;
+  if(b3d.loading) return b3d.loading;
+  b3d.loading = (async () => {
+    if(!char3d.inited && !char3d.failed) initChar3D();
+    for(let i = 0; i < 100 && !(THREE_MOD && char3d.GLTFLoader) && !char3d.failed; i++){
+      await new Promise(r => setTimeout(r, 100));
+    }
+    if(!THREE_MOD || !char3d.GLTFLoader) return false;
+    const T = THREE_MOD;
+    const arena = document.querySelector('.battle-arena');
+    const canvas = document.createElement('canvas');
+    canvas.id = 'battle3dCanvas';
+    arena.insertBefore(canvas, arena.firstChild);
+    const renderer = new T.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    if(T.SRGBColorSpace) renderer.outputColorSpace = T.SRGBColorSpace;
+    else if(T.sRGBEncoding) renderer.outputEncoding = T.sRGBEncoding;
+    const scene = new T.Scene();
+    scene.add(new T.HemisphereLight(0xffffff, 0x445566, 2.4));
+    const dir = new T.DirectionalLight(0xffffff, 2);
+    dir.position.set(2, 4, 4);
+    scene.add(dir);
+    const camera = new T.PerspectiveCamera(32, 2, 0.1, 60);
+    camera.position.set(0, 1.0, 6.4);
+    camera.lookAt(0, 0.9, 0);
+    Object.assign(b3d, { renderer, scene, camera, canvas, clock: new T.Clock() });
+
+    const [g1, g2] = await Promise.all([loadRobotGLB(), loadRobotGLB()]);
+    [['me', g1, -1.9, Math.PI/2, 0x00262e], ['foe', g2, 1.9, -Math.PI/2, 0x2e1400]].forEach(([key, g, x, rotY, em]) => {
+      const model = g.scene;
+      model.scale.setScalar(0.4);
+      model.position.set(x, 0, 0);
+      model.rotation.y = rotY;
+      const emissive = new T.Color(em);
+      model.traverse(o => {
+        if(o.isMesh && o.material){
+          const mats = Array.isArray(o.material) ? o.material : [o.material];
+          mats.forEach(m => { if(m.emissive){ m.emissive.copy(emissive); m.userData.baseEm = emissive.clone(); } });
+        }
+      });
+      scene.add(model);
+      b3d.rob[key] = { model, mixer: new T.AnimationMixer(model), clips: g.animations, hand: findRightHandBone(model),
+        baseX: x, offX: 0, jitter: 0, cur: null, weapon: null, t: null };
+    });
+    b3d.ready = true;
+    return true;
+  })().catch(e => { console.warn('대결 3D 준비 실패', e); return false; });
+  return b3d.loading;
+}
+function b3dPlay(rob, name, once){
+  if(!rob || !THREE_MOD) return 0;
+  const clip = rob.clips.find(c => c.name === name);
+  if(!clip) return 0;
+  const T = THREE_MOD;
+  const act = rob.mixer.clipAction(clip);
+  act.reset();
+  if(once){ act.setLoop(T.LoopOnce, 1); act.clampWhenFinished = (name === 'Death'); }
+  else act.setLoop(T.LoopRepeat, Infinity);
+  if(rob.cur && rob.cur !== act) rob.cur.fadeOut(0.15);
+  act.fadeIn(0.15).play();
+  rob.cur = act;
+  clearTimeout(rob.t);
+  if(once && name !== 'Death'){
+    rob.t = setTimeout(() => b3dPlay(rob, 'Idle', false), clip.duration * 1000);
+  }
+  return clip.duration * 1000;
+}
+function b3dMelee(which){
+  const rob = b3d.rob[which];
+  if(!rob) return;
+  b3dPlay(rob, 'Punch', true);
+  rob.offX = (which === 'me' ? 1 : -1) * 1.25;
+  setTimeout(() => { rob.offX = 0; }, 330);
+}
+function b3dSetEmissive(rob, colorOrNull){
+  rob.model.traverse(o => {
+    if(o.isMesh && o.material){
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => {
+        if(!m.emissive) return;
+        if(colorOrNull) m.emissive.copy(colorOrNull);
+        else if(m.userData.baseEm) m.emissive.copy(m.userData.baseEm);
+      });
+    }
+  });
+}
+function b3dHit(which){
+  const rob = b3d.rob[which];
+  if(!rob) return;
+  rob.jitter = 0.16;
+  b3dSetEmissive(rob, new THREE_MOD.Color(0xff2a2a));
+  setTimeout(() => b3dSetEmissive(rob, null), 260);
+}
+function b3dAttachWeapon(rob, type, essence){
+  if(rob.weapon && rob.hand){ rob.hand.remove(rob.weapon); rob.weapon = null; }
+  if(!type || !rob.hand) return;
+  const mesh = buildWeaponMesh(type);
+  const ws = new THREE_MOD.Vector3();
+  rob.hand.getWorldScale(ws);
+  mesh.scale.setScalar(ws.x ? 1 / ws.x : 1);
+  mesh.rotation.set(Math.PI / 2, 0, 0);
+  if(essence && mesh.userData.tint){
+    mesh.userData.tint.emissive = new THREE_MOD.Color(0xC9A227);
+    mesh.userData.tint.emissiveIntensity = 0.6;
+  }
+  rob.hand.add(mesh);
+  rob.weapon = mesh;
+}
+function b3dLayout(){
+  const arena = document.querySelector('.battle-arena');
+  const sp = document.getElementById('battleMeSprite');
+  if(!arena || !sp || !b3d.renderer) return;
+  const ar = arena.getBoundingClientRect(), sr = sp.getBoundingClientRect();
+  const w = Math.round(ar.width), h = Math.max(80, Math.round(sr.bottom - ar.top));
+  b3d.renderer.setSize(w, h);
+  b3d.camera.aspect = w / h;
+  b3d.camera.updateProjectionMatrix();
+}
+function b3dLoop(){
+  if(!b3d.active) return;
+  b3d.raf = requestAnimationFrame(b3dLoop);
+  const dt = Math.min(b3d.clock.getDelta(), 0.1);
+  const t = performance.now() / 1000;
+  ['me','foe'].forEach(k => {
+    const r = b3d.rob[k];
+    if(!r) return;
+    r.mixer.update(dt);
+    const target = r.baseX + r.offX;
+    r.model.position.x += (target - r.model.position.x) * Math.min(1, dt * 14);
+    if(r.jitter > 0.001){
+      r.model.position.x += Math.sin(t * 90) * r.jitter;
+      r.jitter *= 0.86;
+    }
+  });
+  b3d.renderer.render(b3d.scene, b3d.camera);
+}
+async function prepareBattle3D(me, foe){
+  const ok = await ensureBattle3D();
+  if(!ok) return false;
+  const arena = document.querySelector('.battle-arena');
+  arena.classList.add('b3d-on');
+  b3d.canvas.style.display = 'block';
+  const fighters = { me, foe };
+  ['me','foe'].forEach(k => {
+    const r = b3d.rob[k];
+    r.offX = 0; r.jitter = 0;
+    r.model.position.x = r.baseX;
+    b3dSetEmissive(r, null);
+    b3dPlay(r, 'Idle', false);
+    b3dAttachWeapon(r, fighters[k].rawWeapon || null, !!fighters[k].essence);
+  });
+  b3dLayout();
+  b3d.active = true;
+  b3d.clock.getDelta();
+  b3dLoop();
+  return true;
+}
+function b3dStop(){
+  b3d.active = false;
+  if(b3d.raf){ cancelAnimationFrame(b3d.raf); b3d.raf = null; }
+  const arena = document.querySelector('.battle-arena');
+  if(arena) arena.classList.remove('b3d-on');
+  if(b3d.canvas) b3d.canvas.style.display = 'none';
 }
 
 // ---------- 캐릭터 좌우 걷기 (떠다니는 위젯 전용) ----------
@@ -2500,7 +2868,7 @@ function openCharacter(){
     renderCharacterWidget();
     renderCharacter();
     if(!char3d.inited) initChar3D();
-    else{ startChar3DLoop(); updateWeaponAttachment3D(); }
+    else{ startChar3DLoop(); resizeChar3D(); updateWeaponAttachment3D(); }
   }
   document.getElementById('charOverlay').classList.remove('hidden');
   startBirdAmbience();
