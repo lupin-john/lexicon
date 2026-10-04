@@ -566,6 +566,25 @@
   .dt-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;max-width:520px;margin:10px 0;}
   .dt-stat{background:#141934;border:1px solid #2b3262;border-radius:12px;padding:8px 4px;text-align:center;font-size:11px;}
   .dt-stat b{display:block;font-size:16px;margin-top:2px;}
+  .dt-lv{display:flex;align-items:center;gap:12px;width:100%;max-width:520px;margin:8px 0 2px;}
+  .dt-lv-badge{font-size:26px;font-weight:900;letter-spacing:1px;padding:4px 18px;border-radius:999px;color:#4a3000;
+    background:linear-gradient(180deg,#ffe28a,#f0a418);box-shadow:0 0 18px rgba(255,200,60,.55),0 3px 0 #b27400;white-space:nowrap;}
+  .dt-lv-badge.pop{animation:lvPop .7s ease-out;}
+  @keyframes lvPop{0%{transform:scale(.6);}45%{transform:scale(1.35);box-shadow:0 0 36px rgba(255,220,100,.95);}100%{transform:scale(1);}}
+  .dt-lv-meter{flex:1;min-width:0;}
+  .dt-lv-bar{height:12px;border-radius:8px;background:#1b2140;overflow:hidden;border:1px solid #33406a;}
+  .dt-lv-bar i{display:block;height:100%;background:linear-gradient(90deg,#ffd24a,#ff9a3a);}
+  .dt-lv-sub{display:block;font-size:11px;opacity:.7;margin-top:3px;}
+  .dt-num{display:flex;align-items:baseline;justify-content:center;gap:4px;margin-top:2px;}
+  .dt-num b{display:inline;margin:0;font-size:16px;}
+  .dt-plus{font-style:normal;font-size:13px;font-weight:900;color:#ffd24a;text-shadow:0 0 8px rgba(255,210,74,.55);}
+  .dt-plus.pop{animation:plusPop .8s ease-out;}
+  @keyframes plusPop{0%{transform:scale(.4);opacity:0;}50%{transform:scale(1.6);}100%{transform:scale(1);opacity:1;}}
+  .dt-d{display:block;font-style:normal;font-size:12px;font-weight:900;color:#6dff9a;margin-top:1px;animation:dFade 2.2s ease-out forwards;}
+  @keyframes dFade{0%{opacity:0;transform:translateY(6px);}15%{opacity:1;transform:none;}85%{opacity:1;}100%{opacity:.55;}}
+  .dt-flash{position:absolute;left:0;right:0;top:36%;text-align:center;font-size:44px;font-weight:900;letter-spacing:3px;color:#fff;pointer-events:none;
+    text-shadow:0 0 22px #ffd24a,0 4px 0 #0008;animation:lvFlash 1.3s ease-out forwards;z-index:5;}
+  @keyframes lvFlash{0%{opacity:0;transform:scale(.4);}25%{opacity:1;transform:scale(1.15);}70%{opacity:1;transform:scale(1);}100%{opacity:0;transform:translateY(-40px) scale(1.1);}}
   .dt-bar{width:100%;max-width:520px;height:8px;border-radius:6px;background:#1b2140;overflow:hidden;margin:4px 0 2px;}
   .dt-bar i{display:block;height:100%;background:linear-gradient(90deg,#ffd24a,#ff4fd8);}
   /* ===== 전투 (개인전) ===== */
@@ -1145,8 +1164,8 @@
       <section id="hubKingView" class="hub-view hidden">
         <div class="kg-wrap">
           <canvas id="kgCanvas"></canvas>
-          <div class="kg-hud"><span class="kg-chip">코인 <span id="kgCoins">0</span></span><span class="kg-chip">왕국 Lv.<span id="kgLv">1</span></span></div>
-          <div class="kg-jump" id="kgJump"><button data-j="castle">왕성</button><button data-j="mine">광산</button><button data-j="farm">작업장</button><button data-j="tower">전망대</button><button data-j="barracks">훈련소</button><button data-j="blacksmith">대장간</button><button data-j="church">교회</button><button data-j="archery">궁술장</button><button data-j="market">시장</button><button data-j="windmill">풍차</button></div>
+          <div class="kg-hud"><span class="kg-chip" id="kgCoinChip" style="pointer-events:auto;">코인 <span id="kgCoins">0</span></span><span class="kg-chip">왕국 Lv.<span id="kgLv">1</span></span></div>
+          <div class="kg-jump" id="kgJump"><button data-j="all">전체</button><button data-j="castle">왕성</button><button data-j="mine">광산</button><button data-j="farm">작업장</button><button data-j="tower">전망대</button><button data-j="barracks">훈련소</button><button data-j="blacksmith">대장간</button><button data-j="church">교회</button><button data-j="archery">궁술장</button><button data-j="market">시장</button><button data-j="windmill">풍차</button></div>
           <div class="kg-hint" id="kgHint">끌어서 이동 · 두 손가락으로 확대/축소</div>
           <div class="kg-panel hidden" id="kgPanel"></div>
         </div>
@@ -3180,7 +3199,7 @@
     var envTex = ENV_CUR;
     var world = new T.Group(); scene.add(world);
     scene.fog = new T.Fog(0xc8e0f2, 150, 480);
-    var tgt = { x:0, z:2 }, zoom = 1, focusTo = null, camDist = 13, camFov = 56;
+    var tgt = { x:0, z:2 }, zoom = 1, zoomTo = null, focusTo = null, camDist = 13, camFov = 56;
 
     // ---- 섬 ----
     var island = new T.Group(); world.add(island);
@@ -3474,7 +3493,7 @@
     function pinchDist(){ var k = Object.keys(ptrs); if(k.length < 2) return 0; var p = ptrs[k[0]], q = ptrs[k[1]]; return Math.hypot(p.x - q.x, p.y - q.y); }
     canvas.addEventListener('pointerdown', function(e){
       ptrs[e.pointerId] = { x:e.clientX, y:e.clientY };
-      dragging = ptrCount() === 1; lastX = e.clientX; lastY = e.clientY; moved = 0; focusTo = null;
+      dragging = ptrCount() === 1; lastX = e.clientX; lastY = e.clientY; moved = 0; focusTo = null; zoomTo = null;
       if(ptrCount() === 2) pinchD = pinchDist();
       canvas.setPointerCapture(e.pointerId);
     });
@@ -3483,7 +3502,7 @@
       ptrs[e.pointerId] = { x:e.clientX, y:e.clientY };
       if(ptrCount() >= 2){
         var d = pinchDist();
-        if(pinchD > 0 && d > 0){ zoom = Math.max(0.15, Math.min(5, zoom * pinchD / d)); }
+        if(pinchD > 0 && d > 0){ zoom = Math.max(0.15, Math.min(9, zoom * pinchD / d)); zoomTo = null; }
         pinchD = d; moved += 10; return;
       }
       if(!dragging) return;
@@ -3495,8 +3514,9 @@
     function endPtr(e){ var was = dragging; delete ptrs[e.pointerId]; if(ptrCount() < 2) pinchD = 0; if(was && moved < 6 && e.type === 'pointerup') pick(e); if(ptrCount() === 0) dragging = false; }
     canvas.addEventListener('pointerup', endPtr);
     canvas.addEventListener('pointercancel', endPtr);
-    canvas.addEventListener('wheel', function(e){ e.preventDefault(); zoom = Math.max(0.15, Math.min(5, zoom * (e.deltaY > 0 ? 1.1 : 0.9))); }, { passive:false });
-    function focus(id){ var p = BPOS[id]; if(p) focusTo = { x:p[0], z:p[2] + 3 }; }
+    canvas.addEventListener('wheel', function(e){ e.preventDefault(); zoom = Math.max(0.15, Math.min(9, zoom * (e.deltaY > 0 ? 1.1 : 0.9))); zoomTo = null; }, { passive:false });
+    function focus(id){ var p = BPOS[id]; if(p){ focusTo = { x:p[0], z:p[2] + 3 }; zoomTo = 1; } }
+    function overview(){ focusTo = { x:0, z:4 }; zoomTo = 8.5; }
 
     loadKit().then(function(kit){
       if(!kit) return;
@@ -3510,6 +3530,7 @@
       if(!running) return;
       requestAnimationFrame(frame);
       var dt = Math.min(clock.getDelta(), 0.05); tt += dt; frameNo++;
+      if(zoomTo !== null){ zoom += (zoomTo - zoom) * Math.min(1, dt * 3.5); if(Math.abs(zoomTo - zoom) < 0.02){ zoom = zoomTo; zoomTo = null; } }
       if(focusTo){
         tgt.x += (focusTo.x - tgt.x) * Math.min(1, dt * 4); tgt.z += (focusTo.z - tgt.z) * Math.min(1, dt * 4);
         if(Math.hypot(focusTo.x - tgt.x, focusTo.z - tgt.z) < 0.15) focusTo = null;
@@ -3550,7 +3571,7 @@
       try{ localStorage.setItem('kg_char_pos', JSON.stringify(CHAR_MEM)); }catch(e){}
     }
     function dispose(){ saveMem(); noOutlines = false; running = false; window.removeEventListener('resize', onWin); try{ renderer.dispose(); }catch(e){} }
-    return { setState:setState, start:start, dispose:dispose, resize:resize, celebrate:celebrate, focus:focus };
+    return { setState:setState, start:start, dispose:dispose, resize:resize, celebrate:celebrate, focus:focus, overview:overview };
   }
 
   // 도감용 썸네일 (한 번에 모두 그려서 사진으로 저장)
@@ -5223,10 +5244,10 @@ function lvlCost(name){
 }
 // 왕성 레벨이 주는 전투 보너스 (모든 캐릭터의 공격·방어·체력)
 function kBuffPct(){ return (kingdom && kingdom.b) ? 0.02 * (kLv('castle') - 1) : 0; }
-function charStatsOf(name, lvOv, opt){
+function charStatsOf(name, lvOv, opt, lvlOv){
   const c = HUB_BY_NAME[name]; if(!c) return null;
   const lv = lvOv || Math.max(1, charLevel(name));
-  const L = opt ? Math.max(1, opt.lvl || 1) : charLvl(name);
+  const L = opt ? Math.max(1, opt.lvl || 1) : (lvlOv || charLvl(name));
   const bs = opt ? (opt.bs || { atk:opt.kb || 0, def:opt.kb || 0, hp:opt.kb || 0, spd:0 }) : kBuffs();
   const total = ({3:100, 4:150, 5:220, 6:400})[c.star] * (1 + 0.18 * (lv - 1)) * (1 + 0.04 * (L - 1));
   const w = HUB_ROLE_W[c.role];
@@ -5393,7 +5414,9 @@ function renderCollection(){
 }
 
 // ----- 캐릭터 상세 (3D) -----
-async function openDetail(name){
+async function openDetail(name, opts){
+  opts = opts || {};
+  const d = opts.delta || null;
   const ov = document.getElementById('hubDetail');
   ov.classList.remove('hidden');
   ov.innerHTML = '<div class="hub-sub">불러오는 중...</div>';
@@ -5401,6 +5424,9 @@ async function openDetail(name){
   try{ lib = await ensureHubLib(); }catch(e){ ov.classList.add('hidden'); hubToast(e.message); return; }
   if(typeof kNorm === 'function' && !kingdom) kNorm();
   const c = HUB_BY_NAME[name], lv = charLevel(name), st = charStatsOf(name);
+  const st1 = charStatsOf(name, undefined, undefined, 1);                 // 레벨 1일 때의 숫자 (원래 숫자)
+  const pl = { atk:st.atk - st1.atk, def:st.def - st1.def, hp:st.hp - st1.hp, spd:st.spd - st1.spd };   // 레벨업으로 늘어난 만큼
+  const numHTML = (k) => `<div class="dt-num"><b>${st1[k]}</b>${pl[k] > 0 ? `<em class="dt-plus${opts.flash ? ' pop' : ''}">+${pl[k]}</em>` : ''}</div>`;
   const L = charLvl(name), cap = charLvlCap(name), cost = lvlCost(name), coins = kingdom ? kingdom.coins : 0, bsT = kBuffs();
   const canLv = L < cap && coins >= cost;
   const need = charNextNeed(name), n = charCollection[name].n, extra = charExtra(name);
@@ -5409,13 +5435,18 @@ async function openDetail(name){
     <div class="rv-star">${hubStarText(c.star)}</div>
     <div class="rv-name r${c.star}">${escapeHtml(c.name)}</div>
     <div class="hub-sub" style="margin:2px 0 0;">${c.role}형 · 승급 ${'✦'.repeat(lv)}${'✧'.repeat(5 - lv)}${mainChar === name ? ' · 대표' : ''}</div>
+    <div class="dt-lv"><span class="dt-lv-badge${opts.flash ? ' pop' : ''}">Lv.${L}</span>
+      <div class="dt-lv-meter"><div class="dt-lv-bar"><i style="width:${Math.round(L / cap * 100)}%"></i></div>
+      <span class="dt-lv-sub">최대 Lv.${cap}${L >= cap ? ' · 승급 ✦를 올리면 더 늘어나요' : ''}</span></div></div>
+    ${opts.flash ? `<div class="dt-flash">LEVEL UP!</div>` : ''}
     <canvas class="hv" id="dtCanvas"></canvas>
     <div class="hub-sub" style="margin:2px 0 0;">캐릭터를 톡 누르면 점프해요 · 드래그하면 돌아가요</div>
     <div class="dt-stats">
-      <div class="dt-stat">공격<b>${st.atk}</b></div><div class="dt-stat">방어<b>${st.def}</b></div>
-      <div class="dt-stat">체력<b>${st.hp}</b></div><div class="dt-stat">속도<b>${st.spd}</b></div>
+      <div class="dt-stat">공격${numHTML('atk')}</div><div class="dt-stat">방어${numHTML('def')}</div>
+      <div class="dt-stat">체력${numHTML('hp')}</div><div class="dt-stat">속도${numHTML('spd')}</div>
     </div>
-    <div class="hub-sub" style="margin:2px 0 4px;">Lv.${L} / ${cap}${(bsT.atk + bsT.def + bsT.hp + bsT.spd) > 0 ? ` · 왕국 보너스 공+${Math.round(bsT.atk * 100)}% 방+${Math.round(bsT.def * 100)}% 체+${Math.round(bsT.hp * 100)}% 속+${Math.round(bsT.spd * 100)}%` : ''}</div>
+    ${L > 1 ? `<div class="hub-sub" style="margin:0 0 2px;"><span style="color:#ffd24a;font-weight:800;">노란색 +</span>는 레벨업으로 늘어난 능력치예요</div>` : ''}
+    <div class="hub-sub" style="margin:2px 0 4px;">${(bsT.atk + bsT.def + bsT.hp + bsT.spd) > 0 ? `왕국 보너스 공+${Math.round(bsT.atk * 100)}% 방+${Math.round(bsT.def * 100)}% 체+${Math.round(bsT.hp * 100)}% 속+${Math.round(bsT.spd * 100)}%` : ''}</div>
     <button class="hub-btn ${canLv ? 'b3' : 'dim'} sm" id="dtLvUp">${L >= cap ? '더 올리려면 승급 ✦가 필요해요' : '레벨업 · ' + cost.toLocaleString() + ' 코인 (보유 ' + coins.toLocaleString() + ')'}</button>
     <div class="hub-sub" style="margin:6px 0 0;">${need ? `다음 승급까지 ${n} / ${need}장` : (extra > 0 ? `승급 최대 · 남은 조각 ${extra}장` : '승급 최대예요')}</div>
     <div class="dt-bar"><i style="width:${pct}%"></i></div>
@@ -5438,8 +5469,11 @@ async function openDetail(name){
     if(charLvl(name) >= charLvlCap(name)){ hubToast('승급 ✦를 올리면 더 높이 키울 수 있어요'); return; }
     const k = lvlCost(name);
     if(kingdom.coins < k){ hubToast('코인이 부족해요. 왕국에서 모아보세요'); return; }
+    const before = charStatsOf(name);
     kingdom.coins -= k; charCollection[name].lv = charLvl(name) + 1;
-    saveCharacter(); hubSync(); playFanfare(); hubToast(`${name} Lv.${charLvl(name)}`); renderCollection(); openDetail(name);
+    const after = charStatsOf(name);
+    saveCharacter(); hubSync(); playFanfare(); if(navigator.vibrate) navigator.vibrate([30, 20, 50]);
+    renderCollection(); openDetail(name, { flash:true, delta:{ atk:after.atk - before.atk, def:after.def - before.def, hp:after.hp - before.hp, spd:after.spd - before.spd } });
   });
   const dtEx = document.getElementById('dtExchange');
   if(dtEx) dtEx.addEventListener('click', () => { if(!hubReady()) return; const k = hubExchange(name); hubToast(`티켓 ${k}장을 받았어요`); renderCollection(); openDetail(name); });
@@ -5975,7 +6009,8 @@ async function kgStart(){
     onChar(name){ const c = HUB_BY_NAME[name]; hubToast(`${btStars(c.star)} ${name}`); }
   });
   kgCtl.start();
-  document.querySelectorAll('#kgJump [data-j]').forEach(b => { b.onclick = () => { if(kgCtl) kgCtl.focus(b.dataset.j); }; });
+  document.querySelectorAll('#kgJump [data-j]').forEach(b => { b.onclick = () => { if(!kgCtl) return; if(b.dataset.j === 'all') kgCtl.overview(); else kgCtl.focus(b.dataset.j); }; });
+  const cc = document.getElementById('kgCoinChip'); if(cc) cc.onclick = () => hubToast('코인은 건물 레벨업과 캐릭터 레벨업에 써요');
   kRefresh();
   kgTimer = setInterval(kRefresh, 15000);
 }
