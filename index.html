@@ -608,6 +608,27 @@
   .bt-sub{font-size:11px;opacity:.7;margin-top:2px;}
   .bt-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#c2705f;margin-right:6px;}
   .bt-dot.on{background:#4a9d5f;box-shadow:0 0 5px rgba(74,157,95,.8);}
+  /* ===== 왕국 ===== */
+  .hub-main{position:relative;}
+  .hub-main.kg-mode{padding:0;overflow:hidden;}
+  #hubKingView{position:absolute;inset:0;}
+  .kg-wrap{position:absolute;inset:0;background:linear-gradient(180deg,#7fc8ff 0%,#bfe3ff 48%,#fdeaff 100%);overflow:hidden;}
+  #kgCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+  .kg-hud{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:8px;pointer-events:none;}
+  .kg-chip{background:#ffffffe6;color:#3b2f4a;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:900;box-shadow:0 3px 0 #0002;}
+  .kg-hint{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:11px;color:#3b2f4a99;pointer-events:none;}
+  .kg-panel{position:absolute;left:8px;right:8px;bottom:8px;background:#141934f2;border:1px solid #2b3262;border-radius:20px;padding:12px 14px 14px;color:#f1ecff;max-height:62%;overflow-y:auto;box-shadow:0 -6px 30px #0006;}
+  .kg-panel.hidden{display:none;}
+  .kg-ph{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:16px;}
+  .kg-x{border:none;background:#1b2140;color:#e6ebf7;width:28px;height:28px;border-radius:50%;cursor:pointer;}
+  .kg-line{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #232b52;gap:8px;}
+  .kg-line span:first-child{opacity:.7;}
+  .kg-slots{display:flex;gap:8px;margin:8px 0 2px;}
+  .kg-slot{flex:1;border:2px dashed #3a4285;border-radius:14px;padding:6px;text-align:center;cursor:pointer;background:#0f1330;color:#aab3e6;font-size:12px;min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+  .kg-slot img{width:38px;height:38px;border-radius:8px;object-fit:contain;background:#12142c;}
+  .kg-slot.on{border-style:solid;border-color:#ffd24a;color:#fff;}
+  .kg-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .kg-row .hub-btn{flex:1;min-width:120px;}
   .hub-toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#000c;color:#fff;border-radius:999px;padding:9px 18px;font-size:13px;z-index:200;pointer-events:none;}
   .ms-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #232b52;font-size:13px;gap:8px;}
 
@@ -1117,12 +1138,21 @@
         <div class="rates" id="hubRates"></div>
       </section>
       <section id="hubBattleView" class="hub-view hidden"><div id="btMenu"></div></section>
+      <section id="hubKingView" class="hub-view hidden">
+        <div class="kg-wrap">
+          <canvas id="kgCanvas"></canvas>
+          <div class="kg-hud"><span class="kg-chip">코인 <span id="kgCoins">0</span></span><span class="kg-chip">왕국 Lv.<span id="kgLv">1</span></span></div>
+          <div class="kg-hint">섬을 드래그해 돌려보세요 · 건물이나 캐릭터를 눌러보세요</div>
+          <div class="kg-panel hidden" id="kgPanel"></div>
+        </div>
+      </section>
       <section id="hubMasterView" class="hub-view hidden"></section>
     </div>
     <div class="hub-nav" id="hubNav">
       <button data-hub="col" class="on">도감</button>
       <button data-hub="gacha">뽑기</button>
       <button data-hub="battle">전투</button>
+      <button data-hub="king">왕국</button>
       <button data-hub="master" id="hubMasterTab" style="display:none;">마스터</button>
     </div>
   </div>
@@ -2523,6 +2553,335 @@
     return { start:start, dispose:dispose, resize:resize };
   }
 
+
+  // =====================================================================
+  //  왕국: 작은 3D 섬 마을 (건물, 돌아다니는 캐릭터, 수확 말풍선)
+  // =====================================================================
+  function iconTexture(kind, n){
+    var cv = document.createElement('canvas'); cv.width = 160; cv.height = 160;
+    var ctx = cv.getContext && cv.getContext('2d');
+    if(!ctx) return null;
+    ctx.fillStyle = 'rgba(255,255,255,0.96)';
+    ctx.beginPath(); ctx.arc(80, 72, 60, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(62, 122); ctx.lineTo(80, 150); ctx.lineTo(98, 122); ctx.closePath(); ctx.fill();
+    ctx.lineWidth = 6; ctx.strokeStyle = '#ffb83a'; ctx.beginPath(); ctx.arc(80, 72, 60, 0, Math.PI * 2); ctx.stroke();
+    if(kind === 'coin'){
+      ctx.fillStyle = '#ffd24a'; ctx.beginPath(); ctx.arc(80, 72, 34, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 5; ctx.strokeStyle = '#d98a00'; ctx.stroke();
+      ctx.fillStyle = '#d98a00'; ctx.font = 'bold 40px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('C', 80, 74);
+    }else if(kind === 'ticket'){
+      ctx.fillStyle = '#ff6fa6'; ctx.fillRect(40, 48, 80, 52);
+      ctx.fillStyle = 'rgba(255,255,255,0.96)'; ctx.beginPath(); ctx.arc(40, 74, 9, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(120, 74, 9, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 30px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('★', 80, 76);
+    }else{
+      ctx.font = '64px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🔨', 80, 76);
+    }
+    if(n > 0){
+      ctx.fillStyle = '#ff4f6e'; ctx.beginPath(); ctx.arc(122, 30, 26, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(n > 99 ? '99+' : String(n), 122, 32);
+    }
+    return new T.CanvasTexture(cv);
+  }
+
+  var BPOS = { castle:[0, 0, -2.2], farm:[-3.6, 0, 0.9], mine:[3.6, 0, 0.9], tower:[0, 0, 3.8] };
+
+  function buildBuilding(id, lv){
+    var g = new T.Group(), A = [], top = 2.5;
+    var box = new T.BoxGeometry(1, 1, 1);
+    if(lv <= 0){
+      var fd = part(g, new T.CylinderGeometry(1.7, 1.7, 0.08, 28), 0xc9dcb0, [0, 0.04, 0], [1, 1, 1], { outline:false });
+      fd.material.transparent = true; fd.material.opacity = 0.75;
+      for(var i = 0; i < 14; i++){
+        var a = i / 14 * Math.PI * 2;
+        part(g, box, 0xffffff, [Math.cos(a) * 1.7, 0.1, Math.sin(a) * 1.7], [0.2, 0.06, 0.1], { outline:false }).rotation.y = -a;
+      }
+      return { g:g, A:A, top:1.4 };
+    }
+    var sc = 1;
+    if(id === 'farm'){
+      sc = 1 + 0.045 * lv;
+      part(g, box, 0xfff1d6, [0, 0.55, 0], [2.2, 1.1, 1.8]);
+      var roof = part(g, new T.ConeGeometry(1.75, 1.0, 4), 0xe0524a, [0, 1.6, 0], [1, 1, 0.85]); roof.rotation.y = Math.PI / 4;
+      part(g, box, 0x8a5a3a, [0, 0.38, 0.92], [0.5, 0.76, 0.06], { outline:false });
+      part(g, box, 0xa8d8ff, [-0.7, 0.72, 0.92], [0.38, 0.34, 0.05], { outline:false });
+      var nv = Math.min(3, 1 + Math.floor(lv / 3));
+      [[1.7, 0.7], [1.7, -0.45], [2.05, 0.15]].slice(0, nv).forEach(function(p, i){
+        part(g, new T.CylinderGeometry(0.42, 0.46, 0.55, 16), 0x9a6a3a, [p[0], 0.28, p[1]]);
+        var jm = new T.Mesh(sphG, new T.MeshPhysicalMaterial({ color:0xff9bd0, roughness:0.1, clearcoat:1, transparent:true, opacity:0.85, envMap:envForKingdom, envMapIntensity:1.1 }));
+        jm.position.set(p[0], 0.62, p[1]); jm.scale.set(0.4, 0.3, 0.4); g.add(jm);
+        A.push(function(t){ jm.scale.y = 0.3 + Math.sin(t * 3 + i) * 0.05; jm.scale.x = jm.scale.z = 0.4 - Math.sin(t * 3 + i) * 0.015; });
+      });
+      if(lv >= 5){
+        part(g, new T.CylinderGeometry(0.03, 0.03, 1.1, 6), 0x6a4a2a, [0.9, 2.3, -0.3], [1, 1, 1], { outline:false });
+        var fl = part(g, box, 0xff4f8b, [1.18, 2.6, -0.3], [0.5, 0.3, 0.02], { outline:false });
+        A.push(function(t){ fl.rotation.y = Math.sin(t * 4) * 0.35; });
+      }
+      top = 2.7;
+    }else if(id === 'mine'){
+      sc = 1 + 0.04 * lv;
+      part(g, sphG, 0x9a97ab, [0, 0.45, -0.25], [1.9, 1.1, 1.6]);
+      part(g, box, 0x1a1a24, [0, 0.42, 1.12], [0.75, 0.82, 0.25], { outline:false });
+      part(g, box, 0x8a5a3a, [-0.46, 0.5, 1.2], [0.1, 1.0, 0.1], { outline:false });
+      part(g, box, 0x8a5a3a, [0.46, 0.5, 1.2], [0.1, 1.0, 0.1], { outline:false });
+      part(g, box, 0x8a5a3a, [0, 1.0, 1.2], [1.1, 0.1, 0.1], { outline:false });
+      var nc = Math.min(8, 2 + lv), pal = [0x5fe0ff, 0xff7ae0, 0xffd24a];
+      var cr = [];
+      for(var ci = 0; ci < nc; ci++){
+        var ca = ci * 2.3, rr = 0.7 + 0.16 * (ci % 3), cs = 0.16 + 0.05 * (ci % 4), col = pal[ci % 3];
+        var oc = part(g, new T.OctahedronGeometry(1, 0), col, [Math.sin(ca) * rr * 1.2, 1.0 + 0.1 * (ci % 3), -0.3 - Math.abs(Math.cos(ca)) * rr * 0.6], [cs, cs * 1.8, cs], { outline:false, glow:col, gi:1.0 });
+        oc.rotation.set(0.2 * ci, ci, 0.15 * (ci % 2 ? 1 : -1)); cr.push(oc);
+      }
+      A.push(function(t){ cr.forEach(function(c, i){ c.material.emissiveIntensity = 0.7 + Math.abs(Math.sin(t * 2 + i)) * 0.9; }); });
+      part(g, box, 0x8a5a3a, [1.5, 0.28, 1.0], [0.55, 0.3, 0.4]);
+      [-1, 1].forEach(function(s){ part(g, new T.CylinderGeometry(0.12, 0.12, 0.05, 10), 0x3a2a1a, [1.5 + s * 0.2, 0.14, 1.22], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2; });
+      top = 2.3;
+    }else if(id === 'tower'){
+      sc = 1;
+      var h = 2.6 + 0.12 * lv;
+      part(g, new T.CylinderGeometry(0.85, 1.05, h, 20), 0xd9d2ea, [0, h / 2, 0]);
+      [0.35, 0.68].forEach(function(f){ part(g, new T.TorusGeometry(0.95, 0.05, 8, 24), 0xffd24a, [0, h * f, 0], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2; });
+      [0, 2.1, 4.2].forEach(function(a, i){ part(g, box, 0xffe9a0, [Math.sin(a) * 0.9, h * 0.52 + i * 0.12, Math.cos(a) * 0.9], [0.14, 0.34, 0.06], { outline:false, glow:0xffd24a, gi:0.9 }).rotation.y = a; });
+      part(g, new T.ConeGeometry(1.25, 1.4, 20), 0x7a4de0, [0, h + 0.7, 0]);
+      var orb = part(g, smallG, 0xff7be6, [0, h + 1.85, 0], [0.28, 0.28, 0.28], { outline:false, glow:0xff7be6, gi:1.5 });
+      var oa = new T.Mesh(smallG, glowMat(0xff7be6, 0.3)); oa.position.set(0, h + 1.85, 0); oa.scale.setScalar(0.6); g.add(oa);
+      var nr = 1 + Math.floor(lv / 3), rings = [];
+      for(var ri = 0; ri < nr; ri++){ var rg = new T.Mesh(new T.TorusGeometry(0.5 + ri * 0.14, 0.025, 6, 28), glowMat(0xffe9a0, 0.8)); rg.position.set(0, h + 1.85, 0); g.add(rg); rings.push(rg); }
+      A.push(function(t){
+        orb.position.y = h + 1.85 + Math.sin(t * 2) * 0.1; oa.position.y = orb.position.y; oa.scale.setScalar(0.6 + Math.sin(t * 4) * 0.06);
+        rings.forEach(function(r, i){ r.position.y = orb.position.y; r.rotation.x = t * (1 + i * 0.4); r.rotation.y = t * (0.7 + i * 0.3); });
+      });
+      top = h + 3.0;
+    }else if(id === 'castle'){
+      sc = 1 + 0.03 * lv;
+      var kh = 1.9 + 0.08 * lv;
+      part(g, box, 0xfff0f5, [0, kh / 2, 0], [2.6, kh, 2.0]);
+      var kr = part(g, new T.ConeGeometry(1.5, 1.2, 4), 0xff8fb8, [0, kh + 0.6, 0], [1, 1, 0.8]); kr.rotation.y = Math.PI / 4;
+      [[-1.45, -1.1], [1.45, -1.1], [-1.45, 1.1], [1.45, 1.1]].forEach(function(p, i){
+        part(g, new T.CylinderGeometry(0.45, 0.5, kh + 0.9, 16), 0xffe6ef, [p[0], (kh + 0.9) / 2, p[1]]);
+        part(g, new T.ConeGeometry(0.6, 0.8, 14), 0x8fb8ff, [p[0], kh + 1.3, p[1]]);
+        if(i >= 2){
+          part(g, new T.CylinderGeometry(0.025, 0.025, 0.7, 6), 0x6a4a2a, [p[0], kh + 2.05, p[1]], [1, 1, 1], { outline:false });
+          var cf = part(g, box, 0xff4f8b, [p[0] + 0.25, kh + 2.2, p[1]], [0.45, 0.25, 0.02], { outline:false });
+          A.push(function(t){ cf.rotation.y = Math.sin(t * 4 + i) * 0.4; });
+        }
+      });
+      part(g, box, 0x1a1a24, [0, 0.55, 1.02], [0.8, 1.1, 0.08], { outline:false });
+      part(g, smallG, 0x1a1a24, [0, 1.1, 1.02], [0.4, 0.3, 0.05], { outline:false });
+      if(lv >= 5){ part(g, smallG, 0xffd24a, [0, kh + 1.35, 0], [0.45, 0.45, 0.45], { outline:false, metal:0.9, rough:0.25 }); }
+      if(lv >= 8){ part(g, new T.ConeGeometry(0.2, 1.0, 8), 0xffd24a, [0, kh + 2.1, 0], [1, 1, 1], { outline:false, metal:0.9, rough:0.25 }); }
+      top = kh + 2.6;
+    }
+    g.scale.setScalar(sc);
+    return { g:g, A:A, top:top * sc };
+  }
+  var envForKingdom = null;
+
+  function makeKingdom(canvas, hooks){
+    hooks = hooks || {};
+    var renderer = new T.WebGLRenderer({ canvas:canvas, antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    var scene = new T.Scene();
+    var camera = new T.PerspectiveCamera(40, 1, 0.1, 200);
+    scene.add(new T.HemisphereLight(0xfff5e6, 0x6a8f5a, 1.15));
+    var sun = new T.DirectionalLight(0xffffff, 1.0); sun.position.set(6, 11, 7); scene.add(sun);
+    ENV_CUR = makeEnv(renderer); envForKingdom = ENV_CUR;
+    var envTex = ENV_CUR;
+    var world = new T.Group(); scene.add(world);
+
+    // ---- 섬 ----
+    var island = new T.Group(); world.add(island);
+    part(island, new T.CylinderGeometry(6.3, 2.5, 3.4, 40), 0x8a6a52, [0, -1.95, 0], [1, 1, 1], { outline:false });
+    part(island, new T.CylinderGeometry(6.4, 6.4, 0.5, 48), 0x7ed67e, [0, -0.25, 0], [1, 1, 1], { outline:false });
+    var rimT = new T.Mesh(new T.TorusGeometry(6.4, 0.12, 8, 64), new T.MeshStandardMaterial({ color:0x62bd62, roughness:0.7 }));
+    rimT.rotation.x = Math.PI / 2; rimT.position.y = 0.0; island.add(rimT);
+    [[-0.9, 0.6, 0xc7e9a8], [0, 0.6, 0xc7e9a8]].forEach(function(){});
+    Object.keys(BPOS).forEach(function(k){
+      var p = BPOS[k];
+      var pad = part(island, new T.CylinderGeometry(2.3, 2.3, 0.04, 28), 0xc7e9a8, [p[0], 0.0, p[2]], [1, 1, 1], { outline:false });
+    });
+    for(var ti = 0; ti < 11; ti++){
+      var ta = ti / 11 * Math.PI * 2 + 0.3, tr = 5.5 + (ti % 2) * 0.2;
+      var tx = Math.cos(ta) * tr, tz = Math.sin(ta) * tr;
+      if(Math.abs(tz) > 4.4 && Math.abs(tx) < 2.2) continue;
+      part(island, new T.CylinderGeometry(0.1, 0.13, 0.5, 8), 0x8a5a3a, [tx, 0.25, tz], [1, 1, 1], { outline:false });
+      part(island, sphG, ti % 3 === 0 ? 0xffa8c8 : 0x4fbf6a, [tx, 0.75, tz], [0.42, 0.42, 0.42], { outline:false });
+    }
+    var clouds = [];
+    for(var cl = 0; cl < 6; cl++){
+      var cg = new T.Group();
+      for(var cs = 0; cs < 4; cs++){ var cm = new T.Mesh(sphG, new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.85 })); cm.position.set(cs * 0.7 - 1, (cs % 2) * 0.15, 0); cm.scale.set(0.8 + (cs % 2) * 0.3, 0.5, 0.5); cg.add(cm); }
+      cg.position.set(-14 + cl * 6, -2.5 + (cl % 3) * 1.8, -6 - (cl % 2) * 5); cg.userData.sp = 0.15 + cl * 0.03; scene.add(cg); clouds.push(cg);
+    }
+
+    // ---- 건물 ----
+    var B = {};
+    function placeBuilding(id, lv){
+      if(B[id]){ world.remove(B[id].g); }
+      var b = buildBuilding(id, lv);
+      b.g.position.set(BPOS[id][0], 0, BPOS[id][2]);
+      b.g.userData.hit = { type:'building', id:id };
+      b.lv = lv; b.bump = 1; B[id] = b; world.add(b.g);
+      if(!b.bubble){
+        var sp = new T.Sprite(new T.SpriteMaterial({ transparent:true, depthTest:false }));
+        sp.scale.set(1.5, 1.5, 1); sp.renderOrder = 10; sp.userData.hit = { type:'bubble', id:id }; sp.visible = false; world.add(sp); b.bubble = sp;
+      }
+      return b;
+    }
+    var bubbleKey = {};
+    function setBubble(id, kind, n){
+      var b = B[id]; if(!b || !b.bubble) return;
+      var key = kind + ':' + n;
+      if(bubbleKey[id] !== key){
+        bubbleKey[id] = key;
+        var tex = iconTexture(kind, n);
+        if(tex){ if(b.bubble.material.map) b.bubble.material.map.dispose(); b.bubble.material.map = tex; b.bubble.material.needsUpdate = true; }
+      }
+      b.bubble.visible = !!kind;
+    }
+
+    // ---- 캐릭터 ----
+    var chars = {}, frameNo = 0;
+    function workPos(C){
+      var p = BPOS[C.at]; return { x:p[0] + (C.slot ? -0.9 : 0.9), z:p[2] + 2.3 };
+    }
+    function ensureChar(info){
+      var C = chars[info.name];
+      if(!C){
+        var v = VARIANTS[info.idx];
+        ENV_CUR = envTex;
+        var root = buildMascot(v, { battle:true });
+        var s = v.mythic ? 0.44 : 0.36;
+        root.scale.setScalar(s); root.userData.hit = { type:'char', name:info.name };
+        world.add(root);
+        var a = Math.random() * Math.PI * 2, r = 0.8 + Math.random() * 3.6;
+        C = { name:info.name, root:root, U:root.userData, x:Math.cos(a) * r, z:Math.sin(a) * r, tx:0, tz:0, mode:'idle', wait:Math.random() * 2,
+          phase:Math.random() * 6, speed:0.7 + Math.random() * 0.5, jump:0, yaw:Math.random() * 6, at:null, slot:0, busy:false };
+        chars[info.name] = C;
+      }
+      C.at = info.at || null; C.slot = info.slot || 0; C.busy = !!info.busy;
+      return C;
+    }
+    function pickTarget(C){
+      for(var k = 0; k < 10; k++){
+        var a = Math.random() * Math.PI * 2, r = 0.5 + Math.random() * 4.6, x = Math.cos(a) * r, z = Math.sin(a) * r, ok = true;
+        Object.keys(BPOS).forEach(function(id){ var p = BPOS[id]; if(Math.hypot(x - p[0], z - p[2]) < 2.0) ok = false; });
+        if(ok){ C.tx = x; C.tz = z; return; }
+      }
+      C.tx = 0; C.tz = 0.5;
+    }
+    function stepChar(C, dt, t){
+      var hop = 0, sy = 1, sx = 1, face = null;
+      if(C.jump > 0){
+        C.jump -= dt / 0.8; var p = 1 - Math.max(C.jump, 0);
+        hop = 1.5 * 4 * p * (1 - p); sy = (p < 0.15 || p > 0.88) ? 0.82 : 1.12; sx = 1 / Math.sqrt(sy);
+        C.yaw += dt * 9;
+      }else if(C.at){
+        var wp = workPos(C), dx = wp.x - C.x, dz = wp.z - C.z, d = Math.hypot(dx, dz);
+        if(d > 0.12){ C.x += dx / d * 1.6 * dt; C.z += dz / d * 1.6 * dt; C.phase += dt * 9; hop = Math.abs(Math.sin(C.phase)) * 0.3; face = Math.atan2(dx, dz); }
+        else{ hop = Math.abs(Math.sin(t * (C.busy ? 7 : 4) + C.phase)) * 0.24; sy = 1 - 0.08 * Math.cos(t * (C.busy ? 14 : 8) + C.phase * 2); sx = 1 / Math.sqrt(sy); var bp = BPOS[C.at]; face = Math.atan2(bp[0] - C.x, bp[2] - C.z); }
+      }else if(C.mode === 'walk'){
+        var ddx = C.tx - C.x, ddz = C.tz - C.z, dd = Math.hypot(ddx, ddz);
+        if(dd < 0.12){ C.mode = 'idle'; C.wait = 1 + Math.random() * 3; }
+        else{ C.x += ddx / dd * C.speed * dt; C.z += ddz / dd * C.speed * dt; C.phase += dt * C.speed * 6; hop = Math.abs(Math.sin(C.phase)) * 0.28; sy = 1 + 0.1 * Math.cos(C.phase * 2); sx = 1 / Math.sqrt(sy); face = Math.atan2(ddx, ddz); }
+      }else{
+        C.wait -= dt; hop = Math.sin(t * 2.4 + C.phase) * 0.02;
+        if(C.wait <= 0){ pickTarget(C); C.mode = 'walk'; }
+      }
+      if(!C.at){ Object.keys(BPOS).forEach(function(id){ var q = BPOS[id], ex = C.x - q[0], ez = C.z - q[2], ed = Math.hypot(ex, ez); if(ed < 1.7 && ed > 0.001){ C.x += ex / ed * (1.7 - ed); C.z += ez / ed * (1.7 - ed); } }); }
+      if(face !== null && C.jump <= 0){ var df = face - C.yaw; df = Math.atan2(Math.sin(df), Math.cos(df)); C.yaw += df * Math.min(1, dt * 8); }
+      C.root.position.set(C.x, hop, C.z); C.root.rotation.set(0, C.yaw, 0);
+      C.U.rig.scale.set(sx, sy, 1);
+      if(((frameNo + C.name.length) % 3) === 0){ var J = C.U.jelly; J.e = (J.e || 0) * 0.9; J.amp = (J.rainbow ? 0.03 : 0.012) + Math.min(J.e, 1) * 0.08; jellyVerts(C.U, t); }
+      var u = C.U;
+      u.anims.forEach(function(f){ f(t); });
+      u.waves.forEach(function(w, i){ w.rotation.z = (w.userData.base || 0) + Math.sin(t * 6 + i) * 0.22; });
+      u.wings.forEach(function(w){ w.rotation.z = w.userData.side * (0.1 + Math.sin(t * 4) * 0.12); });
+      if(u.tail){ u.tail.position.x = Math.sin(t * 5) * 0.12; }
+      if(u.cape){ capeStep(u, t, 0, 0, false); }
+    }
+
+    // ---- 상태 반영 ----
+    function setState(st){
+      Object.keys(BPOS).forEach(function(id){
+        var s = st.buildings[id] || { lv:0 };
+        if(!B[id] || B[id].lv !== s.lv) placeBuilding(id, s.lv);
+        if(s.lv <= 0) setBubble(id, 'hammer', 0);
+        else if(s.pending && s.pending.n > 0) setBubble(id, s.pending.kind, s.pending.n);
+        else setBubble(id, null, 0);
+      });
+      var names = {};
+      (st.chars || []).forEach(function(info){ names[info.name] = true; ensureChar(info); });
+      Object.keys(chars).forEach(function(n){ if(!names[n]){ world.remove(chars[n].root); delete chars[n]; } });
+    }
+    function celebrate(id){ if(B[id]) B[id].bump = 1; }
+
+    // ---- 입력 (드래그 회전 / 눌러서 선택) ----
+    var ray = new T.Raycaster(), ptr = new T.Vector2(), dragging = false, lastX = 0, moved = 0, rotVel = 0;
+    function pick(e){
+      var rect = canvas.getBoundingClientRect();
+      ptr.x = ((e.clientX - rect.left) / rect.width) * 2 - 1; ptr.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      ray.setFromCamera(ptr, camera);
+      var objs = [];
+      Object.keys(B).forEach(function(id){ objs.push(B[id].g); if(B[id].bubble.visible) objs.push(B[id].bubble); });
+      Object.keys(chars).forEach(function(n){ objs.push(chars[n].root); });
+      var hits = ray.intersectObjects(objs, true);
+      for(var i = 0; i < hits.length; i++){
+        var o = hits[i].object;
+        while(o){
+          if(o.userData && o.userData.hit){
+            var h = o.userData.hit;
+            if(h.type === 'char'){ var C = chars[h.name]; if(C){ C.jump = 1; C.U.jelly.e = 1; } pop(hooks.onChar, h.name); }
+            else if(h.type === 'bubble'){ pop(hooks.onBubble, h.id); }
+            else{ pop(hooks.onBuilding, h.id); }
+            return;
+          }
+          o = o.parent;
+        }
+      }
+    }
+    function pop(fn, a){ try{ fn && fn(a); }catch(e){} }
+    canvas.addEventListener('pointerdown', function(e){ dragging = true; lastX = e.clientX; moved = 0; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener('pointermove', function(e){ if(!dragging) return; var dx = e.clientX - lastX; lastX = e.clientX; moved += Math.abs(dx); world.rotation.y += dx * 0.008; rotVel = dx * 0.008; });
+    canvas.addEventListener('pointerup', function(e){ if(dragging && moved < 6) pick(e); dragging = false; });
+    canvas.addEventListener('pointercancel', function(){ dragging = false; });
+
+    var running = false, clock = new T.Clock(), tt = 0;
+    function frame(){
+      if(!running) return;
+      requestAnimationFrame(frame);
+      var dt = Math.min(clock.getDelta(), 0.05); tt += dt; frameNo++;
+      world.position.y = Math.sin(tt * 0.8) * 0.1;
+      if(!dragging){ rotVel *= Math.pow(0.05, dt); world.rotation.y += rotVel; }
+      clouds.forEach(function(c){ c.position.x += c.userData.sp * dt; if(c.position.x > 18) c.position.x = -18; });
+      Object.keys(B).forEach(function(id){
+        var b = B[id];
+        b.A.forEach(function(f){ f(tt); });
+        b.bump = Math.max(0, b.bump - dt * 2.2);
+        var s = (b.lv > 0 ? b.g.scale.x : 1);
+        b.g.userData.baseScale = b.g.userData.baseScale || s;
+        var k = 1 + Math.sin(b.bump * Math.PI) * 0.16 * b.bump;
+        b.g.scale.setScalar(b.g.userData.baseScale * k);
+        if(b.bubble.visible){ b.bubble.position.set(BPOS[id][0], b.top + 0.9 + Math.sin(tt * 3 + id.length) * 0.15, BPOS[id][2]); }
+      });
+      Object.keys(chars).forEach(function(n){ stepChar(chars[n], dt, tt); });
+      camera.lookAt(0, 0.8, 0);
+      renderer.render(scene, camera);
+    }
+    function resize(){
+      var w = canvas.clientWidth, h = canvas.clientHeight;
+      if(!w || !h) return;
+      renderer.setSize(w, h, false); camera.aspect = w / h;
+      var asp = w / h, dist = asp < 0.8 ? 19 : (asp < 1.2 ? 16 : 14);
+      camera.position.set(0, dist * 0.68, dist);
+      camera.updateProjectionMatrix();
+    }
+    var onWin = function(){ resize(); };
+    window.addEventListener('resize', onWin);
+    function start(){ if(running) return; running = true; clock.getDelta(); resize(); frame(); }
+    function dispose(){ running = false; window.removeEventListener('resize', onWin); try{ renderer.dispose(); }catch(e){} }
+    return { setState:setState, start:start, dispose:dispose, resize:resize, celebrate:celebrate };
+  }
+
   // 도감용 썸네일 (한 번에 모두 그려서 사진으로 저장)
   function makeThumbs(size, filterFn){
     var out = {};
@@ -2548,7 +2907,7 @@
     return out;
   }
 
-    return { VARIANTS:VARIANTS, buildMascot:buildMascot, makeViewer:makeViewer, makeThumbs:makeThumbs, makeBattle:makeBattle };
+    return { VARIANTS:VARIANTS, buildMascot:buildMascot, makeViewer:makeViewer, makeThumbs:makeThumbs, makeBattle:makeBattle, makeKingdom:makeKingdom };
   }
   global.createMascotLib = createMascotLib;
 })(window);
@@ -2746,7 +3105,7 @@ onAuthStateChanged(auth, (user) => {
     equippedShield = false;
     robotColor = null;
     selectedModel = 'robot'; unlockedModels = ['robot'];
-    charCollection = {}; pity5 = 0; pity6 = 0; mainChar = null; btWins = 0; btLosses = 0; btOpp = null;
+    charCollection = {}; pity5 = 0; pity6 = 0; mainChar = null; btWins = 0; btLosses = 0; btOpp = null; kingdom = null;
     charStats = { atk:0, def:0, agi:0, int:0 };
     tickets = 0; totalCorrect = 0; equipment = [];
     charDataLoaded = false;
@@ -2827,6 +3186,7 @@ function subscribeWords(){
     charCollection = (data.collection && typeof data.collection === 'object') ? data.collection : {};
     pity5 = data.pity5 || 0; pity6 = data.pity6 || 0; mainChar = data.mainChar || null;
     btWins = data.btWins || 0; btLosses = data.btLosses || 0;
+    kingdom = data.kingdom || null; kNorm();
     if(data.gameVersion !== 5){ tickets += 10; needEquipReset = true; }   // 새 게임 시작 선물: 티켓 10장
     robotColor = data.robotColor || null;
     unlockedModels = Array.isArray(data.unlockedModels) ? data.unlockedModels : ['robot'];
@@ -4252,16 +4612,20 @@ function openHub(){
 }
 function closeHub(){
   hubViewerStop();
+  if(typeof kgStop === 'function'){ kgStop(); kClosePanel(); }
   if(typeof btStop === 'function'){ btStop(); document.getElementById('battleHubOv').classList.add('hidden'); }
   ['hubDetail', 'hubReveal'].forEach(id => document.getElementById(id).classList.add('hidden'));
   document.getElementById('hubOverlay').classList.add('hidden');
 }
 function showHubTab(tab){
   hubTab = tab;
-  const map = { col:'hubColView', gacha:'hubGachaView', battle:'hubBattleView', master:'hubMasterView' };
+  const map = { col:'hubColView', gacha:'hubGachaView', battle:'hubBattleView', king:'hubKingView', master:'hubMasterView' };
+  if(tab !== 'king' && typeof kgStop === 'function'){ kgStop(); kClosePanel(); }
+  document.querySelector('.hub-main').classList.toggle('kg-mode', tab === 'king');
   Object.keys(map).forEach(k => document.getElementById(map[k]).classList.toggle('hidden', k !== tab));
   document.querySelectorAll('#hubNav [data-hub]').forEach(b => b.classList.toggle('on', b.dataset.hub === tab));
-  document.getElementById('hubTitle').textContent = ({ col:'도감', gacha:'뽑기', battle:'전투', master:'마스터' })[tab];
+  document.getElementById('hubTitle').textContent = ({ col:'도감', gacha:'뽑기', battle:'전투', king:'왕국', master:'마스터' })[tab];
+  if(tab === 'king') kgStart();
   if(tab === 'gacha') renderGachaView();
   if(tab === 'battle'){ renderBattleView(); ensureHubLib().then(() => { if(hubTab === 'battle') renderBattleView(); }).catch(() => {}); }
   if(tab === 'master') renderMasterView();
@@ -4472,6 +4836,7 @@ function renderMasterView(){
       <button class="hub-btn sm" data-ms="t10">티켓 +10</button><button class="hub-btn sm b2" data-ms="t100">티켓 +100</button>
       <button class="hub-btn sm b3" data-ms="all">전부 1장씩</button><button class="hub-btn sm" data-ms="max" style="background:linear-gradient(180deg,#5fe0b8,#21b98a);box-shadow:0 5px 0 #13805f;">전부 승급 최대</button>
       <button class="hub-btn sm" data-ms="reset" style="background:linear-gradient(180deg,#4a4f86,#33386a);box-shadow:0 5px 0 #20244a;">초기화</button>
+      <button class="hub-btn sm b2" data-ms="c10000">코인 +10000</button><button class="hub-btn sm b3" data-ms="kb5">건물 전부 Lv5</button><button class="hub-btn sm" data-ms="kt8">생산 8시간 앞당기기</button>
     </div>
     ${HUB_CHARS.map(c => `<div class="ms-row"><div><b>${escapeHtml(c.name)}</b> <span class="hub-sub">${hubStarText(c.star)} · ${(charCollection[c.name] && charCollection[c.name].n) || 0}장</span></div>
       <button class="hub-btn sm" data-g="${escapeHtml(c.name)}">+1</button></div>`).join('')}`;
@@ -4482,6 +4847,9 @@ function renderMasterView(){
     else if(k === 'all') HUB_CHARS.forEach(c => { if(!(charCollection[c.name] && charCollection[c.name].n)) charCollection[c.name] = { n: 1 }; });
     else if(k === 'max') HUB_CHARS.forEach(c => { charCollection[c.name] = { n: 5 }; });
     else if(k === 'reset'){ charCollection = {}; pity5 = 0; pity6 = 0; mainChar = null; }
+    else if(k === 'c10000'){ kNorm(); kingdom.coins += 10000; }
+    else if(k === 'kb5'){ kNorm(); K_IDS.forEach(id => { kingdom.b[id].lv = Math.max(kingdom.b[id].lv, 5); }); kNorm(); }
+    else if(k === 'kt8'){ kNorm(); K_IDS.forEach(id => { kingdom.b[id].t -= 8 * 3600000; if(kingdom.b[id].exp){ kingdom.b[id].exp.s -= 8 * 3600000; kingdom.b[id].exp.e -= 8 * 3600000; } }); }
     saveCharacter(); hubSync(); updateHubTickets(); renderCollection(); renderMasterView();
   }));
 }
@@ -4649,6 +5017,326 @@ async function btStart(){
     }
   });
   btCtl.start();
+}
+// ---------- 왕국: 건물에서 코인과 티켓을 벌고, 캐릭터를 배치해서 더 빨리 벌어요 ----------
+const KB = {
+  mine:   { name:'별빛 광산',    kind:'coin',    cost0:0,   up0:150, base:40, role:'공격', desc:'슬라임들이 광석을 캐서 코인을 벌어요' },
+  farm:   { name:'슬라임 작업장', kind:'coin',    cost0:300, up0:250, base:90, role:'방어', desc:'캐온 광석을 가공해서 코인을 더 벌어요' },
+  tower:  { name:'탐험 전망대',  kind:'explore', cost0:800, up0:600, role:'마법', desc:'캐릭터들을 탐험 보내서 코인을 벌어요' },
+  castle: { name:'왕성',         kind:'castle',  cost0:0,   up0:400, desc:'왕국 레벨이에요. 올리면 모든 건물이 더 빨리 벌고, 더 먼 곳을 탐험할 수 있어요' }
+};
+// 탐험 지역: 왕성 레벨이 높아야 열려요
+const K_REGIONS = [
+  { id:'forest',  name:'슬라임 숲', need:1, rate:100 },
+  { id:'cave',    name:'수정 동굴', need:3, rate:200 },
+  { id:'desert',  name:'노을 사막', need:5, rate:350 },
+  { id:'ice',     name:'서리 설원', need:7, rate:550 },
+  { id:'volcano', name:'불꽃 화산', need:9, rate:800 }
+];
+const K_DURS = [{ h:0.5, label:'30분' }, { h:2, label:'2시간' }, { h:8, label:'8시간' }];
+const K_IDS = ['castle', 'farm', 'mine', 'tower'];
+const K_MAX = 10;
+const K_STAR_BONUS = { 3:0.10, 4:0.20, 5:0.35, 6:0.80 };
+let kingdom = null, kgCtl = null, kgSel = null, kgTimer = null;
+
+function kDefault(){
+  const now = Date.now();
+  return { coins:100, b:{
+    castle:{ lv:1, t:now, a:[] }, mine:{ lv:1, t:now, a:[] }, farm:{ lv:0, t:now, a:[] }, tower:{ lv:0, t:now, a:[], exp:null } } };
+}
+function kNorm(){
+  if(!kingdom || typeof kingdom !== 'object' || !kingdom.b) kingdom = kDefault();
+  const d = kDefault();
+  kingdom.coins = Math.max(0, Math.floor(kingdom.coins || 0));
+  K_IDS.forEach(id => {
+    const b = kingdom.b[id] || (kingdom.b[id] = d.b[id]);
+    b.lv = Math.max(0, Math.min(K_MAX, b.lv | 0)); b.t = b.t || Date.now(); b.a = Array.isArray(b.a) ? b.a : [];
+    if(id === 'tower'){ if(!b.exp || !b.exp.e || !Array.isArray(b.exp.a)) b.exp = null; } else delete b.exp;
+  });
+  const used = {};
+  K_IDS.forEach(id => {                       // 가지고 있지 않거나 중복 배치된 캐릭터는 정리해요
+    const slots = kSlots(id);
+    kingdom.b[id].a = kingdom.b[id].a.filter(n => charLevel(n) > 0 && !used[n] && HUB_BY_NAME[n]).slice(0, slots);
+    kingdom.b[id].a.forEach(n => { used[n] = true; });
+  });
+}
+function kLv(id){ return kingdom.b[id].lv; }
+function kSlots(id){ if(id === 'castle') return 0; const lv = kingdom ? kLv(id) : 0; return lv >= 5 ? 2 : (lv >= 1 ? 1 : 0); }
+function kUpCost(id){ const lv = kLv(id); return lv <= 0 ? KB[id].cost0 : Math.round(KB[id].up0 * Math.pow(1.65, lv - 1)); }
+function kBonusOf(id, names){
+  let sum = 0;
+  names.forEach(n => {
+    const c = HUB_BY_NAME[n]; if(!c) return;
+    sum += (K_STAR_BONUS[c.star] || 0) * (1 + 0.1 * (Math.max(1, charLevel(n)) - 1));
+    if(c.role === KB[id].role) sum += 0.10;
+  });
+  return sum;
+}
+function kMult(id, names){ return 1 + kBonusOf(id, names || kingdom.b[id].a) + 0.05 * (kLv('castle') - 1); }
+function kRateAt(id, lv, names){
+  if(lv <= 0) return 0;
+  const m = kMult(id, names);
+  if(KB[id].kind === 'coin') return KB[id].base * Math.pow(1.3, lv - 1) * m;
+  return 0;
+}
+function kRate(id){ return kRateAt(id, kLv(id)); }
+function kCapHours(id){ return 8 + 2 * (kLv('castle') - 1); }
+function kPending(id){
+  const b = kingdom.b[id];
+  if(b.lv <= 0 || KB[id].kind === 'castle') return 0;
+  if(KB[id].kind === 'explore') return kExpDone() ? kingdom.b.tower.exp.rw : 0;
+  const hrs = Math.min(kCapHours(id), Math.max(0, (Date.now() - b.t) / 3600000));
+  return Math.floor(kRate(id) * hrs);
+}
+function kCollect(id){
+  if(KB[id].kind === 'explore'){ const e = kExpClaim(); return e ? e.rw : 0; }
+  const n = kPending(id); if(n <= 0) return 0;
+  kingdom.coins += n; kingdom.b[id].t = Date.now();
+  return n;
+}
+function kSettleAll(){ K_IDS.forEach(id => { if(KB[id].kind === 'coin') kCollect(id); }); }
+function kUpgrade(id){
+  if(kLv(id) >= K_MAX) return false;
+  const cost = kUpCost(id);
+  if(kingdom.coins < cost) return false;
+  kSettleAll();
+  kingdom.coins -= cost;
+  kingdom.b[id].lv++; if(kingdom.b[id].lv === 1) kingdom.b[id].t = Date.now();
+  kNorm();
+  return true;
+}
+function kAssign(id, name){
+  kSettleAll();
+  K_IDS.forEach(k => { kingdom.b[k].a = kingdom.b[k].a.filter(n => n !== name); });
+  const a = kingdom.b[id].a;
+  if(a.length >= kSlots(id)) a.shift();
+  a.push(name);
+}
+function kUnassign(id, name){ kSettleAll(); kingdom.b[id].a = kingdom.b[id].a.filter(n => n !== name); }
+function kFmtRate(id, lv, names){
+  const r = kRateAt(id, lv, names);
+  return `시간당 ${Math.round(r)}코인`;
+}
+function kAssignedAt(name){ for(const id of K_IDS) if(kingdom.b[id].a.includes(name)) return id; return null; }
+
+
+// ----- 탐험 -----
+let kxRegion = 'forest', kxDur = 0.5, kxTeam = [];
+function kRegion(id){ return K_REGIONS.find(r => r.id === id) || K_REGIONS[0]; }
+function kTeamMax(){ const lv = kLv('tower'); return lv >= 6 ? 3 : (lv >= 3 ? 2 : 1); }
+function kExpDone(){ const e = kingdom.b.tower.exp; return !!(e && Date.now() >= e.e); }
+function kAway(name){ const e = kingdom.b.tower.exp; return !!(e && Date.now() < e.e && e.a.includes(name)); }
+function kExpBonus(names){
+  let sum = 0;
+  names.forEach(n => { const c = HUB_BY_NAME[n]; if(c) sum += (K_STAR_BONUS[c.star] || 0) * (1 + 0.1 * (Math.max(1, charLevel(n)) - 1)); });
+  const roles = new Set(names.map(n => HUB_BY_NAME[n] && HUB_BY_NAME[n].role));
+  if(roles.size >= 3) sum += 0.2; else if(roles.size === 2) sum += 0.08;
+  return sum;
+}
+function kExpReward(region, hrs, names){ return region.rate * hrs * (1 + kExpBonus(names) + 0.05 * (kLv('castle') - 1)); }
+function kExpStart(){
+  const r = kRegion(kxRegion);
+  if(kLv('castle') < r.need){ hubToast(`왕성 Lv.${r.need}가 필요해요`); return false; }
+  const team = kxTeam.filter(n => charLevel(n) > 0 && !kAssignedAt(n) && !kAway(n));
+  if(!team.length){ hubToast('탐험 보낼 캐릭터를 골라주세요'); return false; }
+  const lucky = Math.random() < 0.15;
+  const rw = Math.round(kExpReward(r, kxDur, team) * (0.92 + Math.random() * 0.16) * (lucky ? 1.5 : 1));
+  const now = Date.now();
+  kingdom.b.tower.exp = { r:r.id, s:now, e:now + kxDur * 3600000, a:team, rw, lucky };
+  kxTeam = [];
+  return true;
+}
+function kExpClaim(){
+  const e = kingdom.b.tower.exp;
+  if(!e || Date.now() < e.e) return null;
+  kingdom.coins += e.rw; kingdom.b.tower.exp = null;
+  return e;
+}
+function kThumb(n){ return hubThumbs[n] ? `<img alt="" src="${hubThumbs[n]}">` : ''; }
+function kExploreHTML(){
+  const e = kingdom.b.tower.exp;
+  if(e){
+    const r = kRegion(e.r), now = Date.now();
+    if(now < e.e){
+      const mins = Math.ceil((e.e - now) / 60000), pct = Math.min(100, Math.round((now - e.s) / (e.e - e.s) * 100));
+      return `<div class="kg-line"><span>탐험 중</span><span>${r.name}</span></div>
+        <div class="kg-line"><span>남은 시간</span><span>${mins >= 60 ? Math.floor(mins / 60) + '시간 ' + (mins % 60) + '분' : mins + '분'}</span></div>
+        <div class="dt-bar" style="max-width:none;"><i style="width:${pct}%"></i></div>
+        <div class="kg-slots">${e.a.map(n => `<div class="kg-slot on" style="cursor:default;">${kThumb(n)}<span>${escapeHtml(n)}</span></div>`).join('')}</div>
+        <div class="hub-sub" style="margin:2px 0 0;">탐험 중인 캐릭터는 섬에 없어요</div>`;
+    }
+    return `<div class="kg-line"><span>탐험 완료!</span><span>${r.name}</span></div>
+      <div class="kg-line"><span>보상</span><span>${e.rw.toLocaleString()} 코인${e.lucky ? ' · 보물상자 발견!' : ''}</span></div>
+      <div class="kg-row"><button class="hub-btn b3" id="kxClaim">보상 받기</button></div>`;
+  }
+  const max = kTeamMax(), cLv = kLv('castle');
+  kxTeam = kxTeam.filter(n => charLevel(n) > 0 && !kAssignedAt(n) && !kAway(n)).slice(0, max);
+  if(kLv('castle') < kRegion(kxRegion).need) kxRegion = 'forest';
+  const regs = K_REGIONS.map(r => {
+    const lock = cLv < r.need;
+    return `<button class="hub-btn sm ${lock ? 'dim' : (kxRegion === r.id ? '' : 'b2')}" data-reg="${r.id}" style="padding:8px 10px;font-size:12px;">${r.name}${lock ? ` · 왕성 Lv.${r.need}` : ''}</button>`;
+  }).join('');
+  const durs = K_DURS.map(d => `<button class="hub-btn sm ${kxDur === d.h ? '' : 'b2'}" data-dur="${d.h}" style="padding:8px 14px;font-size:12px;">${d.label}</button>`).join('');
+  const slots = Array.from({ length:max }, (_, i) => {
+    const n = kxTeam[i];
+    return n ? `<div class="kg-slot on" data-xslot="${i}">${kThumb(n)}<span>${escapeHtml(n)}</span></div>` : `<div class="kg-slot" data-xslot="${i}">+ 탐험대원</div>`;
+  }).join('');
+  const est = kxTeam.length ? Math.round(kExpReward(kRegion(kxRegion), kxDur, kxTeam)) : 0;
+  return `<div class="kg-line"><span>탐험대</span><span>최대 ${max}명${max < 3 ? ` · Lv.${max === 1 ? 3 : 6}에 늘어나요` : ''}</span></div>
+    <div class="kg-slots">${slots}</div>
+    <div class="kg-row" style="margin-top:8px;">${regs}</div>
+    <div class="kg-row" style="margin-top:6px;">${durs}</div>
+    <div class="kg-line" style="border:none;margin-top:6px;"><span>예상 보상</span><span>${est ? '약 ' + est.toLocaleString() + ' 코인' : '대원을 골라주세요'}</span></div>
+    <div class="hub-sub" style="margin:0;">등급이 높고 역할이 다양할수록 더 많이 벌어요 · 가끔 보물상자를 찾아요</div>
+    <div class="kg-row"><button class="hub-btn ${kxTeam.length ? '' : 'dim'}" id="kxGo">탐험 출발</button></div>`;
+}
+function kWireExplore(p, id){
+  const claim = document.getElementById('kxClaim');
+  if(claim) claim.addEventListener('click', () => { const e = kExpClaim(); if(e){ kSave(); playFanfare(); hubToast(`코인 ${e.rw.toLocaleString()}개를 얻었어요${e.lucky ? ' (보물상자!)' : ''}`); kRefresh(); } });
+  p.querySelectorAll('[data-reg]').forEach(b => b.addEventListener('click', () => { if(!b.classList.contains('dim')){ kxRegion = b.dataset.reg; kRenderPanel(id); } else hubToast('왕성 레벨을 더 올려야 해요'); }));
+  p.querySelectorAll('[data-dur]').forEach(b => b.addEventListener('click', () => { kxDur = +b.dataset.dur; kRenderPanel(id); }));
+  p.querySelectorAll('[data-xslot]').forEach(b => b.addEventListener('click', () => kPickExpChar(+b.dataset.xslot)));
+  const go = document.getElementById('kxGo');
+  if(go) go.addEventListener('click', () => { if(kExpStart()){ kSave(); playClick(); hubToast('탐험을 떠났어요!'); kRefresh(); } });
+}
+function kPickExpChar(slot){
+  const ov = document.getElementById('hubDetail');
+  const owned = HUB_CHARS.filter(c => charLevel(c.name) > 0 && !kAssignedAt(c.name) && !kAway(c.name));
+  const cur = kxTeam[slot];
+  ov.classList.remove('hidden');
+  ov.innerHTML = `<div class="rv-name" style="margin-bottom:4px;">탐험대원 고르기</div>
+    <div class="hub-sub" style="margin:0 0 10px;">높은 등급일수록 보상이 커요 · 건물에서 일하는 캐릭터는 보낼 수 없어요</div>
+    ${owned.length ? `<div class="rv-grid" style="grid-template-columns:repeat(4,1fr);">${owned.map(c => hubCardHTML(c, { noLv:true, badge:`<span class="rv-up" style="background:#4a9d5f;color:#fff;">+${Math.round(kExpBonus([c.name]) * 100)}%</span>` })).join('')}</div>` : '<div class="hub-sub">보낼 수 있는 캐릭터가 없어요</div>'}
+    <div class="pull-row" style="margin-top:16px;">${cur ? '<button class="hub-btn b3 sm" id="pkOff">빼기</button>' : ''}<button class="hub-btn sm" id="pkClose" style="background:linear-gradient(180deg,#4a4f86,#33386a);box-shadow:0 5px 0 #20244a;">닫기</button></div>`;
+  const close = () => { ov.classList.add('hidden'); ov.innerHTML = ''; };
+  ov.querySelectorAll('.hc').forEach(b => b.addEventListener('click', () => {
+    kxTeam = kxTeam.filter(n => n !== b.dataset.name); kxTeam[Math.min(slot, kxTeam.length)] = b.dataset.name;
+    close(); kRenderPanel('tower');
+  }));
+  document.getElementById('pkClose').addEventListener('click', close);
+  const off = document.getElementById('pkOff');
+  if(off) off.addEventListener('click', () => { kxTeam = kxTeam.filter(n => n !== cur); close(); kRenderPanel('tower'); });
+}
+function kBuildState(){
+  const buildings = {};
+  ['farm', 'mine', 'tower', 'castle'].forEach(id => {
+    const n = kPending(id);
+    buildings[id] = { lv:kLv(id), pending:{ kind:'coin', n } };
+  });
+  const chars = [];
+  const owned = HUB_CHARS.filter(c => charLevel(c.name) > 0 && !kAway(c.name));
+  const assigned = owned.filter(c => kAssignedAt(c.name));
+  const rest = owned.filter(c => !kAssignedAt(c.name)).sort((a, b) => b.star - a.star).slice(0, Math.max(0, 9 - assigned.length));
+  const names = hubLib ? hubLib.VARIANTS.map(v => v.name) : [];
+  assigned.concat(rest).forEach(c => {
+    const at = kAssignedAt(c.name);
+    chars.push({ name:c.name, idx:names.indexOf(c.name), at, slot: at ? Math.max(0, kingdom.b[at].a.indexOf(c.name)) : 0, busy: !!at });
+  });
+  return { buildings, chars: chars.filter(c => c.idx >= 0) };
+}
+function kRefresh(){
+  if(!kingdom) return;
+  document.getElementById('kgCoins').textContent = kingdom.coins.toLocaleString();
+  document.getElementById('kgLv').textContent = kLv('castle');
+  if(kgCtl) kgCtl.setState(kBuildState());
+  if(kgSel) kRenderPanel(kgSel);
+  updateHubTickets();
+}
+function kSave(){ saveCharacter(); }
+
+async function kgStart(){
+  if(!kingdom) kNorm();
+  let lib;
+  try{ lib = await ensureHubLib(); }catch(e){ hubToast(e.message); return; }
+  if(hubTab !== 'king') return;
+  kgStop();
+  kgCtl = lib.makeKingdom(document.getElementById('kgCanvas'), {
+    onBubble(id){
+      const n = kCollect(id);
+      if(n > 0){ hubToast(KB[id].kind === 'explore' ? `탐험 보상 코인 ${n}개를 얻었어요` : `코인 ${n}개를 모았어요`); playClick(); kSave(); }
+      kRefresh();
+    },
+    onBuilding(id){ kgSel = id; kRenderPanel(id); },
+    onChar(name){ const c = HUB_BY_NAME[name]; hubToast(`${btStars(c.star)} ${name}`); }
+  });
+  kgCtl.start();
+  kRefresh();
+  kgTimer = setInterval(kRefresh, 15000);
+}
+function kgStop(){
+  clearInterval(kgTimer); kgTimer = null;
+  if(kgCtl){ try{ kgCtl.dispose(); }catch(e){} kgCtl = null; }
+}
+function kClosePanel(){ kgSel = null; document.getElementById('kgPanel').classList.add('hidden'); }
+
+function kRenderPanel(id){
+  const p = document.getElementById('kgPanel'), info = KB[id], b = kingdom.b[id], lv = b.lv;
+  p.classList.remove('hidden');
+  const cost = kUpCost(id), canPay = kingdom.coins >= cost;
+  let html = `<div class="kg-ph"><b>${info.name}${lv > 0 ? ` <span style="font-size:12px;opacity:.7;">Lv.${lv} / ${K_MAX}</span>` : ''}</b><button class="kg-x" id="kgClose">✕</button></div>
+    <div class="hub-sub" style="margin:2px 0 6px;">${info.desc}</div>`;
+  if(lv <= 0){
+    html += `<div class="kg-row"><button class="hub-btn ${canPay ? '' : 'dim'}" id="kgUp">건설 · ${cost.toLocaleString()} 코인</button></div>`;
+  }else{
+    if(info.kind === 'explore'){
+      html += kExploreHTML();
+    }else if(info.kind !== 'castle'){
+      const pend = kPending(id), cap = kCapHours(id);
+      html += `<div class="kg-line"><span>생산</span><span>${kFmtRate(id, lv)}</span></div>
+        <div class="kg-line"><span>모인 양</span><span>${pend} 코인 (최대 ${cap}시간치)</span></div>`;
+      const bonus = Math.round(kBonusOf(id, b.a) * 100), castleB = Math.round(0.05 * (kLv('castle') - 1) * 100);
+      html += `<div class="kg-line"><span>보너스</span><span>캐릭터 +${bonus}% · 왕성 +${castleB}%</span></div>`;
+      const slots = kSlots(id);
+      html += `<div class="kg-slots">` + Array.from({ length: slots }, (_, i) => {
+        const n = b.a[i], img = n && hubThumbs[n] ? `<img alt="" src="${hubThumbs[n]}">` : '';
+        return n ? `<div class="kg-slot on" data-slot="${i}">${img}<span>${escapeHtml(n)}</span></div>` : `<div class="kg-slot" data-slot="${i}">+ 캐릭터 배치</div>`;
+      }).join('') + `</div><div class="hub-sub" style="margin:2px 0 0;">${info.role}형 캐릭터를 두면 보너스가 더 커요${lv < 5 ? ' · Lv.5가 되면 슬롯이 2칸이에요' : ''}</div>`;
+      html += `<div class="kg-row"><button class="hub-btn b3 ${pend > 0 ? '' : 'dim'}" id="kgCollect">코인 모으기</button></div>`;
+    }else{
+      html += `<div class="kg-line"><span>생산 보너스</span><span>모든 건물 +${Math.round(0.05 * (lv - 1) * 100)}% · 탐험 보상도 늘어요</span></div>
+        <div class="kg-line"><span>모아두는 시간</span><span>코인 ${8 + 2 * (lv - 1)}시간치</span></div>
+        <div class="kg-line"><span>열린 탐험지</span><span>${K_REGIONS.filter(r => r.need <= lv).map(r => r.name).join(', ')}</span></div>`;
+    }
+    if(lv < K_MAX){
+      let eff = '';
+      if(info.kind === 'castle') eff = `생산 +${Math.round(0.05 * lv * 100)}%, 모아두는 시간 ${8 + 2 * lv}시간` + (K_REGIONS.find(r => r.need === lv + 1) ? ` · ${K_REGIONS.find(r => r.need === lv + 1).name} 열림` : '');
+      else if(info.kind === 'explore') eff = `탐험대 ${lv + 1 >= 6 ? 3 : (lv + 1 >= 3 ? 2 : 1)}명`;
+      else eff = `${kFmtRate(id, lv, b.a)} → ${kFmtRate(id, lv + 1, b.a)}` + (lv + 1 === 5 ? ' · 슬롯 +1' : '');
+      html += `<div class="kg-line" style="border:none;"><span>다음 레벨</span><span>${eff}</span></div>
+        <div class="kg-row"><button class="hub-btn ${canPay ? '' : 'dim'}" id="kgUp">레벨업 · ${cost.toLocaleString()} 코인</button></div>`;
+    }else html += `<div class="hub-sub" style="margin:8px 0 0;">최고 레벨이에요</div>`;
+  }
+  p.innerHTML = html;
+  document.getElementById('kgClose').addEventListener('click', kClosePanel);
+  const up = document.getElementById('kgUp');
+  if(up) up.addEventListener('click', () => {
+    if(kUpgrade(id)){ kSave(); playFanfare(); if(kgCtl) kgCtl.celebrate(id); hubToast(`${info.name} Lv.${kLv(id)}`); kRefresh(); }
+    else hubToast('코인이 부족해요');
+  });
+  kWireExplore(p, id);
+  const co = document.getElementById('kgCollect');
+  if(co) co.addEventListener('click', () => { const n = kCollect(id); if(n > 0){ hubToast(`코인 ${n}개를 모았어요`); playClick(); kSave(); kRefresh(); } });
+  p.querySelectorAll('[data-slot]').forEach(s => s.addEventListener('click', () => kPickChar(id, +s.dataset.slot)));
+}
+function kPickChar(id, slot){
+  const ov = document.getElementById('hubDetail');
+  const owned = HUB_CHARS.filter(c => charLevel(c.name) > 0 && !kAway(c.name))
+    .map(c => ({ c, gain: Math.round(kBonusOf(id, [c.name]) * 100) }))
+    .sort((a, b) => b.gain - a.gain);
+  const cur = kingdom.b[id].a[slot];
+  ov.classList.remove('hidden');
+  ov.innerHTML = `<div class="rv-name" style="margin-bottom:4px;">${KB[id].name}에 배치</div>
+    <div class="hub-sub" style="margin:0 0 10px;">${KB[id].role}형은 보너스가 더 커요 · 다른 곳에 있던 캐릭터는 옮겨져요</div>
+    <div class="rv-grid" style="grid-template-columns:repeat(4,1fr);">${owned.map(o => {
+      const at = kAssignedAt(o.c.name);
+      return hubCardHTML(o.c, { noLv:true, badge:`<span class="rv-up" style="background:#4a9d5f;color:#fff;">+${o.gain}%</span>${at ? `<span class="rv-new" style="top:auto;bottom:4px;right:4px;background:#3a3f86;">${KB[at].name.slice(0, 2)}</span>` : ''}` });
+    }).join('')}</div>
+    <div class="pull-row" style="margin-top:16px;">${cur ? '<button class="hub-btn b3 sm" id="pkOff">배치 해제</button>' : ''}<button class="hub-btn sm" id="pkClose" style="background:linear-gradient(180deg,#4a4f86,#33386a);box-shadow:0 5px 0 #20244a;">닫기</button></div>`;
+  const close = () => { ov.classList.add('hidden'); ov.innerHTML = ''; };
+  ov.querySelectorAll('.hc').forEach(b => b.addEventListener('click', () => { kAssign(id, b.dataset.name); kNorm(); kSave(); close(); kRefresh(); hubToast(`${b.dataset.name} 배치 완료`); }));
+  document.getElementById('pkClose').addEventListener('click', close);
+  const off = document.getElementById('pkOff');
+  if(off) off.addEventListener('click', () => { kUnassign(id, cur); kSave(); close(); kRefresh(); });
 }
 function wireHub(){
   document.getElementById('btExitBtn').addEventListener('click', btExit);
@@ -5686,7 +6374,7 @@ async function doSaveCharacter(){
   }
   try{
     await setDoc(doc(db, 'vocab', currentUser.uid), {
-      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: charCollection, pity5, pity6, mainChar, gameVersion: 5, btWins, btLosses
+      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: charCollection, pity5, pity6, mainChar, gameVersion: 5, btWins, btLosses, kingdom: kingdom || null
     }, { merge:true });
   }catch(e){ console.error('캐릭터 저장 실패', e); }
   updateGroupCount();
