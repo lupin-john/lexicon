@@ -2869,8 +2869,20 @@ addPackModel('modSold',  '모듈 군인',       'quaternius/ultimate-modular-wom
 addPackModel('kayKnight','카이킷 기사',     'kaykit/characters-adventurers/Knight.glb', 0.9);
 ['b','c','d','e','f'].forEach(c => addPackModel('kmF' + c, '미니 여 ' + c.toUpperCase(), 'kenney/mini-characters/character-female-' + c + '.glb', 2.2));
 ['a','b','c','d','e','f'].forEach(c => addPackModel('kmM' + c, '미니 남 ' + c.toUpperCase(), 'kenney/mini-characters/character-male-' + c + '.glb', 2.2));
+// 귀여운 동물 친구들
+addPackModel('shepherd', '저먼 셰퍼드(강아지)', 'quaternius/zombie-apocalypse-kit/Characters_GermanShepherd.glb', 1.0);
+addPackModel('pug',      '퍼그(강아지)',        'quaternius/zombie-apocalypse-kit/Characters_Pug.glb', 1.4);
+CHAR_MODELS.fox = {
+  label:'여우', scale:0.02,
+  urls:[
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Fox/glTF-Binary/Fox.glb',
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Fox/glTF-Binary/Fox.glb',
+    'models/Fox.glb'
+  ]
+};
 function modelUrls(key){
   const cfg = CHAR_MODELS[key] || CHAR_MODELS.robot;
+  if(cfg.urls) return cfg.urls;
   if(cfg.url) return [cfg.url, cfg.local];
   const f = cfg.file;
   return [
