@@ -2634,9 +2634,14 @@ function renderMaster(){
   ).join('');
   document.getElementById('masterTickets').value = tickets;
   const ml = document.getElementById('masterModelList');
-  ml.innerHTML = Object.keys(CHAR_MODELS).filter(k => k !== 'robot').map(k => {
+  const keys = Object.keys(CHAR_MODELS).filter(k => k !== 'robot');
+  ml.innerHTML = `<div style="display:flex;gap:8px;margin-bottom:8px;">
+      <button type="button" class="add-btn" id="masterUnlockAllBtn" style="padding:8px;font-size:12px;">전부 해금</button>
+      <button type="button" class="add-btn" id="masterLockAllBtn" style="padding:8px;font-size:12px;background:transparent;color:var(--ink);">전부 잠그기</button>
+    </div>` + keys.map(k => {
     const on = unlockedModels.includes(k);
-    return `<div class="master-item"><div><b>${CHAR_MODELS[k].label}</b></div>
+    const th = CHAR_MODELS[k].thumb ? `<img src="${CHAR_MODELS[k].thumb}" alt="" loading="lazy" style="width:44px;height:44px;object-fit:contain;background:#EFEDE8;border-radius:2px;flex-shrink:0;">` : '<div style="width:44px;height:44px;background:#EFEDE8;border-radius:2px;flex-shrink:0;"></div>';
+    return `<div class="master-item"><div style="display:flex;align-items:center;gap:10px;min-width:0;">${th}<b>${CHAR_MODELS[k].label}</b></div>
       <button type="button" class="stat-btn" data-unlock="${k}" style="width:auto;padding:0 10px;font-size:11px;${on ? 'background:var(--ink);color:#fff;' : ''}">${on ? '해금됨' : '해금'}</button></div>`;
   }).join('');
   ml.querySelectorAll('[data-unlock]').forEach(btn => btn.addEventListener('click', () => {
@@ -2647,6 +2652,15 @@ function renderMaster(){
     }else unlockedModels.push(k);
     buildModelBar(); saveCharacter(); renderMaster();
   }));
+  document.getElementById('masterUnlockAllBtn').addEventListener('click', () => {
+    unlockedModels = Object.keys(CHAR_MODELS);
+    buildModelBar(); saveCharacter(); renderMaster();
+  });
+  document.getElementById('masterLockAllBtn').addEventListener('click', () => {
+    unlockedModels = ['robot'];
+    if(selectedModel !== 'robot'){ selectedModel = 'robot'; loadCharModel('robot'); }
+    buildModelBar(); saveCharacter(); renderMaster();
+  });
   const list = document.getElementById('masterItemList');
   list.innerHTML = EQUIPMENT_POOL.map((it, i) => `
     <div class="master-item">
@@ -2824,12 +2838,41 @@ async function initChar3D(){
 // ---------- 캐릭터 모델 (선택 / 해금) ----------
 const CHAR_MODELS = {
   robot:    { label:'로봇',   file:'RobotExpressive/RobotExpressive.glb', scale:0.4, paint:true },
-  michelle: { label:'미셸',   file:'Michelle.glb', scale:0.9 },
   xbot:     { label:'엑스봇', file:'Xbot.glb',     scale:0.9 },
-  soldier:  { label:'군인',   file:'Soldier.glb',  scale:0.9 }
+  soldier:  { label:'군인(Soldier)', file:'Soldier.glb',  scale:0.9 }
 };
+// 무료(CC0) 사람 캐릭터 — 뼈대와 동작이 들어 있는 GLB
+const CDN_PACKS = 'https://cdn.cinevva.com/assets/packs/';
+function addPackModel(key, label, path, scale){
+  const file = path.split('/').pop();
+  CHAR_MODELS[key] = {
+    label, scale,
+    url: CDN_PACKS + path + '?download=1',
+    local: 'models/' + file,
+    thumb: CDN_PACKS + path.replace('.glb', '.thumb.png') + '?v=4'
+  };
+}
+const QUA = 'quaternius/ultimate-animated-characters/';
+addPackModel('knightM',  '기사(남)',        QUA + 'Knight_Male.glb', 0.9);
+addPackModel('knightGM', '황금기사(남)',    QUA + 'Knight_Golden_Male.glb', 0.9);
+addPackModel('knightGF', '황금기사(여)',    QUA + 'Knight_Golden_Female.glb', 0.9);
+addPackModel('soldierM', '군인(남)',        QUA + 'Soldier_Male.glb', 0.9);
+addPackModel('soldierF', '군인(여)',        QUA + 'Soldier_Female.glb', 0.9);
+addPackModel('blueM',    '청군인(남)',      QUA + 'BlueSoldier_Male.glb', 0.9);
+addPackModel('blueF',    '청군인(여)',      QUA + 'BlueSoldier_Female.glb', 0.9);
+addPackModel('zombieM',  '좀비(남)',        QUA + 'Zombie_Male.glb', 0.9);
+addPackModel('zombieF',  '좀비(여)',        QUA + 'Zombie_Female.glb', 0.9);
+addPackModel('casualF',  '캐주얼(여)',      QUA + 'Casual_Female.glb', 0.9);
+addPackModel('cyber',    '사이버펑크',      'quaternius/cyberpunk-kit/Character.glb', 0.9);
+addPackModel('toonSold', '툰 군인',         'quaternius/toon-shooter-kit/Character_Soldier.glb', 0.9);
+addPackModel('modSold',  '모듈 군인',       'quaternius/ultimate-modular-women/Soldier.glb', 0.9);
+addPackModel('kayKnight','카이킷 기사',     'kaykit/characters-adventurers/Knight.glb', 0.9);
+['b','c','d','e','f'].forEach(c => addPackModel('kmF' + c, '미니 여 ' + c.toUpperCase(), 'kenney/mini-characters/character-female-' + c + '.glb', 2.2));
+['a','b','c','d','e','f'].forEach(c => addPackModel('kmM' + c, '미니 남 ' + c.toUpperCase(), 'kenney/mini-characters/character-male-' + c + '.glb', 2.2));
 function modelUrls(key){
-  const f = (CHAR_MODELS[key] || CHAR_MODELS.robot).file;
+  const cfg = CHAR_MODELS[key] || CHAR_MODELS.robot;
+  if(cfg.url) return [cfg.url, cfg.local];
+  const f = cfg.file;
   return [
     'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/' + f,
     'https://threejs.org/examples/models/gltf/' + f,
@@ -2930,8 +2973,8 @@ function buildModelBar(){
   const bar = document.getElementById('robotModelBar');
   if(!bar) return;
   bar.innerHTML = '<span class="hint" style="margin:0 4px 0 0;">캐릭터</span>';
-  Object.keys(CHAR_MODELS).forEach(key => {
-    const unlocked = unlockedModels.includes(key);
+  Object.keys(CHAR_MODELS).filter(k => unlockedModels.includes(k)).forEach(key => {
+    const unlocked = true;
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'motion-chip' + (key === selectedModel ? ' sel' : '');
