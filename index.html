@@ -547,6 +547,14 @@
   .rv-star{color:#ffd24a;letter-spacing:4px;font-size:14px;text-align:center;text-shadow:0 0 10px rgba(255,210,74,.7);}
   .rv-tag{display:inline-block;margin-top:6px;padding:3px 12px;border-radius:999px;font-size:12px;font-weight:800;background:#ff4f8b;color:#fff;}
   .rv-tag.dup{background:#3a3f86;}
+  .rv-skip{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:14px;border:none;background:#1b2140;color:#cfd6ee;border-radius:999px;padding:7px 14px;font-size:12px;cursor:pointer;}
+  .rv-count{position:absolute;top:calc(16px + env(safe-area-inset-top,0px));left:16px;font-size:12px;opacity:.7;letter-spacing:2px;}
+  .cap-tint{position:absolute;inset:0;border-radius:inherit;opacity:0;}
+  @keyframes tintIn{to{opacity:1;}}
+  .capsule.r5.shake{animation:capShake .32s ease-in-out infinite,glowPulse .7s ease-in-out infinite;}
+  .capsule.r6.shake{animation:capShake .26s ease-in-out infinite,glowPulse .5s ease-in-out infinite,hueSpin 1.2s linear infinite;}
+  @keyframes glowPulse{0%,100%{box-shadow:0 0 30px rgba(255,210,74,.5);}50%{box-shadow:0 0 70px rgba(255,210,74,.95);}}
+  @keyframes hueSpin{to{filter:hue-rotate(360deg);}}
   .rv-flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:170;}
   .rv-flash.go{animation:flashGo .7s ease-out;}
   @keyframes flashGo{0%{opacity:.95;}100%{opacity:0;}}
@@ -3963,40 +3971,67 @@ async function runPull(n){
 }
 function showReveal(results, lib, n){
   const ov = document.getElementById('hubReveal');
-  const best = results.slice().sort((a, b) => b.star - a.star)[0];
-  const col = ({3:'linear-gradient(160deg,#7fb0ff,#4f86ff 55%,#2a4fb0)', 4:'linear-gradient(160deg,#d29bff,#b45cff 55%,#6a2fb0)', 5:'linear-gradient(160deg,#fff0a0,#ffd24a 55%,#d98a00)', 6:'linear-gradient(160deg,#ff7ae0,#7a8cff 40%,#5fe0ff 70%,#ffd24a)'})[best.star];
-  ov.classList.remove('hidden');
-  ov.innerHTML = `<div class="capsule shake" style="background:${col};box-shadow:0 0 60px ${best.star >= 5 ? 'rgba(255,210,74,.8)' : 'rgba(122,140,255,.6)'};"></div><div class="hub-sub" style="margin-top:18px;">터치하면 건너뛰어요</div>`;
-  playFanfare();
-  let done = false;
-  const next = () => {
-    if(done) return; done = true;
-    const fl = document.getElementById('hubFlash'); fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
-    if(best.star >= 5) playEssenceChime();
-    if(best.star === 6 && navigator.vibrate) navigator.vibrate([60, 40, 120]);
-    revealHero(results, best, lib, n);
+  const order = results.slice().sort((a, b) => a.star - b.star);     // 가장 높은 등급이 마지막에 나와요
+  const TINT = {
+    3:'linear-gradient(160deg,#7fb0ff,#4f86ff 55%,#2a4fb0)',
+    4:'linear-gradient(160deg,#d29bff,#b45cff 55%,#6a2fb0)',
+    5:'linear-gradient(160deg,#fff0a0,#ffd24a 55%,#d98a00)',
+    6:'linear-gradient(160deg,#ff7ae0,#7a8cff 40%,#5fe0ff 70%,#ffd24a)'
   };
-  ov.onclick = next;
-  setTimeout(next, 1500);
-}
-function revealHero(results, best, lib, n){
-  const ov = document.getElementById('hubReveal');
-  ov.onclick = null;
-  const c = HUB_BY_NAME[best.name];
-  const tag = best.isNew ? '<span class="rv-tag">NEW!</span>' : `<span class="rv-tag dup">중복 · ${best.lvUp ? '승급 ✦ UP!' : '남은 조각 +1'}</span>`;
-  ov.innerHTML = `
-    <div class="rv-star">${hubStarText(c.star)}</div>
-    <div class="rv-name r${c.star}">${escapeHtml(c.name)}</div>
-    <div>${tag}</div>
-    <canvas class="hv" id="rvCanvas"></canvas>
-    <div class="pull-row"><button class="hub-btn b2" id="rvNext">${n > 1 ? '전체 결과 보기' : '확인'}</button></div>`;
+  const DUR = { 3:1100, 4:1600, 5:2400, 6:3600 };                    // 높은 등급일수록 오래 뜸을 들여요
+  let idx = 0, alive = true;
+  ov.classList.remove('hidden'); ov.onclick = null;
+  ov.innerHTML = `<button class="rv-skip" id="rvSkip">건너뛰기 ›</button>
+    <div class="rv-count" id="rvCount"></div>
+    <div id="rvInfo" style="min-height:74px;text-align:center;"></div>
+    <canvas class="hv" id="rvCanvas" style="display:none;"></canvas>
+    <div id="rvBody" style="text-align:center;"></div>`;
   hubViewerStop();
-  hubViewer = lib.makeViewer(document.getElementById('rvCanvas'), {});
-  hubViewer.setVariant(lib.VARIANTS.findIndex(v => v.name === best.name), { intro:'cheer' });
-  hubViewer.start();
-  document.getElementById('rvNext').addEventListener('click', () => {
+  const canvas = document.getElementById('rvCanvas');
+  const info = document.getElementById('rvInfo'), body = document.getElementById('rvBody'), count = document.getElementById('rvCount');
+  hubViewer = lib.makeViewer(canvas, {});
+  document.getElementById('rvSkip').addEventListener('click', (e) => {
+    e.stopPropagation(); alive = false; ov.onclick = null;
     if(n > 1) revealGrid(results, n); else closeReveal();
   });
+
+  function capsule(r, done){
+    const dur = DUR[r.star];
+    canvas.style.display = 'none'; hubViewer.stop(); info.innerHTML = '';
+    count.textContent = `${idx + 1} / ${order.length}`;
+    body.innerHTML = `<div class="gx-egg"><div class="capsule shake r${r.star}"><div class="cap-tint" style="background:${TINT[r.star]};animation:tintIn ${Math.round(dur * 0.45)}ms linear ${Math.round(dur * 0.55)}ms forwards;"></div></div></div>
+      <div class="hub-sub" style="margin-top:6px;">두근두근... 터치하면 바로 열어요</div>`;
+    playClick();
+    let fired = false, timer = null;
+    const open = () => {
+      if(fired || !alive) return; fired = true; clearTimeout(timer); ov.onclick = null;
+      const fl = document.getElementById('hubFlash'); fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
+      if(r.star >= 5) playEssenceChime();
+      if(r.star === 6){ playFanfare(); if(navigator.vibrate) navigator.vibrate([60, 40, 120]); }
+      else if(r.star >= 4 && navigator.vibrate) navigator.vibrate(40);
+      done();
+    };
+    timer = setTimeout(open, dur);
+    ov.onclick = open;
+  }
+  function hero(r, done){
+    const c = HUB_BY_NAME[r.name];
+    const last = idx === order.length - 1;
+    const tag = r.isNew ? '<span class="rv-tag">NEW!</span>' : `<span class="rv-tag dup">중복 · ${r.lvUp ? '승급 ✦ UP!' : '남은 조각 +1'}</span>`;
+    info.innerHTML = `<div class="rv-star">${hubStarText(c.star)}</div><div class="rv-name r${c.star}">${escapeHtml(c.name)}</div><div>${tag}</div>`;
+    body.innerHTML = `<div class="pull-row" style="margin-top:6px;"><button class="hub-btn b2" id="rvNext">${last ? (n > 1 ? '결과 보기' : '확인') : '다음 ›'}</button></div>`;
+    canvas.style.display = 'block'; hubViewer.resize();
+    hubViewer.setVariant(lib.VARIANTS.findIndex(v => v.name === r.name), { intro:'cheer' });
+    hubViewer.start();
+    document.getElementById('rvNext').addEventListener('click', (e) => { e.stopPropagation(); if(alive) done(); });
+  }
+  function step(){
+    if(!alive) return;
+    if(idx >= order.length){ if(n > 1) revealGrid(results, n); else closeReveal(); return; }
+    const r = order[idx];
+    capsule(r, () => hero(r, () => { idx++; step(); }));
+  }
+  step();
 }
 function revealGrid(results, n){
   const ov = document.getElementById('hubReveal');
