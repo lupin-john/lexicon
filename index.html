@@ -612,7 +612,7 @@
   .hub-main{position:relative;}
   .hub-main.kg-mode{padding:0;overflow:hidden;}
   #hubKingView{position:absolute;inset:0;}
-  .kg-wrap{position:absolute;inset:0;background:linear-gradient(180deg,#a9c9de 0%,#d3e0e8 52%,#efe8df 100%);overflow:hidden;}
+  .kg-wrap{position:absolute;inset:0;background:linear-gradient(180deg,#8fbfe8 0%,#cfe6f5 52%,#eef0e6 100%);overflow:hidden;}
   #kgCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
   .kg-hud{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:8px;pointer-events:none;}
   .kg-chip{background:#ffffffe6;color:#3b2f4a;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:900;box-shadow:0 3px 0 #0002;}
@@ -1146,7 +1146,7 @@
           <canvas id="kgCanvas"></canvas>
           <div class="kg-hud"><span class="kg-chip">코인 <span id="kgCoins">0</span></span><span class="kg-chip">왕국 Lv.<span id="kgLv">1</span></span></div>
           <div class="kg-jump" id="kgJump"><button data-j="castle">왕성</button><button data-j="mine">광산</button><button data-j="farm">작업장</button><button data-j="tower">전망대</button></div>
-          <div class="kg-hint" id="kgHint">한 손가락으로 끌어서 이동 · 두 손가락으로 확대/축소 · 건물을 눌러보세요</div>
+          <div class="kg-hint" id="kgHint">끌어서 이동 · 두 손가락으로 확대/축소</div>
           <div class="kg-panel hidden" id="kgPanel"></div>
         </div>
       </section>
@@ -2580,7 +2580,11 @@
       ctx.fillStyle = 'rgba(255,255,255,0.96)'; ctx.beginPath(); ctx.arc(40, 74, 9, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(120, 74, 9, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#fff'; ctx.font = 'bold 30px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('★', 80, 76);
     }else{
-      ctx.font = '64px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🔨', 80, 76);
+      ctx.save(); ctx.translate(80, 74); ctx.rotate(-0.6);
+      ctx.fillStyle = '#8a5a3a'; ctx.fillRect(-5, -6, 10, 46);
+      ctx.fillStyle = '#7a7f8c'; ctx.fillRect(-24, -26, 48, 22);
+      ctx.fillStyle = '#a8aebb'; ctx.fillRect(-24, -26, 48, 8);
+      ctx.restore();
     }
     if(n > 0){
       ctx.fillStyle = '#ff4f6e'; ctx.beginPath(); ctx.arc(122, 30, 26, 0, Math.PI * 2); ctx.fill();
@@ -2755,11 +2759,11 @@
       c.fillStyle = '#e6d2b4'; c.fillRect(0, 0, w, h);
       for(var i = 0; i < 8; i++){ c.fillStyle = 'hsl(30,35%,' + (68 + R() * 14) + '%)'; c.fillRect(i * 32 + 1, 0, 30, h); c.strokeStyle = 'rgba(90,55,25,0.35)'; c.beginPath(); c.moveTo(i * 32 + 8 + R() * 14, 0); c.lineTo(i * 32 + 8 + R() * 14, h); c.stroke(); }
     }else if(name === 'stone'){
-      c.fillStyle = '#8f8f9a'; c.fillRect(0, 0, w, h);
-      for(var j = 0; j < 22; j++){ var sx = R() * w, sy = R() * h, sw = 36 + R() * 40, sh = 24 + R() * 26; c.fillStyle = 'hsl(240,6%,' + (66 + R() * 22) + '%)'; c.beginPath(); if(c.roundRect) c.roundRect(sx, sy, sw, sh, 8); else c.rect(sx, sy, sw, sh); c.fill(); }
+      c.fillStyle = '#b9b3a8'; c.fillRect(0, 0, w, h);
+      for(var j = 0; j < 22; j++){ var sx = R() * w, sy = R() * h, sw = 36 + R() * 40, sh = 24 + R() * 26; c.fillStyle = 'hsl(35,8%,' + (76 + R() * 16) + '%)'; c.beginPath(); if(c.roundRect) c.roundRect(sx, sy, sw, sh, 8); else c.rect(sx, sy, sw, sh); c.fill(); }
     }else{ // grass
-      c.fillStyle = '#7e9f62'; c.fillRect(0, 0, w, h);
-      for(var k = 0; k < 140; k++){ c.fillStyle = 'hsla(' + (82 + R() * 22) + ',34%,' + (36 + R() * 18) + '%,0.5)'; c.beginPath(); c.arc(R() * w, R() * h, 4 + R() * 12, 0, Math.PI * 2); c.fill(); }
+      c.fillStyle = '#6fa94e'; c.fillRect(0, 0, w, h);
+      for(var k = 0; k < 140; k++){ c.fillStyle = 'hsla(' + (86 + R() * 24) + ',42%,' + (34 + R() * 20) + '%,0.5)'; c.beginPath(); c.arc(R() * w, R() * h, 4 + R() * 12, 0, Math.PI * 2); c.fill(); }
     }
     var t = new T.CanvasTexture(cv);
     if(T.RepeatWrapping){ t.wrapS = t.wrapT = T.RepeatWrapping; }
@@ -2768,16 +2772,16 @@
   }
 
   function warmGlass(parent, x, y, z, w, h){
-    part(parent, new T.BoxGeometry(1, 1, 1), 0xebddac, [x, y, z], [w, h, 0.05], { outline:false, glow:0xe3bf6f, gi:0.63 });
+    part(parent, new T.BoxGeometry(1, 1, 1), 0xffe9a0, [x, y, z], [w, h, 0.05], { outline:false, glow:0xffc850, gi:0.72 });
   }
   function windowAt(g, x, y, z, w, h, flowers){
-    part(g, roundedBoxGeo(w + 0.14, h + 0.14, 0.12, 0.04, 2), 0x785943, [x, y, z], [1, 1, 1], { outline:false });
+    part(g, roundedBoxGeo(w + 0.14, h + 0.14, 0.12, 0.04, 2), 0x8a5a3a, [x, y, z], [1, 1, 1], { outline:false });
     warmGlass(g, x, y, z + 0.05, w, h);
-    part(g, new T.BoxGeometry(1, 1, 1), 0x785943, [x, y, z + 0.07], [0.05, h, 0.03], { outline:false });
-    part(g, new T.BoxGeometry(1, 1, 1), 0x785943, [x, y, z + 0.07], [w, 0.05, 0.03], { outline:false });
+    part(g, new T.BoxGeometry(1, 1, 1), 0x8a5a3a, [x, y, z + 0.07], [0.05, h, 0.03], { outline:false });
+    part(g, new T.BoxGeometry(1, 1, 1), 0x8a5a3a, [x, y, z + 0.07], [w, 0.05, 0.03], { outline:false });
     if(flowers){
-      part(g, roundedBoxGeo(w + 0.1, 0.14, 0.22, 0.04, 2), 0x876747, [x, y - h / 2 - 0.12, z + 0.1], [1, 1, 1], { outline:false });
-      [-0.2, 0, 0.2].forEach(function(dx, i){ part(g, smallG, [0xdd8fb8, 0xe5c76c, 0xd57676][i], [x + dx * w * 1.4, y - h / 2 - 0.02, z + 0.12], [0.07, 0.07, 0.07], { outline:false }); });
+      part(g, roundedBoxGeo(w + 0.1, 0.14, 0.22, 0.04, 2), 0x9a6a3a, [x, y - h / 2 - 0.12, z + 0.1], [1, 1, 1], { outline:false });
+      [-0.2, 0, 0.2].forEach(function(dx, i){ part(g, smallG, [0xe58ab0, 0xffd24a, 0xff6f6f][i], [x + dx * w * 1.4, y - h / 2 - 0.02, z + 0.12], [0.07, 0.07, 0.07], { outline:false }); });
     }
   }
   function smokePuffs(g, x, y, z, A){
@@ -2795,13 +2799,13 @@
   }
   function lanternPost(g, x, z, A, h){
     h = h || 0.9;
-    part(g, new T.CylinderGeometry(0.04, 0.05, h, 8), 0x4e392a, [x, h / 2, z], [1, 1, 1], { outline:false });
-    var lm = part(g, smallG, 0xebddac, [x, h + 0.08, z], [0.12, 0.14, 0.12], { outline:false, glow:0xe3bf6f, gi:0.98 });
+    part(g, new T.CylinderGeometry(0.04, 0.05, h, 8), 0x5a3a24, [x, h / 2, z], [1, 1, 1], { outline:false });
+    var lm = part(g, smallG, 0xffe9a0, [x, h + 0.08, z], [0.12, 0.14, 0.12], { outline:false, glow:0xffc850, gi:1.12 });
     A.push(function(t){ lm.material.emissiveIntensity = 1.1 + Math.sin(t * 5 + x) * 0.3; });
   }
   function barrel(g, x, z, jelly, A, i){
-    part(g, new T.CylinderGeometry(0.36, 0.4, 0.62, 14), 0x876747, [x, 0.31, z], [1, 1, 1], { map:getTex('plank') });
-    [0.15, 0.48].forEach(function(y){ part(g, new T.TorusGeometry(0.385, 0.025, 6, 18), 0x52473d, [x, y, z], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2; });
+    part(g, new T.CylinderGeometry(0.36, 0.4, 0.62, 14), 0x9a6a3a, [x, 0.31, z], [1, 1, 1], { map:getTex('plank') });
+    [0.15, 0.48].forEach(function(y){ part(g, new T.TorusGeometry(0.385, 0.025, 6, 18), 0x5a4a3a, [x, y, z], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2; });
     if(jelly){
       var jm = new T.Mesh(sphG, new T.MeshPhysicalMaterial({ color:jelly, roughness:0.1, clearcoat:1, transparent:true, opacity:0.88, envMap:envForKingdom, envMapIntensity:1.1 }));
       jm.position.set(x, 0.64, z); jm.scale.set(0.34, 0.2, 0.34); g.add(jm);
@@ -2813,7 +2817,7 @@
     var g = new T.Group(), A = [], top = 2.5;
     var box = new T.BoxGeometry(1, 1, 1);
     if(lv <= 0){
-      var fd = part(g, new T.CylinderGeometry(1.9, 1.9, 0.1, 30), 0xc1ceb1, [0, 0.05, 0], [1, 1, 1], { outline:false });
+      var fd = part(g, new T.CylinderGeometry(1.9, 1.9, 0.1, 30), 0xc9dcb0, [0, 0.05, 0], [1, 1, 1], { outline:false });
       fd.material.transparent = true; fd.material.opacity = 0.8;
       for(var i = 0; i < 16; i++){
         var a = i / 16 * Math.PI * 2;
@@ -2824,95 +2828,95 @@
     var sc = 1;
     if(id === 'farm'){                       // 슬라임 작업장: 굴뚝 달린 아늑한 집 + 젤리 통
       sc = 1 + 0.04 * lv;
-      part(g, roundedBoxGeo(2.7, 1.35, 2.2, 0.12, 3), 0xe3d7c6, [0, 0.68, 0], [1, 1, 1], { map:getTex('brick') });
-      part(g, roundedBoxGeo(2.85, 0.14, 2.35, 0.05, 2), 0x785943, [0, 1.36, 0], [1, 1, 1], { outline:false });
-      part(g, gableGeo(2.7, 2.2, 1.05, 0.3), 0xba615b, [0, 1.42, 0], [1, 1, 1], { map:getTex('roof') });
-      part(g, roundedBoxGeo(0.44, 1.0, 0.44, 0.06, 2), 0xbaae9b, [0.8, 2.05, -0.5], [1, 1, 1], { map:getTex('stone') });
-      part(g, roundedBoxGeo(0.52, 0.12, 0.52, 0.04, 2), 0x888890, [0.8, 2.58, -0.5], [1, 1, 1], { outline:false });
+      part(g, roundedBoxGeo(2.7, 1.35, 2.2, 0.12, 3), 0xf3e2c8, [0, 0.68, 0], [1, 1, 1], { map:getTex('brick') });
+      part(g, roundedBoxGeo(2.85, 0.14, 2.35, 0.05, 2), 0x8a5a3a, [0, 1.36, 0], [1, 1, 1], { outline:false });
+      part(g, gableGeo(2.7, 2.2, 1.05, 0.3), 0xb8523c, [0, 1.42, 0], [1, 1, 1], { map:getTex('roof') });
+      part(g, roundedBoxGeo(0.44, 1.0, 0.44, 0.06, 2), 0xc9b79a, [0.8, 2.05, -0.5], [1, 1, 1], { map:getTex('stone') });
+      part(g, roundedBoxGeo(0.52, 0.12, 0.52, 0.04, 2), 0x8f8f9a, [0.8, 2.58, -0.5], [1, 1, 1], { outline:false });
       smokePuffs(g, 0.8, 2.65, -0.5, A);
-      part(g, roundedBoxGeo(0.66, 1.0, 0.12, 0.05, 2), 0x785943, [0, 0.5, 1.13], [1, 1, 1], { map:getTex('plank'), outline:false });
-      part(g, smallG, 0xe5c76c, [0.2, 0.5, 1.21], [0.05, 0.05, 0.05], { outline:false, metal:0.9, rough:0.3 });
+      part(g, roundedBoxGeo(0.66, 1.0, 0.12, 0.05, 2), 0x8a5a3a, [0, 0.5, 1.13], [1, 1, 1], { map:getTex('plank'), outline:false });
+      part(g, smallG, 0xffd24a, [0.2, 0.5, 1.21], [0.05, 0.05, 0.05], { outline:false, metal:0.9, rough:0.3 });
       windowAt(g, -0.95, 0.8, 1.12, 0.46, 0.46, true);
       windowAt(g, 0.95, 0.8, 1.12, 0.46, 0.46, true);
-      var jc = [0xe09dc1, 0x88cbb8, 0xe8d382];
+      var jc = [0xff9bd0, 0x7be0c3, 0xffe066];
       [[2.0, 0.9], [2.0, -0.15], [2.4, 0.4]].slice(0, Math.min(3, 1 + Math.floor(lv / 3))).forEach(function(p, i){ barrel(g, p[0], p[1], jc[i % 3], A, i); });
       lanternPost(g, -1.9, 1.1, A);
-      part(g, roundedBoxGeo(0.6, 0.36, 0.06, 0.03, 2), 0xd6c8b4, [-0.05, 1.28, 1.2], [1, 1, 1], { map:getTex('plank'), outline:false });
+      part(g, roundedBoxGeo(0.6, 0.36, 0.06, 0.03, 2), 0xe6d2b4, [-0.05, 1.28, 1.2], [1, 1, 1], { map:getTex('plank'), outline:false });
       if(lv >= 6){
-        part(g, new T.CylinderGeometry(0.035, 0.035, 1.2, 6), 0x5d4833, [-1.2, 2.55, 0.4], [1, 1, 1], { outline:false });
-        var fl = part(g, box, 0xd15c84, [-0.9, 2.95, 0.4], [0.6, 0.36, 0.02], { outline:false });
+        part(g, new T.CylinderGeometry(0.035, 0.035, 1.2, 6), 0x6a4a2a, [-1.2, 2.55, 0.4], [1, 1, 1], { outline:false });
+        var fl = part(g, box, 0xc23b4b, [-0.9, 2.95, 0.4], [0.6, 0.36, 0.02], { outline:false });
         A.push(function(t){ fl.rotation.y = Math.sin(t * 4) * 0.35; });
       }
       top = 3.2;
     }else if(id === 'mine'){                  // 별빛 광산: 바위산 + 나무 입구 + 레일 + 수정
       sc = 1 + 0.035 * lv;
-      var mt = new T.Mesh(rockGeo(1.5, 3), new T.MeshStandardMaterial({ color:0x92909e, roughness:0.85, flatShading:true }));
+      var mt = new T.Mesh(rockGeo(1.5, 3), new T.MeshStandardMaterial({ color:0x9a97ab, roughness:0.85, flatShading:true }));
       mt.position.set(0, 0.7, -0.35); mt.scale.set(1.5, 1.05, 1.3); g.add(mt);
-      var mt2 = new T.Mesh(rockGeo(1.0, 5), new T.MeshStandardMaterial({ color:0x838192, roughness:0.85, flatShading:true }));
+      var mt2 = new T.Mesh(rockGeo(1.0, 5), new T.MeshStandardMaterial({ color:0x8a87a0, roughness:0.85, flatShading:true }));
       mt2.position.set(-1.1, 0.4, 0.2); mt2.scale.set(1, 0.8, 1); g.add(mt2);
       part(g, new T.CircleGeometry(0.58, 20), 0x14141c, [0, 0.55, 0.92], [1, 1, 1], { outline:false });
-      [-0.62, 0.62].forEach(function(x){ part(g, roundedBoxGeo(0.14, 1.15, 0.16, 0.04, 2), 0x785943, [x, 0.58, 0.95], [1, 1, 1], { map:getTex('plank'), outline:false }); });
-      part(g, roundedBoxGeo(1.5, 0.16, 0.18, 0.05, 2), 0x785943, [0, 1.2, 0.97], [1, 1, 1], { map:getTex('plank'), outline:false });
-      [-0.22, 0.22].forEach(function(x){ part(g, box, 0x65656c, [x, 0.04, 1.9], [0.05, 0.04, 1.9], { outline:false }); });
-      for(var q = 0; q < 6; q++) part(g, box, 0x785943, [0, 0.02, 1.0 + q * 0.32], [0.62, 0.04, 0.1], { outline:false });
-      var cart = part(g, roundedBoxGeo(0.62, 0.34, 0.5, 0.05, 2), 0x785943, [0, 0.34, 2.15], [1, 1, 1], { map:getTex('plank') });
-      [-0.26, 0.26].forEach(function(x){ part(g, new T.CylinderGeometry(0.1, 0.1, 0.05, 10), 0x37373e, [x * 1.2, 0.12, 2.15], [1, 1, 1], { outline:false }).rotation.z = Math.PI / 2; });
-      part(g, smallG, 0x75cbdf, [0, 0.58, 2.15], [0.22, 0.14, 0.2], { outline:false, glow:0x75cbdf, gi:0.56 });
-      var nc = Math.min(9, 3 + lv), pal = [0x75cbdf, 0xdb83c6, 0xe5c76c], cr = [];
+      [-0.62, 0.62].forEach(function(x){ part(g, roundedBoxGeo(0.14, 1.15, 0.16, 0.04, 2), 0x8a5a3a, [x, 0.58, 0.95], [1, 1, 1], { map:getTex('plank'), outline:false }); });
+      part(g, roundedBoxGeo(1.5, 0.16, 0.18, 0.05, 2), 0x8a5a3a, [0, 1.2, 0.97], [1, 1, 1], { map:getTex('plank'), outline:false });
+      [-0.22, 0.22].forEach(function(x){ part(g, box, 0x6a6a74, [x, 0.04, 1.9], [0.05, 0.04, 1.9], { outline:false }); });
+      for(var q = 0; q < 6; q++) part(g, box, 0x8a5a3a, [0, 0.02, 1.0 + q * 0.32], [0.62, 0.04, 0.1], { outline:false });
+      var cart = part(g, roundedBoxGeo(0.62, 0.34, 0.5, 0.05, 2), 0x8a5a3a, [0, 0.34, 2.15], [1, 1, 1], { map:getTex('plank') });
+      [-0.26, 0.26].forEach(function(x){ part(g, new T.CylinderGeometry(0.1, 0.1, 0.05, 10), 0x3a3a44, [x * 1.2, 0.12, 2.15], [1, 1, 1], { outline:false }).rotation.z = Math.PI / 2; });
+      part(g, smallG, 0x58c6e0, [0, 0.58, 2.15], [0.22, 0.14, 0.2], { outline:false, glow:0x58c6e0, gi:0.64 });
+      var nc = Math.min(9, 3 + lv), pal = [0x58c6e0, 0xc86cc8, 0xffd24a], cr = [];
       for(var ci = 0; ci < nc; ci++){
         var ca = ci * 2.1 + 0.4, rr = 0.45 + 0.17 * (ci % 4), cs = 0.14 + 0.05 * (ci % 4), col = pal[ci % 3];
-        var oc = part(g, new T.OctahedronGeometry(1, 0), col, [Math.sin(ca) * rr * 1.5, 1.35 + 0.18 * (ci % 3) - rr * 0.1, -0.4 - Math.abs(Math.cos(ca)) * rr * 0.9], [cs, cs * 2.0, cs], { outline:false, glow:col, gi:0.7 });
+        var oc = part(g, new T.OctahedronGeometry(1, 0), col, [Math.sin(ca) * rr * 1.5, 1.35 + 0.18 * (ci % 3) - rr * 0.1, -0.4 - Math.abs(Math.cos(ca)) * rr * 0.9], [cs, cs * 2.0, cs], { outline:false, glow:col, gi:0.8 });
         oc.rotation.set(0.2 * ci, ci, 0.15 * (ci % 2 ? 1 : -1)); cr.push(oc);
       }
       A.push(function(t){ cr.forEach(function(c, i){ c.material.emissiveIntensity = 0.7 + Math.abs(Math.sin(t * 2 + i)) * 0.9; }); });
       lanternPost(g, 1.0, 1.3, A, 1.0);
       lanternPost(g, -1.0, 1.3, A, 1.0);
-      if(lv >= 4) part(g, roundedBoxGeo(0.14, 1.4, 0.14, 0.04, 2), 0x785943, [1.5, 0.7, -0.6], [1, 1, 1], { outline:false });
-      if(lv >= 7){ part(g, roundedBoxGeo(0.9, 0.12, 0.14, 0.04, 2), 0x785943, [1.1, 1.45, -0.6], [1, 1, 1], { outline:false }); }
+      if(lv >= 4) part(g, roundedBoxGeo(0.14, 1.4, 0.14, 0.04, 2), 0x8a5a3a, [1.5, 0.7, -0.6], [1, 1, 1], { outline:false });
+      if(lv >= 7){ part(g, roundedBoxGeo(0.9, 0.12, 0.14, 0.04, 2), 0x8a5a3a, [1.1, 1.45, -0.6], [1, 1, 1], { outline:false }); }
       top = 2.6;
     }else if(id === 'tower'){                 // 탐험 전망대: 돌탑 + 발코니 + 망원경 + 깃발
       sc = 1;
       var h = 2.8 + 0.12 * lv;
-      part(g, new T.CylinderGeometry(0.95, 1.12, h, 24), 0xcec9d9, [0, h / 2, 0], [1, 1, 1], { map:getTex('stone') });
-      [0.3, 0.62].forEach(function(f){ part(g, new T.TorusGeometry(1.0 + (1 - f) * 0.1, 0.06, 8, 28), 0xe5c76c, [0, h * f, 0], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2; });
-      part(g, roundedBoxGeo(0.62, 0.95, 0.2, 0.05, 2), 0x785943, [0, 0.48, 1.04], [1, 1, 1], { map:getTex('plank'), outline:false });
+      part(g, new T.CylinderGeometry(0.95, 1.12, h, 24), 0xd8d2c4, [0, h / 2, 0], [1, 1, 1], { map:getTex('stone') });
+      [0.3, 0.62].forEach(function(f){ part(g, new T.TorusGeometry(1.0 + (1 - f) * 0.1, 0.06, 8, 28), 0xffd24a, [0, h * f, 0], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2; });
+      part(g, roundedBoxGeo(0.62, 0.95, 0.2, 0.05, 2), 0x8a5a3a, [0, 0.48, 1.04], [1, 1, 1], { map:getTex('plank'), outline:false });
       [0.5, 2.6, 4.4].forEach(function(a, i){ windowAt(g, Math.sin(a) * 0.98, h * 0.5 + i * 0.1, Math.cos(a) * 0.98, 0.26, 0.4, false); g.children[g.children.length - 1].rotation.y = a; });
-      part(g, new T.CylinderGeometry(1.35, 1.2, 0.2, 24), 0xbaae9b, [0, h, 0], [1, 1, 1], { map:getTex('stone') });
-      for(var p = 0; p < 12; p++){ var pa = p / 12 * Math.PI * 2; part(g, box, 0x785943, [Math.cos(pa) * 1.3, h + 0.35, Math.sin(pa) * 1.3], [0.07, 0.5, 0.07], { outline:false }); }
-      part(g, new T.TorusGeometry(1.3, 0.04, 6, 28), 0x785943, [0, h + 0.6, 0], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2;
-      part(g, new T.CylinderGeometry(0.75, 0.85, 0.9, 20), 0xddd9e5, [0, h + 0.65, 0], [1, 1, 1], { map:getTex('stone') });
-      part(g, new T.ConeGeometry(1.0, 1.25, 20), 0x53a299, [0, h + 1.7, 0], [1, 1, 1], { map:getTex('roof') });
-      part(g, new T.CylinderGeometry(0.03, 0.03, 0.9, 6), 0x5d4833, [0, h + 2.7, 0], [1, 1, 1], { outline:false });
-      var tf = part(g, box, 0xd15c84, [0.28, h + 2.95, 0], [0.55, 0.32, 0.02], { outline:false });
+      part(g, new T.CylinderGeometry(1.35, 1.2, 0.2, 24), 0xc9b79a, [0, h, 0], [1, 1, 1], { map:getTex('stone') });
+      for(var p = 0; p < 12; p++){ var pa = p / 12 * Math.PI * 2; part(g, box, 0x8a5a3a, [Math.cos(pa) * 1.3, h + 0.35, Math.sin(pa) * 1.3], [0.07, 0.5, 0.07], { outline:false }); }
+      part(g, new T.TorusGeometry(1.3, 0.04, 6, 28), 0x8a5a3a, [0, h + 0.6, 0], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2;
+      part(g, new T.CylinderGeometry(0.75, 0.85, 0.9, 20), 0xe4dccb, [0, h + 0.65, 0], [1, 1, 1], { map:getTex('stone') });
+      part(g, new T.ConeGeometry(1.0, 1.25, 20), 0x4a8a78, [0, h + 1.7, 0], [1, 1, 1], { map:getTex('roof') });
+      part(g, new T.CylinderGeometry(0.03, 0.03, 0.9, 6), 0x6a4a2a, [0, h + 2.7, 0], [1, 1, 1], { outline:false });
+      var tf = part(g, box, 0xc23b4b, [0.28, h + 2.95, 0], [0.55, 0.32, 0.02], { outline:false });
       A.push(function(t){ tf.rotation.y = Math.sin(t * 4) * 0.4; });
       var ts = new T.Group(); ts.position.set(1.0, h + 0.55, 0.6); ts.rotation.set(-0.5, 0.6, 0);
-      part(ts, new T.CylinderGeometry(0.07, 0.09, 0.7, 10), 0xe5c76c, [0, 0.35, 0], [1, 1, 1], { metal:0.8, rough:0.3, outline:false }); g.add(ts);
-      var cp = part(g, smallG, 0x8fd5e4, [-0.95, h + 0.55, -0.4], [0.18, 0.18, 0.18], { outline:false, glow:0x8fd5e4, gi:0.91 });
+      part(ts, new T.CylinderGeometry(0.07, 0.09, 0.7, 10), 0xffd24a, [0, 0.35, 0], [1, 1, 1], { metal:0.8, rough:0.3, outline:false }); g.add(ts);
+      var cp = part(g, smallG, 0x7fe9ff, [-0.95, h + 0.55, -0.4], [0.18, 0.18, 0.18], { outline:false, glow:0x7fe9ff, gi:1.04 });
       A.push(function(t){ cp.position.y = h + 0.6 + Math.sin(t * 2) * 0.05; });
       lanternPost(g, 1.5, 1.1, A);
       top = h + 3.4;
     }else if(id === 'castle'){                // 왕성: 성벽 + 본관 + 탑 + 성문
       sc = 1 + 0.03 * lv;
       var kh = 2.0 + 0.08 * lv;
-      part(g, roundedBoxGeo(3.4, kh, 2.6, 0.14, 3), 0xe7ddd8, [0, kh / 2, -0.1], [1, 1, 1], { map:getTex('brick') });
-      for(var b = 0; b < 8; b++){ var bx = -1.5 + b * 0.43; part(g, roundedBoxGeo(0.28, 0.3, 0.28, 0.04, 2), 0xd9cec8, [bx, kh + 0.15, 1.1], [1, 1, 1], { outline:false }); part(g, roundedBoxGeo(0.28, 0.3, 0.28, 0.04, 2), 0xd9cec8, [bx, kh + 0.15, -1.3], [1, 1, 1], { outline:false }); }
-      part(g, new T.ConeGeometry(1.2, 1.5, 4), 0xdd93ae, [0, kh + 0.9, -0.1], [1, 1, 0.9], { map:getTex('roof') }).rotation.y = Math.PI / 4;
+      part(g, roundedBoxGeo(3.4, kh, 2.6, 0.14, 3), 0xe9dcc6, [0, kh / 2, -0.1], [1, 1, 1], { map:getTex('brick') });
+      for(var b = 0; b < 8; b++){ var bx = -1.5 + b * 0.43; part(g, roundedBoxGeo(0.28, 0.3, 0.28, 0.04, 2), 0xe8d8ce, [bx, kh + 0.15, 1.1], [1, 1, 1], { outline:false }); part(g, roundedBoxGeo(0.28, 0.3, 0.28, 0.04, 2), 0xe8d8ce, [bx, kh + 0.15, -1.3], [1, 1, 1], { outline:false }); }
+      part(g, new T.ConeGeometry(1.2, 1.5, 4), 0x9a4a3a, [0, kh + 0.9, -0.1], [1, 1, 0.9], { map:getTex('roof') }).rotation.y = Math.PI / 4;
       [[-1.85, -1.05], [1.85, -1.05], [-1.85, 1.05], [1.85, 1.05]].forEach(function(p, i){
-        part(g, new T.CylinderGeometry(0.5, 0.56, kh + 1.0, 18), 0xefe5e9, [p[0], (kh + 1.0) / 2, p[1]], [1, 1, 1], { map:getTex('stone') });
-        part(g, new T.ConeGeometry(0.72, 0.95, 16), i % 2 ? 0x92aedd : 0x7b87d4, [p[0], kh + 1.5, p[1]], [1, 1, 1], { map:getTex('roof') });
-        part(g, new T.CylinderGeometry(0.025, 0.025, 0.8, 6), 0x5d4833, [p[0], kh + 2.35, p[1]], [1, 1, 1], { outline:false });
-        var cf = part(g, box, i < 2 ? 0xd15c84 : 0xe5c76c, [p[0] + 0.28, kh + 2.5, p[1]], [0.5, 0.28, 0.02], { outline:false });
+        part(g, new T.CylinderGeometry(0.5, 0.56, kh + 1.0, 18), 0xeee3d0, [p[0], (kh + 1.0) / 2, p[1]], [1, 1, 1], { map:getTex('stone') });
+        part(g, new T.ConeGeometry(0.72, 0.95, 16), i % 2 ? 0x55688a : 0x6a5a82, [p[0], kh + 1.5, p[1]], [1, 1, 1], { map:getTex('roof') });
+        part(g, new T.CylinderGeometry(0.025, 0.025, 0.8, 6), 0x6a4a2a, [p[0], kh + 2.35, p[1]], [1, 1, 1], { outline:false });
+        var cf = part(g, box, i < 2 ? 0xc23b4b : 0xffd24a, [p[0] + 0.28, kh + 2.5, p[1]], [0.5, 0.28, 0.02], { outline:false });
         A.push(function(t){ cf.rotation.y = Math.sin(t * 4 + i) * 0.4; });
         windowAt(g, p[0], kh * 0.6, p[1] + (p[1] > 0 ? 0.55 : -0.55), 0.22, 0.36, false);
         if(p[1] < 0) g.children[g.children.length - 1].rotation.y = Math.PI;
       });
       part(g, new T.CylinderGeometry(0.62, 0.62, 0.2, 18, 1, false, 0, Math.PI), 0x1a1a24, [0, 1.0, 1.22], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2;
       part(g, roundedBoxGeo(1.24, 1.0, 0.2, 0.05, 2), 0x1a1a24, [0, 0.5, 1.22], [1, 1, 1], { outline:false });
-      part(g, roundedBoxGeo(1.0, 0.1, 1.0, 0.03, 2), 0x785943, [0, 0.05, 1.8], [1, 1, 1], { map:getTex('plank'), outline:false });
-      [-1, 1].forEach(function(s){ part(g, roundedBoxGeo(1.0, 0.9, 0.5, 0.08, 2), 0xe3d7c6, [s * 2.9, 0.45, 0.5], [1, 1, 1], { map:getTex('brick') }); });
+      part(g, roundedBoxGeo(1.0, 0.1, 1.0, 0.03, 2), 0x8a5a3a, [0, 0.05, 1.8], [1, 1, 1], { map:getTex('plank'), outline:false });
+      [-1, 1].forEach(function(s){ part(g, roundedBoxGeo(1.0, 0.9, 0.5, 0.08, 2), 0xf3e2c8, [s * 2.9, 0.45, 0.5], [1, 1, 1], { map:getTex('brick') }); });
       lanternPost(g, -0.95, 1.8, A, 1.1); lanternPost(g, 0.95, 1.8, A, 1.1);
-      if(lv >= 5) part(g, smallG, 0xe5c76c, [0, kh + 1.95, -0.1], [0.45, 0.45, 0.45], { outline:false, metal:0.9, rough:0.25 });
-      if(lv >= 8) part(g, new T.ConeGeometry(0.2, 1.0, 8), 0xe5c76c, [0, kh + 2.7, -0.1], [1, 1, 1], { outline:false, metal:0.9, rough:0.25 });
+      if(lv >= 5) part(g, smallG, 0xffd24a, [0, kh + 1.95, -0.1], [0.45, 0.45, 0.45], { outline:false, metal:0.9, rough:0.25 });
+      if(lv >= 8) part(g, new T.ConeGeometry(0.2, 1.0, 8), 0xffd24a, [0, kh + 2.7, -0.1], [1, 1, 1], { outline:false, metal:0.9, rough:0.25 });
       top = kh + 3.0;
     }
     g.scale.setScalar(sc);
@@ -2926,46 +2930,45 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     var scene = new T.Scene();
     var camera = new T.PerspectiveCamera(40, 1, 0.1, 200);
-    scene.add(new T.HemisphereLight(0xf1ece0, 0x7d8a6a, 0.8));
-    var sun = new T.DirectionalLight(0xfff0d8, 0.95); sun.position.set(6, 11, 7); scene.add(sun);
-    if(T.ACESFilmicToneMapping){ renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.95; }
+    scene.add(new T.HemisphereLight(0xe8f0ff, 0x7a8f5a, 0.95));
+    var sun = new T.DirectionalLight(0xfff1d6, 1.05); sun.position.set(6, 11, 7); scene.add(sun);
     ENV_CUR = makeEnv(renderer); envForKingdom = ENV_CUR;
     var envTex = ENV_CUR;
     var world = new T.Group(); scene.add(world);
-    scene.fog = new T.Fog(0xd3e0e8, 55, 150);
+    scene.fog = new T.Fog(0xc8e0f2, 60, 160);
     var tgt = { x:0, z:2 }, zoom = 1, focusTo = null, camDist = 13, camFov = 56;
 
     // ---- 섬 ----
     var island = new T.Group(); world.add(island);
-    part(island, new T.CylinderGeometry(26, 9, 8, 80), 0x7c6757, [0, -4.3, 0], [1, 1, 1], { outline:false });
+    part(island, new T.CylinderGeometry(26, 9, 8, 80), 0x8a6a52, [0, -4.3, 0], [1, 1, 1], { outline:false });
     part(island, new T.CylinderGeometry(26.3, 26.3, 0.5, 96), 0xffffff, [0, -0.25, 0], [1, 1, 1], { outline:false, map:getTex('grass') });
-    var rimT = new T.Mesh(new T.TorusGeometry(26.3, 0.3, 8, 128), new T.MeshStandardMaterial({ color:0x6ca96c, roughness:0.7 }));
+    var rimT = new T.Mesh(new T.TorusGeometry(26.3, 0.3, 8, 128), new T.MeshStandardMaterial({ color:0x62bd62, roughness:0.7 }));
     rimT.rotation.x = Math.PI / 2; rimT.position.y = 0.0; island.add(rimT);
-    [[-0.9, 0.6, 0xc2d8ad], [0, 0.6, 0xc2d8ad]].forEach(function(){});
+    [[-0.9, 0.6, 0xc7e9a8], [0, 0.6, 0xc7e9a8]].forEach(function(){});
     Object.keys(BPOS).forEach(function(k){
       var p = BPOS[k];
-      var pad = part(island, new T.CylinderGeometry(3.9, 3.9, 0.04, 40), 0xd8d1c6, [p[0], 0.0, p[2]], [1, 1, 1], { outline:false, map:getTex('stone') });
+      var pad = part(island, new T.CylinderGeometry(3.9, 3.9, 0.04, 40), 0xe6dccb, [p[0], 0.0, p[2]], [1, 1, 1], { outline:false, map:getTex('stone') });
     });
     // 건물들을 잇는 길
     [['farm'], ['mine'], ['tower']].forEach(function(k){
       var a = BPOS.castle, b = BPOS[k[0]], dx = b[0] - a[0], dz = b[2] - a[2], len = Math.hypot(dx, dz);
-      part(island, new T.BoxGeometry(1, 1, 1), 0xd9ceb8, [(a[0] + b[0]) / 2, 0.02, (a[2] + b[2]) / 2], [2.2, 0.05, len], { outline:false, map:getTex('stone') }).rotation.y = Math.atan2(dx, dz);
+      part(island, new T.BoxGeometry(1, 1, 1), 0xe9d9b8, [(a[0] + b[0]) / 2, 0.02, (a[2] + b[2]) / 2], [2.2, 0.05, len], { outline:false, map:getTex('stone') }).rotation.y = Math.atan2(dx, dz);
     });
     [[-18, -8, 4.8], [19, -12, 4.2]].forEach(function(p){
-      part(island, new T.CylinderGeometry(p[2], p[2], 0.12, 44), 0x7db8dd, [p[0], 0.03, p[1]], [1, 1, 1], { outline:false }).material.transparent = true;
-      part(island, new T.TorusGeometry(p[2], 0.22, 8, 44), 0xbaae9b, [p[0], 0.1, p[1]], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2;
+      part(island, new T.CylinderGeometry(p[2], p[2], 0.12, 44), 0x5fa8c8, [p[0], 0.03, p[1]], [1, 1, 1], { outline:false }).material.transparent = true;
+      part(island, new T.TorusGeometry(p[2], 0.22, 8, 44), 0xc9b79a, [p[0], 0.1, p[1]], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2;
     });
     [[-21, -19, 5.5], [21, -21, 6], [-23, 12, 5], [23, 15, 5.5], [-9, 23, 5], [9, -25, 5]].forEach(function(p){
-      part(island, sphG, 0x7ebb7f, [p[0], -0.3, p[1]], [p[2], p[2] * 0.45, p[2]], { outline:false, map:null });
+      part(island, sphG, 0x6aa84f, [p[0], -0.3, p[1]], [p[2], p[2] * 0.45, p[2]], { outline:false, map:null });
     });
     // ---- 자연물: 둥글둥글한 나무, 덤불, 꽃, 풀, 바위, 버섯 ----
     function protoTree(kind){
       var g = new T.Group();
-      part(g, new T.CylinderGeometry(0.13, 0.2, 1.0, 8), 0x785943, [0, 0.5, 0], [1, 1, 1], { outline:false });
+      part(g, new T.CylinderGeometry(0.13, 0.2, 1.0, 8), 0x8a5a3a, [0, 0.5, 0], [1, 1, 1], { outline:false });
       if(kind === 1){
-        [[0.8, 0.95, 1.2, 0x4e936b], [0.62, 0.85, 1.75, 0x5faa7c], [0.42, 0.75, 2.25, 0x72bf8e]].forEach(function(c){ part(g, new T.ConeGeometry(c[0], c[1], 12), c[3], [0, c[2], 0]); });
+        [[0.8, 0.95, 1.2, 0x2f7a4a], [0.62, 0.85, 1.75, 0x3a8a55], [0.42, 0.75, 2.25, 0x49996a]].forEach(function(c){ part(g, new T.ConeGeometry(c[0], c[1], 12), c[3], [0, c[2], 0]); });
       }else{
-        var cols = kind === 2 ? [0xe2a8bd, 0xe6bdcd, 0xde96af] : [0x5fa971, 0x71be83, 0x4e9460];
+        var cols = kind === 2 ? [0xe39fb2, 0xedb4c4, 0xd98ba2] : [0x3f8f45, 0x4fa254, 0x347a3c];
         part(g, sphG, cols[0], [0, 1.45, 0], [0.8, 0.7, 0.8]);
         part(g, sphG, cols[1], [-0.42, 1.12, 0.12], [0.55, 0.5, 0.55]);
         part(g, sphG, cols[2], [0.42, 1.18, -0.1], [0.55, 0.5, 0.55]);
@@ -2975,42 +2978,42 @@
     }
     function protoBush(){
       var g = new T.Group();
-      part(g, sphG, 0x5fa971, [0, 0.28, 0], [0.42, 0.34, 0.42]);
-      part(g, sphG, 0x71be83, [-0.3, 0.22, 0.05], [0.3, 0.26, 0.3]);
-      part(g, sphG, 0x4e9460, [0.3, 0.2, -0.05], [0.3, 0.26, 0.3]);
+      part(g, sphG, 0x3f8f45, [0, 0.28, 0], [0.42, 0.34, 0.42]);
+      part(g, sphG, 0x4fa254, [-0.3, 0.22, 0.05], [0.3, 0.26, 0.3]);
+      part(g, sphG, 0x347a3c, [0.3, 0.2, -0.05], [0.3, 0.26, 0.3]);
       return g;
     }
     function protoFlower(color){
       var g = new T.Group();
-      part(g, new T.CylinderGeometry(0.015, 0.02, 0.32, 5), 0x4e9460, [0, 0.16, 0], [1, 1, 1], { outline:false });
+      part(g, new T.CylinderGeometry(0.015, 0.02, 0.32, 5), 0x347a3c, [0, 0.16, 0], [1, 1, 1], { outline:false });
       part(g, sphG, color, [0, 0.34, 0], [0.13, 0.05, 0.13], { outline:false });
-      part(g, sphG, 0xe8d382, [0, 0.37, 0], [0.05, 0.04, 0.05], { outline:false });
+      part(g, sphG, 0xffe066, [0, 0.37, 0], [0.05, 0.04, 0.05], { outline:false });
       return g;
     }
     function protoGrass(){
       var g = new T.Group();
       for(var i = 0; i < 3; i++){
-        var m = part(g, new T.ConeGeometry(0.04, 0.34 + (i % 3) * 0.08, 4), i % 2 ? 0x6cb880 : 0x549b66, [(i - 1) * 0.06, 0.17, (i % 2) * 0.04], [1, 1, 1], { outline:false });
+        var m = part(g, new T.ConeGeometry(0.04, 0.34 + (i % 3) * 0.08, 4), i % 2 ? 0x58a04e : 0x468f40, [(i - 1) * 0.06, 0.17, (i % 2) * 0.04], [1, 1, 1], { outline:false });
         m.rotation.z = (i - 1) * 0.16;
       }
       return g;
     }
     function protoRock(k){
       var g = new T.Group();
-      var m = new T.Mesh(rockGeo(0.4, k), new T.MeshStandardMaterial({ color: k % 2 ? 0xa09eaa : 0x92919d, roughness:0.9, flatShading:true }));
+      var m = new T.Mesh(rockGeo(0.4, k), new T.MeshStandardMaterial({ color: k % 2 ? 0xa8a6b8 : 0x9a98aa, roughness:0.9, flatShading:true }));
       m.position.y = 0.16; m.scale.set(1.2, 0.7, 1); g.add(m);
       return g;
     }
     function protoMush(){
       var g = new T.Group();
-      part(g, new T.CylinderGeometry(0.06, 0.08, 0.2, 8), 0xe7dfd1, [0, 0.1, 0], [1, 1, 1], { outline:false });
-      part(g, sphG, 0xd16464, [0, 0.22, 0], [0.17, 0.1, 0.17], { outline:false });
+      part(g, new T.CylinderGeometry(0.06, 0.08, 0.2, 8), 0xf6ead6, [0, 0.1, 0], [1, 1, 1], { outline:false });
+      part(g, sphG, 0xc4483f, [0, 0.22, 0], [0.17, 0.1, 0.17], { outline:false });
       [[0.07, 0.27, 0.05], [-0.06, 0.26, 0.07], [0.0, 0.29, -0.08]].forEach(function(p){ part(g, sphG, 0xffffff, p, [0.03, 0.02, 0.03], { outline:false }); });
       return g;
     }
     var PT = {
       trees:[protoTree(0), protoTree(1), protoTree(2)], bushes:[protoBush()],
-      flowers:[protoFlower(0xdd8fb8), protoFlower(0xe5c76c), protoFlower(0xffffff)], grass:[protoGrass()], rocks:[protoRock(1), protoRock(2)], mush:[protoMush()]
+      flowers:[protoFlower(0xe58ab0), protoFlower(0xe8c24a), protoFlower(0xffffff)], grass:[protoGrass()], rocks:[protoRock(1), protoRock(2)], mush:[protoMush()]
     };
     var natureG = new T.Group(); island.add(natureG);
     function rnd(seed){ var s = seed; return function(){ s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
@@ -3039,15 +3042,15 @@
       if(natureG.traverse){ natureG.traverse(function(o){ o.updateMatrix(); o.matrixAutoUpdate = false; }); }
     }
     scatter(null);
-    part(island, new T.CylinderGeometry(26.4, 25.8, 1.4, 96), 0x635044, [0, -1.0, 0], [1, 1, 1], { outline:false });
+    part(island, new T.CylinderGeometry(26.4, 25.8, 1.4, 96), 0x6f5240, [0, -1.0, 0], [1, 1, 1], { outline:false });
     for(var si = 0; si < 26; si++){
       var sa = si / 26 * Math.PI * 2 + 0.2, sr = 6 + (si % 4) * 4.5;
-      part(island, new T.ConeGeometry(1.2 + (si % 3) * 0.4, 4.5 + (si % 4) * 1.4, 7), 0x6d594c, [Math.cos(sa) * sr, -9.0 - (si % 4) * 0.6, Math.sin(sa) * sr], [1, 1, 1], { outline:false }).rotation.x = Math.PI;
+      part(island, new T.ConeGeometry(1.2 + (si % 3) * 0.4, 4.5 + (si % 4) * 1.4, 7), 0x7a5c48, [Math.cos(sa) * sr, -9.0 - (si % 4) * 0.6, Math.sin(sa) * sr], [1, 1, 1], { outline:false }).rotation.x = Math.PI;
     }
     var clouds = [];
     for(var cl = 0; cl < 14; cl++){
       var cg = new T.Group();
-      for(var cs = 0; cs < 4; cs++){ var cm = new T.Mesh(sphG, new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.85 })); cm.position.set(cs * 0.7 - 1, (cs % 2) * 0.15, 0); cm.scale.set(0.8 + (cs % 2) * 0.3, 0.5, 0.5); cg.add(cm); }
+      for(var cs = 0; cs < 4; cs++){ var cm = new T.Mesh(sphG, new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.9, fog:false })); cm.position.set(cs * 0.7 - 1, (cs % 2) * 0.15, 0); cm.scale.set(0.8 + (cs % 2) * 0.3, 0.5, 0.5); cg.add(cm); }
       cg.scale.setScalar(3.5); cg.position.set(-80 + cl * 12, -6 + (cl % 4) * 3.2, -40 - (cl % 3) * 14); cg.userData.sp = 0.5 + cl * 0.05; scene.add(cg); clouds.push(cg);
     }
 
@@ -3083,7 +3086,7 @@
         var tex = iconTexture(kind, n);
         if(tex){ if(b.bubble.material.map) b.bubble.material.map.dispose(); b.bubble.material.map = tex; b.bubble.material.needsUpdate = true; }
       }
-      b.bubble.visible = !!kind;
+      b.bubble.visible = !!kind && !!b.bubble.material.map;
     }
 
     // ---- 캐릭터 ----
@@ -3110,7 +3113,7 @@
     }
     function pickTarget(C){
       for(var k = 0; k < 12; k++){
-        var a = Math.random() * Math.PI * 2, r = 1 + Math.random() * 9, x = tgt.x + Math.cos(a) * r, z = tgt.z + Math.sin(a) * r, ok = Math.hypot(x, z) < 23;
+        var a = Math.random() * Math.PI * 2, r = (0.6 + Math.random() * 2.6) * zoom, x = tgt.x + Math.cos(a) * r, z = tgt.z + Math.sin(a) * r * 1.3, ok = Math.hypot(x, z) < 23;
         Object.keys(BPOS).forEach(function(id){ var p = BPOS[id]; if(Math.hypot(x - p[0], z - p[2]) < 4.8) ok = false; });
         if(ok){ C.tx = x; C.tz = z; return; }
       }
@@ -3126,8 +3129,8 @@
         var wp = workPos(C), dx = wp.x - C.x, dz = wp.z - C.z, d = Math.hypot(dx, dz);
         if(d > 0.12){ C.x += dx / d * 1.6 * dt; C.z += dz / d * 1.6 * dt; C.phase += dt * 9; hop = Math.abs(Math.sin(C.phase)) * 0.3; face = Math.atan2(dx, dz); }
         else{ hop = Math.abs(Math.sin(t * (C.busy ? 7 : 4) + C.phase)) * 0.24; sy = 1 - 0.08 * Math.cos(t * (C.busy ? 14 : 8) + C.phase * 2); sx = 1 / Math.sqrt(sy); var bp = BPOS[C.at]; face = Math.atan2(bp[0] - C.x, bp[2] - C.z); }
-      }else if(!C.at && Math.hypot(C.x - tgt.x, C.z - tgt.z) > 26){
-        C.x = tgt.x + (Math.random() - 0.5) * 14; C.z = tgt.z + (Math.random() - 0.5) * 14; C.mode = 'idle'; C.wait = 0.5;
+      }else if(!C.at && Math.hypot(C.x - tgt.x, (C.z - tgt.z) * 0.8) > 5.2 * zoom){
+        C.x = tgt.x + (Math.random() - 0.5) * 6 * zoom; C.z = tgt.z + (Math.random() - 0.5) * 6 * zoom; C.mode = 'idle'; C.wait = 0.5;
       }else if(C.mode === 'walk'){
         var ddx = C.tx - C.x, ddz = C.tz - C.z, dd = Math.hypot(ddx, ddz);
         if(dd < 0.12){ C.mode = 'idle'; C.wait = 1 + Math.random() * 3; }
@@ -3633,7 +3636,7 @@ async function updateGroupCount(){
         model: selectedModel,
         power: powerScore(st)
       },
-      hub: (typeof btMyName === 'function' && btMyName()) ? { name: btMyName(), lv: Math.max(1, charLevel(btMyName())) } : null
+      hub: (typeof btMyName === 'function' && btMyName()) ? { name: btMyName(), lv: Math.max(1, charLevel(btMyName())), lvl: charLvl(btMyName()), kb: Math.round(kBuffPct() * 1000) / 1000 } : null
     }, { merge:true });
   }catch(e){ /* 조용히 무시 */ }
 }
@@ -4921,12 +4924,23 @@ function hubExchange(name){
   saveCharacter(); updateHubTickets();
   return k;
 }
-function charStatsOf(name, lvOv){
+// 캐릭터 레벨(코인으로 올려요): 승급 ✦가 많을수록 더 높이 올릴 수 있어요
+function charLvl(name){ return Math.max(1, (charCollection[name] && charCollection[name].lv) || 1); }
+function charLvlCap(name){ return Math.min(30, 6 + 6 * Math.max(1, charLevel(name))); }
+function lvlCost(name){
+  const c = HUB_BY_NAME[name], m = ({3:1, 4:1.5, 5:2.2, 6:4})[c.star] || 1;
+  return Math.round(50 * Math.pow(1.18, charLvl(name) - 1) * m);
+}
+// 왕성 레벨이 주는 전투 보너스 (모든 캐릭터의 공격·방어·체력)
+function kBuffPct(){ return (kingdom && kingdom.b) ? 0.02 * (kLv('castle') - 1) : 0; }
+function charStatsOf(name, lvOv, opt){
   const c = HUB_BY_NAME[name]; if(!c) return null;
   const lv = lvOv || Math.max(1, charLevel(name));
-  const total = ({3:100, 4:150, 5:220, 6:400})[c.star] * (1 + 0.18 * (lv - 1));
-  const w = HUB_ROLE_W[c.role];
-  return { atk:Math.round(total * w.atk), def:Math.round(total * w.def), hp:Math.round(total * w.hp * 4), spd:Math.round(total * w.spd) };
+  const L = opt ? Math.max(1, opt.lvl || 1) : charLvl(name);
+  const kb = opt ? (opt.kb || 0) : kBuffPct();
+  const total = ({3:100, 4:150, 5:220, 6:400})[c.star] * (1 + 0.18 * (lv - 1)) * (1 + 0.04 * (L - 1));
+  const w = HUB_ROLE_W[c.role], buff = 1 + kb;
+  return { atk:Math.round(total * w.atk * buff), def:Math.round(total * w.def * buff), hp:Math.round(total * w.hp * 4 * buff), spd:Math.round(total * w.spd) };
 }
 function hubRoll(min){
   const rates = HUB_RATES.filter(r => r[0] >= min);
@@ -5027,7 +5041,7 @@ function hubCardHTML(c, opts){
     <div class="hc-img">${img}</div>
     <div class="hc-star">${hubStarText(c.star)}</div>
     <div class="hc-name">${show ? escapeHtml(c.name) : '???'}</div>
-    ${owned && !opts.noLv ? `<div class="hc-lv">✦${lv}${charExtra(c.name) ? ' +' + charExtra(c.name) : ''}</div>` : ''}
+    ${owned && !opts.noLv ? `<div class="hc-lv">✦${lv}${charExtra(c.name) ? '+' + charExtra(c.name) : ''} · Lv.${charLvl(c.name)}</div>` : ''}
     ${opts.badge || ''}
   </button>`;
 }
@@ -5060,7 +5074,10 @@ async function openDetail(name){
   ov.innerHTML = '<div class="hub-sub">불러오는 중...</div>';
   let lib;
   try{ lib = await ensureHubLib(); }catch(e){ ov.classList.add('hidden'); hubToast(e.message); return; }
+  if(typeof kNorm === 'function' && !kingdom) kNorm();
   const c = HUB_BY_NAME[name], lv = charLevel(name), st = charStatsOf(name);
+  const L = charLvl(name), cap = charLvlCap(name), cost = lvlCost(name), coins = kingdom ? kingdom.coins : 0, kb = kBuffPct();
+  const canLv = L < cap && coins >= cost;
   const need = charNextNeed(name), n = charCollection[name].n, extra = charExtra(name);
   const pct = need ? Math.min(100, Math.round(n / need * 100)) : 100;
   ov.innerHTML = `
@@ -5073,7 +5090,9 @@ async function openDetail(name){
       <div class="dt-stat">공격<b>${st.atk}</b></div><div class="dt-stat">방어<b>${st.def}</b></div>
       <div class="dt-stat">체력<b>${st.hp}</b></div><div class="dt-stat">속도<b>${st.spd}</b></div>
     </div>
-    <div class="hub-sub" style="margin:0;">${need ? `다음 승급까지 ${n} / ${need}장` : (extra > 0 ? `승급 최대 · 남은 조각 ${extra}장` : '승급 최대예요')}</div>
+    <div class="hub-sub" style="margin:2px 0 4px;">Lv.${L} / ${cap}${kb > 0 ? ' · 왕국 보너스 +' + Math.round(kb * 100) + '%' : ''}</div>
+    <button class="hub-btn ${canLv ? 'b3' : 'dim'} sm" id="dtLvUp">${L >= cap ? '더 올리려면 승급 ✦가 필요해요' : '레벨업 · ' + cost.toLocaleString() + ' 코인 (보유 ' + coins.toLocaleString() + ')'}</button>
+    <div class="hub-sub" style="margin:6px 0 0;">${need ? `다음 승급까지 ${n} / ${need}장` : (extra > 0 ? `승급 최대 · 남은 조각 ${extra}장` : '승급 최대예요')}</div>
     <div class="dt-bar"><i style="width:${pct}%"></i></div>
     ${extra > 0 ? `<button class="hub-btn b3 sm" id="dtExchange" style="margin-top:8px;">남은 조각 ${extra}장 → 티켓 ${extra}장으로 바꾸기</button>` : ''}
     <div class="pull-row" style="margin-top:12px;">
@@ -5089,6 +5108,13 @@ async function openDetail(name){
     mainChar = (mainChar === name) ? null : name; saveCharacter(); hubSync(); openDetail(name);
   });
   document.getElementById('dtClose').addEventListener('click', closeDetail);
+  document.getElementById('dtLvUp').addEventListener('click', () => {
+    if(charLvl(name) >= charLvlCap(name)){ hubToast('승급 ✦를 올리면 더 높이 키울 수 있어요'); return; }
+    const k = lvlCost(name);
+    if(kingdom.coins < k){ hubToast('코인이 부족해요. 왕국에서 모아보세요'); return; }
+    kingdom.coins -= k; charCollection[name].lv = charLvl(name) + 1;
+    saveCharacter(); hubSync(); playFanfare(); hubToast(`${name} Lv.${charLvl(name)}`); renderCollection(); openDetail(name);
+  });
   const dtEx = document.getElementById('dtExchange');
   if(dtEx) dtEx.addEventListener('click', () => { const k = hubExchange(name); hubToast(`티켓 ${k}장을 받았어요`); renderCollection(); openDetail(name); });
 }
@@ -5118,7 +5144,7 @@ async function runPull(n){
     const force = (n >= 10 && i === n - 1 && !results.some(r => r.star >= 4));
     const r = hubPullOne(force);
     const before = charLevel(r.name), had = (charCollection[r.name] && charCollection[r.name].n) || 0;
-    charCollection[r.name] = { n: had + 1 };
+    charCollection[r.name] = { n: had + 1, lv: charLvl(r.name) };
     r.isNew = had === 0; r.lvUp = charLevel(r.name) > before && !r.isNew;
     results.push(r);
   }
@@ -5211,7 +5237,7 @@ function closeReveal(){
 // ----- 마스터 (내 계정 전용) -----
 function hubGrant(name, k){
   const had = (charCollection[name] && charCollection[name].n) || 0;
-  charCollection[name] = { n: had + k };
+  charCollection[name] = { n: had + k, lv: charLvl(name) };
   saveCharacter(); renderCollection();
 }
 function renderMasterView(){
@@ -5229,8 +5255,8 @@ function renderMasterView(){
   v.querySelectorAll('[data-ms]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.ms;
     if(k === 't10') tickets += 10; else if(k === 't100') tickets += 100;
-    else if(k === 'all') HUB_CHARS.forEach(c => { if(!(charCollection[c.name] && charCollection[c.name].n)) charCollection[c.name] = { n: 1 }; });
-    else if(k === 'max') HUB_CHARS.forEach(c => { charCollection[c.name] = { n: 5 }; });
+    else if(k === 'all') HUB_CHARS.forEach(c => { if(!(charCollection[c.name] && charCollection[c.name].n)) charCollection[c.name] = { n: 1, lv: 1 }; });
+    else if(k === 'max') HUB_CHARS.forEach(c => { charCollection[c.name] = { n: 5, lv: charCollection[c.name] && charCollection[c.name].lv || 1 }; });
     else if(k === 'reset'){ charCollection = {}; pity5 = 0; pity6 = 0; mainChar = null; }
     else if(k === 'c10000'){ kNorm(); kingdom.coins += 10000; }
     else if(k === 'kb5'){ kNorm(); K_IDS.forEach(id => { kingdom.b[id].lv = Math.max(kingdom.b[id].lv, 5); }); kNorm(); }
@@ -5288,7 +5314,7 @@ function renderBattleView(){
     document.getElementById('btGoGacha').addEventListener('click', () => showHubTab('gacha'));
     return;
   }
-  const mine = `<div class="bt-mine">${btCardHTML(me, charStatsOf(me), '내 캐릭터', ' · ✦' + charLevel(me))}
+  const mine = `<div class="bt-mine">${btCardHTML(me, charStatsOf(me), '내 캐릭터', ' · ✦' + charLevel(me) + ' · Lv.' + charLvl(me))}
     <div class="pull-row" style="margin-top:8px;"><button class="hub-btn b2 sm" id="btChange">내 캐릭터 바꾸기</button></div>
     <div class="hub-sub" style="text-align:center;margin:6px 0 0;">친구들에게는 이 캐릭터가 보여요${btWins + btLosses > 0 ? ` · 전적 ${btWins}승 ${btLosses}패` : ''}</div></div>`;
   let list;
@@ -5308,7 +5334,7 @@ function renderBattleView(){
         return `<div class="bt-mrow ${ok ? '' : 'off'}">
           <div class="bt-th">${img}</div>
           <div class="bt-info"><div class="bt-nick"><span class="bt-dot ${on ? 'on' : ''}"></span>${nm}</div>
-            <div class="bt-sub">${ok ? `${btStars(HUB_BY_NAME[h.name].star)} ${escapeHtml(h.name)} · ✦${h.lv || 1}` : '아직 캐릭터가 없어요'}</div></div>
+            <div class="bt-sub">${ok ? `${btStars(HUB_BY_NAME[h.name].star)} ${escapeHtml(h.name)} · ✦${h.lv || 1} · Lv.${h.lvl || 1}` : '아직 캐릭터가 없어요'}</div></div>
           ${ok ? `<button class="hub-btn sm" data-fight="${escapeHtml(m.uid)}">대결</button>` : ''}
         </div>`;
       }).join('') : '<div class="hub-sub" style="text-align:center;margin-top:14px;">아직 그룹에 다른 친구가 없어요</div>');
@@ -5347,7 +5373,7 @@ function btExit(){
 function btStartVs(uid){
   const m = (latestMembers || []).find(x => x.uid === uid);
   if(!m || !m.hub || !HUB_BY_NAME[m.hub.name]){ hubToast('상대의 캐릭터를 찾지 못했어요'); return; }
-  btOpp = { uid, nick: btMemberName(m), name: m.hub.name, lv: Math.max(1, Math.min(5, m.hub.lv || 1)) };
+  btOpp = { uid, nick: btMemberName(m), name: m.hub.name, lv: Math.max(1, Math.min(5, m.hub.lv || 1)), lvl: Math.max(1, Math.min(30, m.hub.lvl || 1)), kb: Math.max(0, Math.min(0.5, m.hub.kb || 0)) };
   btStart();
 }
 async function btStart(){
@@ -5361,7 +5387,7 @@ async function btStart(){
   ov.classList.remove('hidden');
   document.getElementById('btResult').classList.add('hidden');
   document.getElementById('btPops').innerHTML = '';
-  const sL = charStatsOf(me), sR = charStatsOf(btOpp.name, btOpp.lv);
+  const sL = charStatsOf(me), sR = charStatsOf(btOpp.name, btOpp.lv, { lvl: btOpp.lvl, kb: btOpp.kb });
   document.getElementById('btNameL').textContent = `나 · ${me}`;
   document.getElementById('btNameR').textContent = `${btOpp.nick} · ${btOpp.name}`;
   const names = lib.VARIANTS.map(v => v.name);
@@ -5538,52 +5564,6 @@ function kExpClaim(){
   return e;
 }
 function kThumb(n){ return hubThumbs[n] ? `<img alt="" src="${hubThumbs[n]}">` : ''; }
-function kExploreHTML(){
-  const e = kingdom.b.tower.exp;
-  if(e){
-    const r = kRegion(e.r), now = Date.now();
-    if(now < e.e){
-      const mins = Math.ceil((e.e - now) / 60000), pct = Math.min(100, Math.round((now - e.s) / (e.e - e.s) * 100));
-      return `<div class="kg-line"><span>탐험 중</span><span>${r.name}</span></div>
-        <div class="kg-line"><span>남은 시간</span><span>${mins >= 60 ? Math.floor(mins / 60) + '시간 ' + (mins % 60) + '분' : mins + '분'}</span></div>
-        <div class="dt-bar" style="max-width:none;"><i style="width:${pct}%"></i></div>
-        <div class="kg-slots">${e.a.map(n => `<div class="kg-slot on" style="cursor:default;">${kThumb(n)}<span>${escapeHtml(n)}</span></div>`).join('')}</div>
-        <div class="hub-sub" style="margin:2px 0 0;">탐험 중인 캐릭터는 섬에 없어요</div>`;
-    }
-    return `<div class="kg-line"><span>탐험 완료!</span><span>${r.name}</span></div>
-      <div class="kg-line"><span>보상</span><span>${e.rw.toLocaleString()} 코인${e.lucky ? ' · 보물상자 발견!' : ''}</span></div>
-      <div class="kg-row"><button class="hub-btn b3" id="kxClaim">보상 받기</button></div>`;
-  }
-  const max = kTeamMax(), cLv = kLv('castle');
-  kxTeam = kxTeam.filter(n => charLevel(n) > 0 && !kAssignedAt(n) && !kAway(n)).slice(0, max);
-  if(kLv('castle') < kRegion(kxRegion).need) kxRegion = 'forest';
-  const regs = K_REGIONS.map(r => {
-    const lock = cLv < r.need;
-    return `<button class="hub-btn sm ${lock ? 'dim' : (kxRegion === r.id ? '' : 'b2')}" data-reg="${r.id}" style="padding:8px 10px;font-size:12px;">${r.name}${lock ? ` · 왕성 Lv.${r.need}` : ''}</button>`;
-  }).join('');
-  const durs = K_DURS.map(d => `<button class="hub-btn sm ${kxDur === d.h ? '' : 'b2'}" data-dur="${d.h}" style="padding:8px 14px;font-size:12px;">${d.label}</button>`).join('');
-  const slots = Array.from({ length:max }, (_, i) => {
-    const n = kxTeam[i];
-    return n ? `<div class="kg-slot on" data-xslot="${i}">${kThumb(n)}<span>${escapeHtml(n)}</span></div>` : `<div class="kg-slot" data-xslot="${i}">+ 탐험대원</div>`;
-  }).join('');
-  const est = kxTeam.length ? Math.round(kExpReward(kRegion(kxRegion), kxDur, kxTeam)) : 0;
-  return `<div class="kg-line"><span>탐험대</span><span>최대 ${max}명${max < 3 ? ` · Lv.${max === 1 ? 3 : 6}에 늘어나요` : ''}</span></div>
-    <div class="kg-slots">${slots}</div>
-    <div class="kg-row" style="margin-top:8px;">${regs}</div>
-    <div class="kg-row" style="margin-top:6px;">${durs}</div>
-    <div class="kg-line" style="border:none;margin-top:6px;"><span>예상 보상</span><span>${est ? '약 ' + est.toLocaleString() + ' 코인' : '대원을 골라주세요'}</span></div>
-    <div class="hub-sub" style="margin:0;">등급이 높고 역할이 다양할수록 더 많이 벌어요 · 가끔 보물상자를 찾아요</div>
-    <div class="kg-row"><button class="hub-btn ${kxTeam.length ? '' : 'dim'}" id="kxGo">탐험 출발</button></div>`;
-}
-function kWireExplore(p, id){
-  const claim = document.getElementById('kxClaim');
-  if(claim) claim.addEventListener('click', () => { const e = kExpClaim(); if(e){ kSave(); playFanfare(); hubToast(`코인 ${e.rw.toLocaleString()}개를 얻었어요${e.lucky ? ' (보물상자!)' : ''}`); kRefresh(); } });
-  p.querySelectorAll('[data-reg]').forEach(b => b.addEventListener('click', () => { if(!b.classList.contains('dim')){ kxRegion = b.dataset.reg; kRenderPanel(id); } else hubToast('왕성 레벨을 더 올려야 해요'); }));
-  p.querySelectorAll('[data-dur]').forEach(b => b.addEventListener('click', () => { kxDur = +b.dataset.dur; kRenderPanel(id); }));
-  p.querySelectorAll('[data-xslot]').forEach(b => b.addEventListener('click', () => kPickExpChar(+b.dataset.xslot)));
-  const go = document.getElementById('kxGo');
-  if(go) go.addEventListener('click', () => { if(kExpStart()){ kSave(); playClick(); hubToast('탐험을 떠났어요!'); kRefresh(); } });
-}
 function kPickExpChar(slot){
   const ov = document.getElementById('hubDetail');
   const owned = HUB_CHARS.filter(c => charLevel(c.name) > 0 && !kAssignedAt(c.name) && !kAway(c.name));
@@ -5655,42 +5635,68 @@ function kgStop(){
 }
 function kClosePanel(){ kgSel = null; document.getElementById('kgPanel').classList.add('hidden'); }
 
+function kAutoTeam(){
+  const max = kTeamMax();
+  return HUB_CHARS.filter(c => charLevel(c.name) > 0 && !kAssignedAt(c.name) && !kAway(c.name))
+    .sort((a, b) => b.star - a.star || charLevel(b.name) - charLevel(a.name)).slice(0, max).map(c => c.name);
+}
+function kExploreHTML(){
+  const e = kingdom.b.tower.exp;
+  if(e){
+    const r = kRegion(e.r), now = Date.now();
+    if(now < e.e){
+      const mins = Math.ceil((e.e - now) / 60000), pct = Math.min(100, Math.round((now - e.s) / (e.e - e.s) * 100));
+      return `<div class="hub-sub" style="margin:2px 0 4px;">${r.name} 탐험 중 · ${mins >= 60 ? Math.floor(mins / 60) + '시간 ' + (mins % 60) + '분' : mins + '분'} 남음</div>
+        <div class="dt-bar" style="max-width:none;"><i style="width:${pct}%"></i></div>
+        <div class="kg-slots">${e.a.map(n => `<div class="kg-slot on" style="cursor:default;">${kThumb(n)}<span>${escapeHtml(n)}</span></div>`).join('')}</div>`;
+    }
+    return `<div class="hub-sub" style="margin:2px 0 4px;">${r.name} 탐험 완료!${e.lucky ? ' 보물상자도 찾았어요' : ''}</div>
+      <div class="kg-row"><button class="hub-btn b3" id="kxClaim">코인 ${e.rw.toLocaleString()}개 받기</button></div>`;
+  }
+  const cLv = kLv('castle');
+  const open = K_REGIONS.filter(r => r.need <= cLv);
+  if(!open.find(r => r.id === kxRegion)) kxRegion = open[open.length - 1].id;
+  kxTeam = kAutoTeam();
+  const regs = open.map(r => `<button class="hub-btn sm ${kxRegion === r.id ? '' : 'b2'}" data-reg="${r.id}" style="padding:7px 11px;font-size:12px;">${r.name}</button>`).join('');
+  const durs = K_DURS.map(d => `<button class="hub-btn sm ${kxDur === d.h ? '' : 'b2'}" data-dur="${d.h}" style="padding:7px 12px;font-size:12px;">${d.label}</button>`).join('');
+  const est = kxTeam.length ? Math.round(kExpReward(kRegion(kxRegion), kxDur, kxTeam)) : 0;
+  return `<div class="kg-row" style="margin-top:2px;">${regs}</div>
+    <div class="kg-row" style="margin-top:6px;">${durs}</div>
+    <div class="kg-slots" style="margin-top:8px;">${kxTeam.length ? kxTeam.map(n => `<div class="kg-slot on" style="cursor:default;">${kThumb(n)}<span>${escapeHtml(n)}</span></div>`).join('') : '<div class="hub-sub" style="margin:0;">보낼 캐릭터가 없어요</div>'}</div>
+    <div class="kg-row"><button class="hub-btn ${kxTeam.length ? '' : 'dim'}" id="kxGo">탐험 출발${est ? ' · 약 ' + est.toLocaleString() + '코인' : ''}</button></div>`;
+}
+function kWireExplore(p, id){
+  const claim = document.getElementById('kxClaim');
+  if(claim) claim.addEventListener('click', () => { const e = kExpClaim(); if(e){ kSave(); playFanfare(); hubToast(`코인 ${e.rw.toLocaleString()}개를 얻었어요`); kRefresh(); } });
+  p.querySelectorAll('[data-reg]').forEach(b => b.addEventListener('click', () => { kxRegion = b.dataset.reg; kRenderPanel(id); }));
+  p.querySelectorAll('[data-dur]').forEach(b => b.addEventListener('click', () => { kxDur = +b.dataset.dur; kRenderPanel(id); }));
+  const go = document.getElementById('kxGo');
+  if(go) go.addEventListener('click', () => { if(kExpStart()){ kSave(); playClick(); hubToast('탐험을 떠났어요!'); kRefresh(); } });
+}
 function kRenderPanel(id){
   const p = document.getElementById('kgPanel'), info = KB[id], b = kingdom.b[id], lv = b.lv;
   p.classList.remove('hidden');
   const cost = kUpCost(id), canPay = kingdom.coins >= cost;
-  let html = `<div class="kg-ph"><b>${info.name}${lv > 0 ? ` <span style="font-size:12px;opacity:.7;">Lv.${lv} / ${K_MAX}</span>` : ''}</b><button class="kg-x" id="kgClose">✕</button></div>
-    <div class="hub-sub" style="margin:2px 0 6px;">${info.desc}</div>`;
+  let html = `<div class="kg-ph"><b>${info.name}${lv > 0 ? ` <span style="font-size:12px;opacity:.7;">Lv.${lv}</span>` : ''}</b><button class="kg-x" id="kgClose">✕</button></div>`;
   if(lv <= 0){
-    html += `<div class="kg-row"><button class="hub-btn ${canPay ? '' : 'dim'}" id="kgUp">건설 · ${cost.toLocaleString()} 코인</button></div>`;
+    html += `<div class="hub-sub" style="margin:2px 0 4px;">${info.desc}</div>
+      <div class="kg-row"><button class="hub-btn ${canPay ? '' : 'dim'}" id="kgUp">건설 · ${cost.toLocaleString()} 코인</button></div>`;
   }else{
     if(info.kind === 'explore'){
       html += kExploreHTML();
-    }else if(info.kind !== 'castle'){
-      const pend = kPending(id), cap = kCapHours(id);
-      html += `<div class="kg-line"><span>생산</span><span>${kFmtRate(id, lv)}</span></div>
-        <div class="kg-line"><span>모인 양</span><span>${pend} 코인 (최대 ${cap}시간치)</span></div>`;
-      const bonus = Math.round(kBonusOf(id, b.a) * 100), castleB = Math.round(0.05 * (kLv('castle') - 1) * 100);
-      html += `<div class="kg-line"><span>보너스</span><span>캐릭터 +${bonus}% · 왕성 +${castleB}%</span></div>`;
-      const slots = kSlots(id);
-      html += `<div class="kg-slots">` + Array.from({ length: slots }, (_, i) => {
-        const n = b.a[i], img = n && hubThumbs[n] ? `<img alt="" src="${hubThumbs[n]}">` : '';
-        return n ? `<div class="kg-slot on" data-slot="${i}">${img}<span>${escapeHtml(n)}</span></div>` : `<div class="kg-slot" data-slot="${i}">+ 캐릭터 배치</div>`;
-      }).join('') + `</div><div class="hub-sub" style="margin:2px 0 0;">${info.role}형 캐릭터를 두면 보너스가 더 커요${lv < 5 ? ' · Lv.5가 되면 슬롯이 2칸이에요' : ''}</div>`;
-      html += `<div class="kg-row"><button class="hub-btn b3 ${pend > 0 ? '' : 'dim'}" id="kgCollect">코인 모으기</button></div>`;
+    }else if(info.kind === 'castle'){
+      html += `<div class="hub-sub" style="margin:2px 0 4px;">전투 보너스 모든 캐릭터 +${Math.round(kBuffPct() * 100)}% · 올릴 때마다 +2% · 생산과 탐험도 좋아져요</div>`;
     }else{
-      html += `<div class="kg-line"><span>생산 보너스</span><span>모든 건물 +${Math.round(0.05 * (lv - 1) * 100)}% · 탐험 보상도 늘어요</span></div>
-        <div class="kg-line"><span>모아두는 시간</span><span>코인 ${8 + 2 * (lv - 1)}시간치</span></div>
-        <div class="kg-line"><span>열린 탐험지</span><span>${K_REGIONS.filter(r => r.need <= lv).map(r => r.name).join(', ')}</span></div>`;
+      const pend = kPending(id);
+      html += `<div class="hub-sub" style="margin:2px 0 4px;">${kFmtRate(id, lv)}</div>
+        <div class="kg-row"><button class="hub-btn b3 ${pend > 0 ? '' : 'dim'}" id="kgCollect">코인 모으기${pend > 0 ? ' · ' + pend : ''}</button></div>`;
+      const slots = kSlots(id);
+      html += `<div class="kg-slots" style="margin-top:8px;">` + Array.from({ length: slots }, (_, i) => {
+        const n = b.a[i], img = n && hubThumbs[n] ? `<img alt="" src="${hubThumbs[n]}">` : '';
+        return n ? `<div class="kg-slot on" data-slot="${i}">${img}<span>${escapeHtml(n)}</span></div>` : `<div class="kg-slot" data-slot="${i}">+ 일할 캐릭터</div>`;
+      }).join('') + `</div>`;
     }
-    if(lv < K_MAX){
-      let eff = '';
-      if(info.kind === 'castle') eff = `생산 +${Math.round(0.05 * lv * 100)}%, 모아두는 시간 ${8 + 2 * lv}시간` + (K_REGIONS.find(r => r.need === lv + 1) ? ` · ${K_REGIONS.find(r => r.need === lv + 1).name} 열림` : '');
-      else if(info.kind === 'explore') eff = `탐험대 ${lv + 1 >= 6 ? 3 : (lv + 1 >= 3 ? 2 : 1)}명`;
-      else eff = `${kFmtRate(id, lv, b.a)} → ${kFmtRate(id, lv + 1, b.a)}` + (lv + 1 === 5 ? ' · 슬롯 +1' : '');
-      html += `<div class="kg-line" style="border:none;"><span>다음 레벨</span><span>${eff}</span></div>
-        <div class="kg-row"><button class="hub-btn ${canPay ? '' : 'dim'}" id="kgUp">레벨업 · ${cost.toLocaleString()} 코인</button></div>`;
-    }else html += `<div class="hub-sub" style="margin:8px 0 0;">최고 레벨이에요</div>`;
+    if(lv < K_MAX) html += `<div class="kg-row"><button class="hub-btn sm b2 ${canPay ? '' : 'dim'}" id="kgUp">레벨업 · ${cost.toLocaleString()} 코인</button></div>`;
   }
   p.innerHTML = html;
   document.getElementById('kgClose').addEventListener('click', kClosePanel);
