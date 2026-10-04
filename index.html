@@ -3167,7 +3167,7 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     if(renderer.shadowMap){ renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap; }
     var scene = new T.Scene();
-    var camera = new T.PerspectiveCamera(40, 1, 0.1, 260);
+    var camera = new T.PerspectiveCamera(40, 1, 0.1, 700);
     scene.add(new T.HemisphereLight(0xe8f0ff, 0x7a8f5a, 0.95));
     var sun = new T.DirectionalLight(0xfff1d6, 1.05); sun.position.set(6, 11, 7); scene.add(sun);
     if(sun.shadow && renderer.shadowMap){
@@ -3179,7 +3179,7 @@
     ENV_CUR = makeEnv(renderer); envForKingdom = ENV_CUR;
     var envTex = ENV_CUR;
     var world = new T.Group(); scene.add(world);
-    scene.fog = new T.Fog(0xc8e0f2, 85, 240);
+    scene.fog = new T.Fog(0xc8e0f2, 150, 480);
     var tgt = { x:0, z:2 }, zoom = 1, focusTo = null, camDist = 13, camFov = 56;
 
     // ---- 섬 ----
@@ -3198,11 +3198,11 @@
       var a = BPOS.castle, b = BPOS[k[0]], dx = b[0] - a[0], dz = b[2] - a[2], len = Math.hypot(dx, dz);
       part(island, new T.BoxGeometry(1, 1, 1), 0xe9d9b8, [(a[0] + b[0]) / 2, 0.02, (a[2] + b[2]) / 2], [2.2, 0.05, len], { outline:false, map:getTex('stone') }).rotation.y = Math.atan2(dx, dz);
     });
-    [[-36, 4, 5.5], [36, 5, 5]].forEach(function(p){
+    [[-31, 5, 5], [31, 6, 4.8]].forEach(function(p){
       part(island, new T.CylinderGeometry(p[2], p[2], 0.12, 44), 0x5fa8c8, [p[0], 0.03, p[1]], [1, 1, 1], { outline:false }).material.transparent = true;
       part(island, new T.TorusGeometry(p[2], 0.22, 8, 44), 0xc9b79a, [p[0], 0.1, p[1]], [1, 1, 1], { outline:false }).rotation.x = Math.PI / 2;
     });
-    [[-18, -34, 7], [19, -35, 7.5], [-37, -26, 6], [37, -25, 6.5], [0, 37, 6], [-2, -33, 5]].forEach(function(p){
+    [[-10, -30, 5.5], [11, -31, 6], [-20, -24, 5], [22, -26, 5], [-1, 34, 4]].forEach(function(p){
       part(island, sphG, 0x6aa84f, [p[0], -0.3, p[1]], [p[2], p[2] * 0.45, p[2]], { outline:false, map:null });
     });
     // ---- 자연물: 둥글둥글한 나무, 덤불, 꽃, 풀, 바위, 버섯 ----
@@ -3483,7 +3483,7 @@
       ptrs[e.pointerId] = { x:e.clientX, y:e.clientY };
       if(ptrCount() >= 2){
         var d = pinchDist();
-        if(pinchD > 0 && d > 0){ zoom = Math.max(0.5, Math.min(2.4, zoom * pinchD / d)); }
+        if(pinchD > 0 && d > 0){ zoom = Math.max(0.15, Math.min(5, zoom * pinchD / d)); }
         pinchD = d; moved += 10; return;
       }
       if(!dragging) return;
@@ -3495,7 +3495,7 @@
     function endPtr(e){ var was = dragging; delete ptrs[e.pointerId]; if(ptrCount() < 2) pinchD = 0; if(was && moved < 6 && e.type === 'pointerup') pick(e); if(ptrCount() === 0) dragging = false; }
     canvas.addEventListener('pointerup', endPtr);
     canvas.addEventListener('pointercancel', endPtr);
-    canvas.addEventListener('wheel', function(e){ e.preventDefault(); zoom = Math.max(0.5, Math.min(2.4, zoom * (e.deltaY > 0 ? 1.1 : 0.9))); }, { passive:false });
+    canvas.addEventListener('wheel', function(e){ e.preventDefault(); zoom = Math.max(0.15, Math.min(5, zoom * (e.deltaY > 0 ? 1.1 : 0.9))); }, { passive:false });
     function focus(id){ var p = BPOS[id]; if(p) focusTo = { x:p[0], z:p[2] + 3 }; }
 
     loadKit().then(function(kit){
@@ -5763,8 +5763,8 @@ async function btStart(){
 }
 // ---------- 왕국: 건물에서 코인과 티켓을 벌고, 캐릭터를 배치해서 더 빨리 벌어요 ----------
 const KB = {
-  mine:   { name:'별빛 광산',    kind:'coin',    cost0:0,   up0:150, base:40, role:'공격', desc:'슬라임들이 광석을 캐서 코인을 벌어요' },
-  farm:   { name:'슬라임 작업장', kind:'coin',    cost0:300, up0:250, base:90, role:'방어', desc:'캐온 광석을 가공해서 코인을 더 벌어요' },
+  mine:   { name:'별빛 광산',    kind:'coin',    cost0:0,   up0:150, base:12, role:'공격', desc:'슬라임들이 광석을 캐서 코인을 벌어요' },
+  farm:   { name:'슬라임 작업장', kind:'coin',    cost0:300, up0:250, base:28, role:'방어', desc:'캐온 광석을 가공해서 코인을 더 벌어요' },
   tower:  { name:'탐험 전망대',  kind:'explore', cost0:800, up0:600, role:'마법', desc:'캐릭터들을 탐험 보내서 코인을 벌어요' },
   castle: { name:'왕성',         kind:'castle',  cost0:0,   up0:400, desc:'왕국 레벨이에요. 올리면 모든 건물이 더 빨리 벌고, 더 먼 곳을 탐험할 수 있어요' },
   barracks:   { name:'훈련소', kind:'buff', stat:'atk',  per:0.03, need:2, cost0:500,  up0:300, desc:'병사들을 훈련시켜요. 모든 캐릭터의 공격력이 올라요' },
@@ -5777,11 +5777,11 @@ const KB = {
 const K_STAT_LABEL = { atk:'공격력', def:'방어력', hp:'체력', spd:'속도', coin:'코인 생산', disc:'레벨업 비용' };
 // 탐험 지역: 왕성 레벨이 높아야 열려요
 const K_REGIONS = [
-  { id:'forest',  name:'슬라임 숲', need:1, rate:100 },
-  { id:'cave',    name:'수정 동굴', need:3, rate:200 },
-  { id:'desert',  name:'노을 사막', need:5, rate:350 },
-  { id:'ice',     name:'서리 설원', need:7, rate:550 },
-  { id:'volcano', name:'불꽃 화산', need:9, rate:800 }
+  { id:'forest',  name:'슬라임 숲', need:1, rate:35 },
+  { id:'cave',    name:'수정 동굴', need:3, rate:70 },
+  { id:'desert',  name:'노을 사막', need:5, rate:120 },
+  { id:'ice',     name:'서리 설원', need:7, rate:190 },
+  { id:'volcano', name:'불꽃 화산', need:9, rate:280 }
 ];
 const K_DURS = [{ h:0.5, label:'30분' }, { h:2, label:'2시간' }, { h:8, label:'8시간' }];
 const K_IDS = ['castle', 'farm', 'mine', 'tower', 'barracks', 'blacksmith', 'church', 'archery', 'market', 'windmill'];
@@ -5823,15 +5823,15 @@ function kBonusOf(id, names){
   });
   return sum;
 }
-function kMult(id, names){ return 1 + kBonusOf(id, names || kingdom.b[id].a) + 0.05 * (kLv('castle') - 1) + KB.market.per * kLv('market'); }
+function kMult(id, names){ return 1 + kBonusOf(id, names || kingdom.b[id].a) + 0.03 * (kLv('castle') - 1) + KB.market.per * kLv('market'); }
 function kRateAt(id, lv, names){
   if(lv <= 0) return 0;
   const m = kMult(id, names);
-  if(KB[id].kind === 'coin') return KB[id].base * Math.pow(1.3, lv - 1) * m;
+  if(KB[id].kind === 'coin') return KB[id].base * Math.pow(1.22, lv - 1) * m;
   return 0;
 }
 function kRate(id){ return kRateAt(id, kLv(id)); }
-function kCapHours(id){ return 8 + 2 * (kLv('castle') - 1); }
+function kCapHours(id){ return 6 + (kLv('castle') - 1); }
 function kPending(id){
   const b = kingdom.b[id];
   if(b.lv <= 0 || KB[id].kind === 'castle' || KB[id].kind === 'buff') return 0;
@@ -5885,7 +5885,7 @@ function kExpBonus(names){
   if(roles.size >= 3) sum += 0.2; else if(roles.size === 2) sum += 0.08;
   return sum;
 }
-function kExpReward(region, hrs, names){ return region.rate * hrs * (1 + kExpBonus(names) + 0.05 * (kLv('castle') - 1)); }
+function kExpReward(region, hrs, names){ return region.rate * hrs * (1 + kExpBonus(names) + 0.03 * (kLv('castle') - 1)); }
 function kExpStart(){
   const r = kRegion(kxRegion);
   if(kLv('castle') < r.need){ hubToast(`왕성 Lv.${r.need}가 필요해요`); return false; }
@@ -5966,6 +5966,7 @@ async function kgStart(){
   kgCtl = lib.makeKingdom(document.getElementById('kgCanvas'), {
     onBubble(id){
       if(!hubReady()) return;
+      if(kLv(id) <= 0){ kgSel = id; kRenderPanel(id); return; }   // 망치 말풍선을 누르면 건설 창이 열려요
       const n = kCollect(id);
       if(n > 0){ hubToast(KB[id].kind === 'explore' ? `탐험 보상 코인 ${n}개를 얻었어요` : `코인 ${n}개를 모았어요`); playClick(); kSave(); }
       kRefresh();
