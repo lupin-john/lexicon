@@ -291,6 +291,10 @@
   }
   .retry{border:1px solid var(--ink);background:var(--ink);color:#fff;}
   .back{border:1px solid #DBD7CE;background:transparent;color:var(--ink)!important;}
+  .group-tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
+  .gtab{flex-shrink:0;border:1px solid #D9D5CB;background:#fff;color:#6b665c;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .gtab.on{background:var(--ink,#2b2a27);color:#fff;border-color:var(--ink,#2b2a27);}
+  .gtab.add{border-style:dashed;color:#8a857a;}
   .wrong-list{margin-top:20px;text-align:left;}
   .wrong-list h3{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#A39E92;margin:0 0 10px;font-weight:600;}
   .wrong-item{display:flex;justify-content:space-between;background:#FAF9F7;border:1px solid #EAE7E0;border-radius:2px;padding:10px 12px;margin-bottom:6px;font-size:13px;font-family:'Noto Serif KR',serif;}
@@ -635,6 +639,10 @@
   #kgCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
   .kg-hud{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:8px;pointer-events:none;}
   .kg-chip{background:#ffffffe6;color:#3b2f4a;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:900;box-shadow:0 3px 0 #0002;}
+  .kg-collect-all{position:absolute;right:0;top:92px;z-index:5;border:none;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:900;color:#4a3000;
+    background:linear-gradient(180deg,#ffe28a,#f0a418);box-shadow:0 3px 0 #b27400,0 0 16px rgba(255,200,60,.5);cursor:pointer;pointer-events:auto;animation:caPulse 1.6s ease-in-out infinite;}
+  .kg-collect-all:active{transform:translateY(2px);}
+  @keyframes caPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
   .kg-jump{position:absolute;top:52px;left:10px;right:10px;display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
   .kg-jump button{white-space:nowrap;flex-shrink:0;}
   .kg-jump button{border:none;background:#ffffffe6;color:#3b2f4a;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #0002;}
@@ -1164,7 +1172,7 @@
       <section id="hubKingView" class="hub-view hidden">
         <div class="kg-wrap">
           <canvas id="kgCanvas"></canvas>
-          <div class="kg-hud"><span class="kg-chip" id="kgCoinChip" style="pointer-events:auto;">코인 <span id="kgCoins">0</span></span><span class="kg-chip">왕국 Lv.<span id="kgLv">1</span></span></div>
+          <div class="kg-hud"><button type="button" class="kg-collect-all" id="kgCollectAll" style="display:none;"></button><span class="kg-chip" id="kgCoinChip" style="pointer-events:auto;">코인 <span id="kgCoins">0</span></span><span class="kg-chip">왕국 Lv.<span id="kgLv">1</span></span></div>
           <div class="kg-jump" id="kgJump"><button data-j="all">전체</button><button data-j="castle">왕성</button><button data-j="mine">광산</button><button data-j="farm">작업장</button><button data-j="tower">전망대</button><button data-j="barracks">훈련소</button><button data-j="blacksmith">대장간</button><button data-j="church">교회</button><button data-j="archery">궁술장</button><button data-j="market">시장</button><button data-j="windmill">풍차</button></div>
           <div class="kg-hint" id="kgHint">끌어서 이동 · 두 손가락으로 확대/축소</div>
           <div class="kg-panel hidden" id="kgPanel"></div>
@@ -1443,9 +1451,11 @@
       <div class="add-row"><input id="groupNicknameInput" type="text" placeholder="표시할 이름 (예: 민지)" maxlength="12"></div>
       <div class="add-row"><input id="groupCodeInput" type="text" placeholder="그룹 코드 (예: STUDY2026)"></div>
       <button class="add-btn" id="joinGroupBtn">참여 / 만들기</button>
+      <button type="button" class="hidden" id="cancelJoinBtn" style="width:100%;margin-top:8px;border:none;background:transparent;color:#A39E92;font-size:12px;padding:8px;cursor:pointer;">취소하고 돌아가기</button>
     </div>
 
     <div id="groupBoard" class="hidden">
+      <div id="groupTabs" class="group-tabs"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #E4E1DA;">
         <span style="font-size:11px;letter-spacing:.5px;color:#A39E92;font-family:'Noto Serif KR',serif;">코드 <b id="groupCodeDisplay" style="color:var(--ink);font-weight:600;">-</b></span>
         <button id="leaveGroupBtn" style="border:none;background:transparent;color:#A39E92;font-size:11px;letter-spacing:.5px;font-family:'Noto Serif KR',serif;padding:4px 6px;cursor:pointer;text-decoration:underline;">나가기</button>
@@ -3321,7 +3331,8 @@
     var B = {};
     var kitRef = null;
     function placeBuilding(id, lv){
-      if(B[id]){ world.remove(B[id].g); }
+      var oldBubble = null;
+      if(B[id]){ world.remove(B[id].g); oldBubble = B[id].bubble || null; }
       var b = buildBuilding(id, lv);
       if(lv > 0 && kitRef && kitRef[id] && !(id === 'castle' && lv <= 4)){
         var rm = kitRef[id].clone(true), rs = 1 + 0.04 * lv;
@@ -3339,6 +3350,7 @@
       b.g.position.set(BPOS[id][0], 0, BPOS[id][2]);
       b.g.userData.hit = { type:'building', id:id };
       b.lv = lv; b.bump = 1; B[id] = b; world.add(b.g); shade(b.g, true);
+      if(oldBubble){ b.bubble = oldBubble; }   // 말풍선은 새로 만들지 않고 그대로 이어서 써요
       if(!b.bubble){
         var sp = new T.Sprite(new T.SpriteMaterial({ transparent:true, depthTest:false }));
         sp.scale.set(3.0, 3.0, 1); sp.renderOrder = 10; sp.userData.hit = { type:'bubble', id:id }; sp.visible = false; world.add(sp); b.bubble = sp;
@@ -3349,7 +3361,7 @@
     function setBubble(id, kind, n){
       var b = B[id]; if(!b || !b.bubble) return;
       var key = kind + ':' + n;
-      if(bubbleKey[id] !== key){
+      if(bubbleKey[id] !== key || !b.bubble.material.map){
         bubbleKey[id] = key;
         var tex = iconTexture(kind, n);
         if(tex){ if(b.bubble.material.map) b.bubble.material.map.dispose(); b.bubble.material.map = tex; b.bubble.material.needsUpdate = true; }
@@ -3451,7 +3463,52 @@
     function celebrate(id){ if(B[id]) B[id].bump = 1; }
 
     // ---- 입력 (드래그 회전 / 눌러서 선택) ----
-    var ray = new T.Raycaster(), ptr = new T.Vector2(), dragging = false, lastX = 0, lastY = 0, moved = 0;
+    // 말풍선 위에 투명한 진짜 버튼을 얹어요 (캔버스 제스처와 상관없이 누르면 바로 모아져요)
+    var hitLayer = null, hitBtns = {}, hitPos = {}, hitTmp = new T.Vector3();
+    try{
+      if(canvas.parentNode && canvas.parentNode.appendChild){
+        hitLayer = document.createElement('div');
+        hitLayer.style.cssText = 'position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:3;overflow:hidden;';
+        canvas.parentNode.appendChild(hitLayer);
+      }
+    }catch(e){ hitLayer = null; }
+    function hitBtn(id){
+      if(hitBtns[id]) return hitBtns[id];
+      var b = document.createElement('button');
+      b.type = 'button'; b.setAttribute('aria-label', '수확');
+      b.style.cssText = 'position:absolute;left:0;top:0;width:88px;height:88px;border-radius:50%;border:none;background:transparent;padding:0;margin:0;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:none;cursor:pointer;';
+      b.addEventListener('click', function(ev){ ev.stopPropagation(); pop(hooks.onBubble, id); });
+      hitLayer.appendChild(b);
+      return (hitBtns[id] = b);
+    }
+    function syncHitBtns(){
+      if(!hitLayer) return;
+      var rw = canvas.clientWidth, rh = canvas.clientHeight;
+      Object.keys(B).forEach(function(id){
+        var bb = B[id].bubble, btn = hitBtn(id);
+        if(!bb || !bb.visible){ if(btn.style.display !== 'none') btn.style.display = 'none'; return; }
+        if(bb.getWorldPosition) bb.getWorldPosition(hitTmp); else hitTmp.set(bb.position.x, bb.position.y, bb.position.z);
+        hitTmp.project(camera);
+        if(hitTmp.z > 1 || Math.abs(hitTmp.x) > 1.15 || Math.abs(hitTmp.y) > 1.15){ if(btn.style.display !== 'none') btn.style.display = 'none'; return; }
+        var x = (hitTmp.x * 0.5 + 0.5) * rw - 44, y = (-hitTmp.y * 0.5 + 0.5) * rh - 44;
+        if(btn.style.display !== 'block') btn.style.display = 'block';
+        btn.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
+        hitPos[id] = { x:x + 44, y:y + 44 };
+      });
+    }
+    // 코인을 모았을 때 그 자리에서 '+N'이 떠올라요 (모아졌는지 바로 눈으로 확인)
+    function floatText(id, text){
+      var p = hitPos[id];
+      if(!hitLayer || !p) return;
+      var d = document.createElement('div');
+      d.textContent = text;
+      d.style.cssText = 'position:absolute;left:0;top:0;font-weight:900;font-size:24px;color:#ffd24a;text-shadow:0 2px 0 #7a5200,0 0 12px #fff9;pointer-events:none;white-space:nowrap;opacity:1;transition:transform 1.1s ease-out,opacity 1.1s ease-in;';
+      d.style.transform = 'translate(' + (p.x - 30) + 'px,' + (p.y - 10) + 'px)';
+      hitLayer.appendChild(d);
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ d.style.transform = 'translate(' + (p.x - 30) + 'px,' + (p.y - 100) + 'px)'; d.style.opacity = '0'; }); });
+      setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 1400);
+    }
+    var ray = new T.Raycaster(), ptr = new T.Vector2(), dragging = false, lastX = 0, lastY = 0, startX = 0, startY = 0, moved = 0;
     function pick(e){
       var rect = canvas.getBoundingClientRect();
       // 코인/티켓 말풍선은 건물보다 먼저 확인해요 (손가락이 닿는 가까운 말풍선을 바로 모아요)
@@ -3466,7 +3523,7 @@
         var d = Math.hypot((wp.x * 0.5 + 0.5) * rect.width - px, (-wp.y * 0.5 + 0.5) * rect.height - py);
         if(d < bestD){ bestD = d; bestId = id; }
       });
-      if(bestId && bestD < Math.max(56, rect.height * 0.08)){ pop(hooks.onBubble, bestId); return; }
+      if(bestId && bestD < Math.max(72, rect.height * 0.1)){ pop(hooks.onBubble, bestId); return; }
       ptr.x = ((e.clientX - rect.left) / rect.width) * 2 - 1; ptr.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
       ray.setFromCamera(ptr, camera);
       var objs = [];
@@ -3492,8 +3549,9 @@
     function ptrCount(){ return Object.keys(ptrs).length; }
     function pinchDist(){ var k = Object.keys(ptrs); if(k.length < 2) return 0; var p = ptrs[k[0]], q = ptrs[k[1]]; return Math.hypot(p.x - q.x, p.y - q.y); }
     canvas.addEventListener('pointerdown', function(e){
+      if(e.isPrimary){ ptrs = {}; pinchD = 0; }
       ptrs[e.pointerId] = { x:e.clientX, y:e.clientY };
-      dragging = ptrCount() === 1; lastX = e.clientX; lastY = e.clientY; moved = 0; focusTo = null; zoomTo = null;
+      dragging = ptrCount() === 1; lastX = e.clientX; lastY = e.clientY; startX = e.clientX; startY = e.clientY; moved = 0; focusTo = null; zoomTo = null;
       if(ptrCount() === 2) pinchD = pinchDist();
       canvas.setPointerCapture(e.pointerId);
     });
@@ -3506,12 +3564,14 @@
         pinchD = d; moved += 10; return;
       }
       if(!dragging) return;
-      var dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY; moved += Math.abs(dx) + Math.abs(dy);
+      moved = Math.max(moved, Math.hypot(e.clientX - startX, e.clientY - startY));
+      if(moved < 8){ lastX = e.clientX; lastY = e.clientY; return; }   // 살짝 떨리는 정도로는 화면이 움직이지 않게
+      var dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY;
       var ppu = 2 * camDist * zoom * Math.tan(camFov * Math.PI / 360) / Math.max(200, canvas.clientHeight);
       tgt.x -= dx * ppu; tgt.z -= dy * ppu * 1.35;
       var rr = Math.hypot(tgt.x, tgt.z); if(rr > 37){ tgt.x *= 37 / rr; tgt.z *= 37 / rr; }
     });
-    function endPtr(e){ var was = dragging; delete ptrs[e.pointerId]; if(ptrCount() < 2) pinchD = 0; if(was && moved < 6 && e.type === 'pointerup') pick(e); if(ptrCount() === 0) dragging = false; }
+    function endPtr(e){ var was = dragging; delete ptrs[e.pointerId]; if(ptrCount() < 2) pinchD = 0; if(was && moved < 18 && e.type === 'pointerup') pick(e); if(ptrCount() === 0) dragging = false; }
     canvas.addEventListener('pointerup', endPtr);
     canvas.addEventListener('pointercancel', endPtr);
     canvas.addEventListener('wheel', function(e){ e.preventDefault(); zoom = Math.max(0.15, Math.min(9, zoom * (e.deltaY > 0 ? 1.1 : 0.9))); zoomTo = null; }, { passive:false });
@@ -3553,6 +3613,7 @@
       camera.position.set(tgt.x, cd * 0.74, tgt.z + cd);
       camera.lookAt(tgt.x, 0.6, tgt.z);
       renderer.render(scene, camera);
+      syncHitBtns();
     }
     function resize(){
       var w = canvas.clientWidth, h = canvas.clientHeight;
@@ -3570,8 +3631,8 @@
       Object.keys(chars).forEach(function(n){ var C = chars[n]; CHAR_MEM[n] = { x:C.x, z:C.z, yaw:C.yaw, t:Date.now() }; });
       try{ localStorage.setItem('kg_char_pos', JSON.stringify(CHAR_MEM)); }catch(e){}
     }
-    function dispose(){ saveMem(); noOutlines = false; running = false; window.removeEventListener('resize', onWin); try{ renderer.dispose(); }catch(e){} }
-    return { setState:setState, start:start, dispose:dispose, resize:resize, celebrate:celebrate, focus:focus, overview:overview };
+    function dispose(){ if(hitLayer && hitLayer.parentNode){ try{ hitLayer.parentNode.removeChild(hitLayer); }catch(e){} hitLayer = null; } saveMem(); noOutlines = false; running = false; window.removeEventListener('resize', onWin); try{ renderer.dispose(); }catch(e){} }
+    return { setState:setState, start:start, dispose:dispose, resize:resize, celebrate:celebrate, focus:focus, overview:overview, floatText:floatText };
   }
 
   // 도감용 썸네일 (한 번에 모두 그려서 사진으로 저장)
@@ -3789,6 +3850,7 @@ onAuthStateChanged(auth, (user) => {
     if(typeof closeHub === 'function') closeHub();
     stopHeartbeat();
     if(unsubscribeGroup){ unsubscribeGroup(); unsubscribeGroup = null; }
+    Object.keys(groupUnsubs).forEach(c => { try{ groupUnsubs[c](); }catch(e){} }); groupUnsubs = {}; membersByGroup = {}; groupCodes = [];
     if(unsubscribeChat){ unsubscribeChat(); unsubscribeChat = null; }
     groupCode = null;
     myGender = null;
@@ -3831,7 +3893,8 @@ function shuffle(arr){
 }
 
 // ---------- 저장소 (Firebase 계정 기반, 자동 동기화) ----------
-let groupCode = null;
+let groupCode = null;                 // 지금 보고 있는 그룹
+let groupCodes = [], membersByGroup = {}, groupUnsubs = {};   // 들어가 있는 모든 그룹
 let unsubscribeGroup = null;
 let unsubscribeChat = null;
 let myNickname = '';
@@ -3844,13 +3907,12 @@ function subscribeWords(){
     words = Array.isArray(data.words) ? data.words : [];
     renderList();
     updateQuizCounts();
-    if(data.groupCode && data.groupCode !== groupCode){
-      groupCode = data.groupCode;
-      subscribeGroup(groupCode);
-      showGroupBoard();
-    }else if(!data.groupCode && groupCode){
-      groupCode = null;
-      showGroupJoin();
+    const dg = Array.isArray(data.groupCodes) ? data.groupCodes.slice() : [];
+    if(data.groupCode && !dg.includes(data.groupCode)) dg.push(data.groupCode);
+    if(dg.join(',') !== groupCodes.join(',') || (dg.length && !groupCode)){
+      groupCodes = dg;
+      if(!groupCodes.length){ groupCode = null; subscribeGroups(); if(unsubscribeChat){ unsubscribeChat(); unsubscribeChat = null; } showGroupJoin(); }
+      else activateGroup(groupCodes.includes(groupCode) ? groupCode : (groupCodes.includes(data.groupCode) ? data.groupCode : groupCodes[0]));
     }
     if(data.nickname){
       myNickname = data.nickname;
@@ -3875,6 +3937,12 @@ function subscribeWords(){
     equippedEssence = data.equippedEssence || null;
     equippedShield = !!data.equippedShield;
     let needEquipReset = false;
+    if((data.legacyWipe || 0) < 1){
+      // 옛 장비 시스템(번개의 정수 등) 기록을 한 번 완전히 지우고 처음부터 시작해요. 티켓·단어·캐릭터·왕국은 그대로예요.
+      equipment = []; equippedWeapon = null; equippedEssence = null; equippedShield = false;
+      charStats = { atk:0, def:0, agi:0, int:0 };
+      needEquipReset = true;
+    }
     if(data.equipmentVersion !== 4){
       // 예전 장비(검/방패/지팡이/건틀렛 2D 시절)는 모두 삭제, 티켓은 유지
       equipment = []; equippedWeapon = null; equippedEssence = null; equippedShield = false;
@@ -3886,15 +3954,17 @@ function subscribeWords(){
     btWins = data.btWins || 0; btLosses = data.btLosses || 0;
     kingdom = data.kingdom || null; kNorm();
     if(data.gameVersion !== 5){ tickets += 10; needEquipReset = true; }   // 새 게임 시작 선물: 티켓 10장
-    robotColor = data.robotColor || null;
-    unlockedModels = Array.isArray(data.unlockedModels) ? data.unlockedModels : ['robot'];
-    selectedModel = data.selectedModel || 'robot';
-    normalizeModelState();
-    if(char3d.model && char3d.modelKey !== selectedModel) loadCharModel(selectedModel);
-    else if(char3d.model) buildModelBar();
-    applyRobotColorEverywhere();
-    if(document.getElementById('robotColorBar') && char3d.model) buildColorBar();
     charDataLoaded = true;
+    try{
+      robotColor = data.robotColor || null;
+      unlockedModels = Array.isArray(data.unlockedModels) ? data.unlockedModels : ['robot'];
+      selectedModel = data.selectedModel || 'robot';
+      normalizeModelState();
+      if(char3d.model && char3d.modelKey !== selectedModel) loadCharModel(selectedModel);
+      else if(char3d.model) buildModelBar();
+      applyRobotColorEverywhere();
+      if(document.getElementById('robotColorBar') && char3d.model) buildColorBar();
+    }catch(e){ console.warn('옛 로봇 화면 정리 중 오류(무시)', e); }
     if(needEquipReset) saveCharacter();
     if(typeof hubOnData === 'function') hubOnData();
     renderCharacterWidget();
@@ -3924,30 +3994,20 @@ let heartbeatTimer = null;
 function startHeartbeat(){
   stopHeartbeat();
   heartbeatTimer = setInterval(() => {
-    if(groupCode) updateGroupCount();
+    if(groupCodes.length) updateGroupCount();
   }, 45000);
 }
 function stopHeartbeat(){
   if(heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer = null; }
 }
 async function updateGroupCount(){
-  if(!currentUser || !groupCode) return;
+  if(!currentUser || !groupCodes.length) return;
   try{
-    const st = totalStats();
-    await setDoc(doc(db, 'groups', groupCode, 'members', currentUser.uid), {
-      email: currentUser.email, count: words.length, updatedAt: Date.now(),
-      battle: {
-        stats: st,
-        gender: myGender || 'male',
-        essence: equippedEssence || null,
-        weapon: equippedWeapon || null,
-        ...battleLoadout(),
-        color: robotColor || null,
-        model: selectedModel,
-        power: powerScore(st)
-      },
-      hub: (typeof btMyName === 'function' && btMyName()) ? { name: btMyName(), lv: Math.max(1, charLevel(btMyName())), lvl: charLvl(btMyName()), kb: Math.round(kBuffPct() * 1000) / 1000, bs: (() => { const b = kBuffs(); return { a: Math.round(b.atk * 1000) / 1000, d: Math.round(b.def * 1000) / 1000, h: Math.round(b.hp * 1000) / 1000, s: Math.round(b.spd * 1000) / 1000 }; })() } : null
-    }, { merge:true });
+    const hubInfo = (typeof btMyName === 'function' && btMyName())
+      ? { name: btMyName(), lv: Math.max(1, charLevel(btMyName())), lvl: charLvl(btMyName()), kb: Math.round(kBuffPct() * 1000) / 1000, bs: (() => { const b = kBuffs(); return { a: Math.round(b.atk * 1000) / 1000, d: Math.round(b.def * 1000) / 1000, h: Math.round(b.hp * 1000) / 1000, s: Math.round(b.spd * 1000) / 1000 }; })() }
+      : null;
+    const payload = { email: currentUser.email, count: words.length, updatedAt: Date.now(), battle: deleteField(), hub: hubInfo };
+    await Promise.all(groupCodes.map(c => setDoc(doc(db, 'groups', c, 'members', currentUser.uid), payload, { merge:true })));
   }catch(e){ /* 조용히 무시 */ }
 }
 
@@ -3958,11 +4018,28 @@ function normalizeGroupCode(raw){
 function showGroupJoin(){
   document.getElementById('groupJoin').classList.remove('hidden');
   document.getElementById('groupBoard').classList.add('hidden');
+  const cancel = document.getElementById('cancelJoinBtn');
+  if(cancel) cancel.classList.toggle('hidden', !groupCodes.length);
 }
 function showGroupBoard(){
   document.getElementById('groupJoin').classList.add('hidden');
   document.getElementById('groupBoard').classList.remove('hidden');
   document.getElementById('groupCodeDisplay').textContent = groupCode;
+  renderGroupTabs();
+}
+function renderGroupTabs(){
+  const box = document.getElementById('groupTabs');
+  if(!box) return;
+  box.innerHTML = groupCodes.map(c => `<button type="button" class="gtab${c === groupCode ? ' on' : ''}" data-g="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('')
+    + (groupCodes.length < 5 ? `<button type="button" class="gtab add" id="addGroupTab">+ 그룹 추가</button>` : '');
+  box.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', () => switchGroup(b.dataset.g)));
+  const add = document.getElementById('addGroupTab');
+  if(add) add.addEventListener('click', () => showGroupJoin());
+}
+async function switchGroup(code){
+  if(!groupCodes.includes(code) || code === groupCode) return;
+  activateGroup(code);
+  try{ await setDoc(doc(db, 'vocab', currentUser.uid), { groupCode: code }, { merge:true }); }catch(e){ /* 조용히 무시 */ }
 }
 function withTimeout(promise, ms, label){
   return Promise.race([
@@ -3976,7 +4053,9 @@ async function joinGroup(){
   const nicknameInput = document.getElementById('groupNicknameInput');
   const code = normalizeGroupCode(input.value);
   if(!code){ alert('그룹 코드를 입력해주세요!'); return; }
-  const nickname = nicknameInput.value.trim() || currentUser.email.split('@')[0];
+  if(groupCodes.includes(code)){ input.value = ''; switchGroup(code); activateGroup(code); return; }
+  if(groupCodes.length >= 5){ alert('그룹은 최대 5개까지 들어갈 수 있어요.'); return; }
+  const nickname = nicknameInput.value.trim() || myNickname || currentUser.email.split('@')[0];
   const btn = document.getElementById('joinGroupBtn');
   const originalText = btn.textContent;
   btn.disabled = true;
@@ -3987,13 +4066,14 @@ async function joinGroup(){
     }, { merge:true }), 10000, '1단계');
 
     btn.textContent = '2/2 저장 중...';
-    await withTimeout(setDoc(doc(db, 'vocab', currentUser.uid), { groupCode: code, nickname }, { merge:true }), 10000, '2단계');
+    const next = groupCodes.concat(code);
+    await withTimeout(setDoc(doc(db, 'vocab', currentUser.uid), { groupCodes: next, groupCode: code, nickname }, { merge:true }), 10000, '2단계');
 
-    groupCode = code;
+    groupCodes = next;
     myNickname = nickname;
     input.value = '';
-    subscribeGroup(code);
-    showGroupBoard();
+    activateGroup(code);
+    updateGroupCount();
   }catch(e){
     console.error('joinGroup 오류', e);
     alert('그룹 참여에 실패했어요.\n오류 내용: ' + (e.code || e.message || e));
@@ -4003,33 +4083,51 @@ async function joinGroup(){
   }
 }
 async function leaveGroup(){
-  if(!confirm('그룹에서 나갈까요? 내가 저장한 단어는 그대로 남아있어요.')) return;
-  if(unsubscribeGroup){ unsubscribeGroup(); unsubscribeGroup = null; }
-  if(unsubscribeChat){ unsubscribeChat(); unsubscribeChat = null; }
+  if(!groupCode) return;
+  if(!confirm(`'${groupCode}' 그룹에서 나갈까요? 내가 저장한 단어는 그대로 남아있어요.\n(다른 그룹은 그대로 남아요)`)) return;
   const code = groupCode;
-  groupCode = null;
-  showGroupJoin();
+  groupCodes = groupCodes.filter(c => c !== code);
+  const next = groupCodes[0] || null;
+  if(next){ activateGroup(next); }
+  else{
+    groupCode = null; subscribeGroups();
+    if(unsubscribeChat){ unsubscribeChat(); unsubscribeChat = null; }
+    showGroupJoin();
+  }
   try{
-    if(code) await deleteDoc(doc(db, 'groups', code, 'members', currentUser.uid));
-    await setDoc(doc(db, 'vocab', currentUser.uid), { groupCode: null }, { merge:true });
+    await deleteDoc(doc(db, 'groups', code, 'members', currentUser.uid));
+    await setDoc(doc(db, 'vocab', currentUser.uid), { groupCodes: groupCodes, groupCode: next }, { merge:true });
   }catch(e){ /* 조용히 무시 */ }
 }
-function subscribeGroup(code){
-  if(unsubscribeGroup) unsubscribeGroup();
-  const ref = collection(db, 'groups', code, 'members');
-  unsubscribeGroup = onSnapshot(ref, (snap) => {
-    const members = [];
-    snap.forEach(d => members.push({ uid: d.id, ...d.data() }));
-    members.sort((a,b) => (b.count||0) - (a.count||0));
-    renderLeaderboard(members);
-  }, (err) => {
-    console.error('그룹 동기화 오류', err);
+// 들어가 있는 모든 그룹의 멤버를 계속 지켜봐요 (대결 상대는 모든 그룹에서 나와요)
+function subscribeGroups(){
+  Object.keys(groupUnsubs).forEach(c => { if(!groupCodes.includes(c)){ try{ groupUnsubs[c](); }catch(e){} delete groupUnsubs[c]; delete membersByGroup[c]; } });
+  groupCodes.forEach(c => {
+    if(groupUnsubs[c]) return;
+    groupUnsubs[c] = onSnapshot(collection(db, 'groups', c, 'members'), (snap) => {
+      const members = [];
+      snap.forEach(d => members.push({ uid: d.id, ...d.data() }));
+      members.sort((a, b) => (b.count || 0) - (a.count || 0));
+      membersByGroup[c] = members;
+      renderLeaderboard(membersByGroup[groupCode] || []);
+    }, (err) => { console.error('그룹 동기화 오류', err); });
   });
+}
+function activateGroup(code){
+  groupCode = code;
+  subscribeGroups();
   subscribeChat(code);
+  showGroupBoard();
+  renderLeaderboard(membersByGroup[code] || []);
+}
+function mergedMembers(){
+  const all = {};
+  Object.values(membersByGroup).forEach(list => list.forEach(m => { if(!all[m.uid] || (m.updatedAt || 0) > (all[m.uid].updatedAt || 0)) all[m.uid] = m; }));
+  return Object.values(all);
 }
 let latestMembers = [];
 function renderLeaderboard(members){
-  latestMembers = members;
+  latestMembers = mergedMembers();
   if(typeof hubOnMembers === 'function') hubOnMembers();
   if(typeof renderDuel === 'function' && !document.getElementById('duelOverlay').classList.contains('hidden')) renderDuel();
   const area = document.getElementById('leaderboardArea');
@@ -4043,8 +4141,9 @@ function renderLeaderboard(members){
     const isMe = currentUser && m.uid === currentUser.uid;
     const pct = Math.round(((m.count||0) / maxCount) * 100);
     const name = m.nickname || (m.email || '').split('@')[0];
-    const power = m.battle && m.battle.power ? m.battle.power : 0;
-    const ess = m.battle && m.battle.essence ? `<span class="lb-ess">${escapeHtml(m.battle.essence)}</span>` : '';
+    const power = 0;
+    const ess = '';
+    const hubLine = m.hub && m.hub.name ? `${escapeHtml(m.hub.name)} · ✦${m.hub.lv || 1} · Lv.${m.hub.lvl || 1}` : '';
     const fightBtn = (!GAME_RESET && !isMe && power > 0)
       ? `<button type="button" class="lb-fight-btn" data-uid="${m.uid}">대결</button>` : '';
     const isActive = m.updatedAt && (now - m.updatedAt) < ACTIVE_THRESHOLD_MS;
@@ -4058,7 +4157,7 @@ function renderLeaderboard(members){
             <span class="lb-count">${m.count||0}개</span>
           </div>
           <div class="lb-gauge-bg"><div class="lb-gauge-fill" style="width:${pct}%"></div></div>
-          <div class="lb-power">전투력 ${power}</div>
+          <div class="lb-power">${hubLine}</div>
         </div>
         ${fightBtn}
       </div>
@@ -5981,8 +6080,27 @@ function kBuildState(){
   });
   return { buildings, chars: chars.filter(c => c.idx >= 0) };
 }
+function kPendingTotal(){
+  let t = 0;
+  K_IDS.forEach(id => { if(KB[id].kind === 'coin' || KB[id].kind === 'explore') t += kPending(id); });
+  return t;
+}
+function kCollectAll(){
+  if(!hubReady()) return;
+  let total = 0;
+  K_IDS.forEach(id => {
+    if(KB[id].kind !== 'coin' && KB[id].kind !== 'explore') return;
+    const n = kCollect(id);
+    if(n > 0){ total += n; if(kgCtl){ kgCtl.celebrate(id); kgCtl.floatText(id, '+' + n); } }
+  });
+  if(total > 0){ hubToast(`코인 ${total.toLocaleString()}개를 모았어요`); playClick(); kSave(); }
+  else hubToast('아직 모을 코인이 없어요');
+  kRefresh();
+}
 function kRefresh(){
   if(!kingdom) return;
+  const ca = document.getElementById('kgCollectAll');
+  if(ca){ const t = kPendingTotal(); ca.style.display = t > 0 ? 'block' : 'none'; ca.textContent = '코인 모두 모으기 · ' + t.toLocaleString(); }
   document.getElementById('kgCoins').textContent = kingdom.coins.toLocaleString();
   document.getElementById('kgLv').textContent = kLv('castle');
   if(kgCtl) kgCtl.setState(kBuildState());
@@ -6002,13 +6120,21 @@ async function kgStart(){
       if(!hubReady()) return;
       if(kLv(id) <= 0){ kgSel = id; kRenderPanel(id); return; }   // 망치 말풍선을 누르면 건설 창이 열려요
       const n = kCollect(id);
-      if(n > 0){ hubToast(KB[id].kind === 'explore' ? `탐험 보상 코인 ${n}개를 얻었어요` : `코인 ${n}개를 모았어요`); playClick(); kSave(); }
+      if(n > 0){ hubToast(KB[id].kind === 'explore' ? `탐험 보상 코인 ${n}개를 얻었어요` : `코인 ${n}개를 모았어요`); playClick(); kSave(); if(kgCtl){ kgCtl.celebrate(id); kgCtl.floatText(id, '+' + n); } }
       kRefresh();
     },
-    onBuilding(id){ kgSel = id; kRenderPanel(id); },
+    onBuilding(id){
+      // 건물을 눌러도 쌓여 있던 코인은 먼저 모아줘요
+      if(hubReady() && kLv(id) > 0 && (KB[id].kind === 'coin') && kPending(id) > 0){
+        const n = kCollect(id);
+        if(n > 0){ hubToast(`코인 ${n}개를 모았어요`); playClick(); kSave(); if(kgCtl){ kgCtl.celebrate(id); kgCtl.floatText(id, '+' + n); } }
+      }
+      kgSel = id; kRenderPanel(id); kRefresh();
+    },
     onChar(name){ const c = HUB_BY_NAME[name]; hubToast(`${btStars(c.star)} ${name}`); }
   });
   kgCtl.start();
+  const caBtn = document.getElementById('kgCollectAll'); if(caBtn) caBtn.onclick = kCollectAll;
   document.querySelectorAll('#kgJump [data-j]').forEach(b => { b.onclick = () => { if(!kgCtl) return; if(b.dataset.j === 'all') kgCtl.overview(); else kgCtl.focus(b.dataset.j); }; });
   const cc = document.getElementById('kgCoinChip'); if(cc) cc.onclick = () => hubToast('코인은 건물 레벨업과 캐릭터 레벨업에 써요');
   kRefresh();
@@ -7166,7 +7292,7 @@ async function doSaveCharacter(){
   const wipingNow = wipeCollection;
   try{
     await setDoc(doc(db, 'vocab', currentUser.uid), {
-      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: wipeCollection ? deleteField() : charCollection, pity5, pity6, mainChar, gameVersion: 5, btWins, btLosses, kingdom: kingdom || null, ownedEver
+      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: wipeCollection ? deleteField() : charCollection, pity5, pity6, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: kingdom || null, ownedEver
     }, { merge:true });
     if(wipingNow) wipeCollection = false;
   }catch(e){ console.error('캐릭터 저장 실패', e); }
@@ -7840,6 +7966,7 @@ document.getElementById('tabQuizBtn').addEventListener('click', () => showTab('q
 document.getElementById('tabGroupBtn').addEventListener('click', () => showTab('group'));
 document.getElementById('joinGroupBtn').addEventListener('click', joinGroup);
 document.getElementById('leaveGroupBtn').addEventListener('click', leaveGroup);
+document.getElementById('cancelJoinBtn').addEventListener('click', () => { if(groupCode) showGroupBoard(); });
 document.getElementById('chatSendBtn').addEventListener('click', sendChatMessage);
 document.getElementById('chatInput').addEventListener('keydown', e => { if(e.key === 'Enter') sendChatMessage(); });
 document.getElementById('groupNicknameInput').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('groupCodeInput').focus(); });
@@ -7935,5 +8062,6 @@ document.getElementById('gachaOverlay').addEventListener('click', (e) => { if(e.
 document.getElementById('gachaSingleBtn').addEventListener('click', () => runGacha(1));
 document.getElementById('gachaTenBtn').addEventListener('click', () => runGacha(10));
 </script>
+<div id="appVersionTag" style="position:fixed;right:8px;bottom:4px;z-index:50;font-size:10px;color:#9a968c;opacity:.75;pointer-events:none;font-family:sans-serif;">버전 1005-F · 그룹여러개·코인수정</div>
 </body>
 </html>
