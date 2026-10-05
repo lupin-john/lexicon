@@ -581,9 +581,15 @@
   .ps-item.has{border-color:#5a7a5a;} .ps-item.on{background:#1f3a52;border-color:#7be0ff;}
   .ps-ic{font-size:30px;} .ps-nm{font-size:12px;font-weight:800;} .ps-st{font-size:11px;opacity:.8;color:#ffd24a;}
   .ps-item.has .ps-st{color:#9ae8b0;}
+  .dmg-pop2.assist.trait{color:#fff3b0;}
+  .dt-trait{display:flex;flex-direction:column;gap:2px;width:100%;max-width:520px;margin:6px 0 2px;padding:9px 12px;border-radius:14px;background:#1b2140;border:1px solid #3a4a8a;font-size:13px;text-align:left;}
+  .dt-trait b{color:#ffd24a;font-size:14px;} .dt-trait span{opacity:.88;}
+  .dmg-pop2.assist{font-size:17px;font-weight:900;color:#fff;text-shadow:0 2px 0 #0008,0 0 10px currentColor;}
+  .dmg-pop2.assist.heal{color:#ff9ad0;} .dmg-pop2.assist.shield{color:#7fe0ff;} .dmg-pop2.assist.power{color:#ffb040;}
   .pet-wrap{padding:4px 14px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;}
   .pet-head{text-align:center;} .pet-head b{font-size:22px;letter-spacing:1px;}
-  .pet-stage{position:relative;width:100%;max-width:520px;height:min(40vh,360px);display:flex;align-items:center;justify-content:center;}
+  .pet-time{position:absolute;right:8px;top:8px;z-index:4;border:none;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800;background:#000a;color:#fff;cursor:pointer;}
+  .pet-stage{position:relative;width:100%;max-width:640px;height:min(48vh,430px);border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
   .pet-stage canvas{width:100%;height:100%;display:block;touch-action:none;}
   .pet-egg{font-size:140px;cursor:pointer;animation:eggWob 1.6s ease-in-out infinite;filter:drop-shadow(0 10px 14px #0007);user-select:none;}
   @keyframes eggWob{0%,100%{transform:rotate(-7deg);}50%{transform:rotate(7deg) scale(1.05);}}
@@ -2050,13 +2056,23 @@
       U.anims.push(function(t){ rbm.forEach(function(m){ if(m.color.setHSL) m.color.setHSL((t * 0.2 + 0.1) % 1, 0.88, 0.6); }); });
     }
     if(v.mythic && !(opts && opts.battle)){
-      var pg = document.createElement('canvas'); pg.width = 4; pg.height = 256;
-      var pgx = pg.getContext('2d'), pgr = pgx.createLinearGradient(0, 0, 0, 256);
-      pgr.addColorStop(0, 'rgba(255,255,255,0)'); pgr.addColorStop(0.55, 'rgba(255,255,255,0.08)'); pgr.addColorStop(1, 'rgba(255,255,255,0.5)');
-      pgx.fillStyle = pgr; pgx.fillRect(0, 0, 4, 256);
-      var pil = new T.Mesh(new T.CylinderGeometry(1.5, 1.7, 9, 32, 1, true),
-        new T.MeshBasicMaterial({ map:new T.CanvasTexture(pg), color:v.fx, transparent:true, opacity:0.8, blending:T.AdditiveBlending, depthWrite:false, side:T.DoubleSide }));
-      pil.position.y = 4.5; root.add(pil);
+      // 빛기둥: 딱딱한 원통 대신, 가장자리가 부드럽게 번지는 빛 (어느 각도에서 봐도 직사각형처럼 안 보여요)
+      var pg = document.createElement('canvas'); pg.width = 128; pg.height = 256;
+      var pgx = pg.getContext('2d'), pgv = pgx.createLinearGradient(0, 0, 0, 256);
+      pgv.addColorStop(0, 'rgba(255,255,255,0)'); pgv.addColorStop(0.45, 'rgba(255,255,255,0.14)'); pgv.addColorStop(1, 'rgba(255,255,255,0.7)');
+      pgx.fillStyle = pgv; pgx.fillRect(0, 0, 128, 256);
+      pgx.globalCompositeOperation = 'destination-in';
+      var pgh = pgx.createLinearGradient(0, 0, 128, 0);
+      pgh.addColorStop(0, 'rgba(0,0,0,0)'); pgh.addColorStop(0.22, 'rgba(0,0,0,0.25)'); pgh.addColorStop(0.5, 'rgba(0,0,0,1)'); pgh.addColorStop(0.78, 'rgba(0,0,0,0.25)'); pgh.addColorStop(1, 'rgba(0,0,0,0)');
+      pgx.fillStyle = pgh; pgx.fillRect(0, 0, 128, 256);
+      var pil = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(pg), color:v.fx, transparent:true, opacity:0.8, blending:T.AdditiveBlending, depthWrite:false }));
+      pil.scale.set(4.6, 9, 1); pil.position.y = 4.5; root.add(pil);
+      var bc = document.createElement('canvas'); bc.width = 128; bc.height = 64;
+      var bcx = bc.getContext('2d'), bcg = bcx.createRadialGradient(64, 32, 2, 64, 32, 62);
+      bcg.addColorStop(0, 'rgba(255,255,255,0.85)'); bcg.addColorStop(0.5, 'rgba(255,255,255,0.28)'); bcg.addColorStop(1, 'rgba(255,255,255,0)');
+      bcx.fillStyle = bcg; bcx.fillRect(0, 0, 128, 64);
+      var pil2 = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(bc), color:v.fx, transparent:true, opacity:0.7, blending:T.AdditiveBlending, depthWrite:false }));
+      pil2.scale.set(5.2, 1.7, 1); pil2.position.y = 0.2; root.add(pil2);
       var rr = new T.Group();
       var r1 = new T.Mesh(new T.TorusGeometry(2.2, 0.04, 6, 64), glowMat(0xffd24a, 0.85)); r1.rotation.x = Math.PI / 2; rr.add(r1);
       for(var rbn = 0; rbn < 12; rbn++){
@@ -2066,7 +2082,7 @@
       rr.position.y = 0.03; root.add(rr);
       U.anims.push(function(t){
         pil.material.opacity = 0.7 + Math.sin(t * 2) * 0.15; rr.rotation.y = -t * 0.5;
-        if(pil.material.color.setHSL) pil.material.color.setHSL((t * 0.12 + 0.1) % 1, 0.8, 0.6);
+        if(pil.material.color.setHSL){ pil.material.color.setHSL((t * 0.12 + 0.1) % 1, 0.8, 0.6); pil2.material.color.copy(pil.material.color); pil2.material.opacity = 0.55 + Math.sin(t * 2) * 0.12; }
         if(r1.material.color.setHSL) r1.material.color.setHSL((t * 0.12) % 1, 0.8, 0.6);
         if(U.aura && U.aura.material.color.setHSL) U.aura.material.color.setHSL((t * 0.12 + 0.3) % 1, 0.8, 0.6);
       });
@@ -2327,7 +2343,65 @@
     function anim(dur, fn, done){ anims.push({ t0:simT, dur:dur, fn:fn, done:done }); }
     function pop(fn, arg){ try{ fn && fn(arg); }catch(e){} }
 
-    function mk(side, vIdx, st){
+    // ---- 펫: 자기 편 슬라임 뒤에서 작게 응원하고, 등급에 따라 보조해요 ----
+    function mkPet(Fi, spec){
+      if(!spec || !spec.genes) return null;
+      var st = Math.max(1, Math.min(5, spec.stage | 0)), body;
+      try{ body = makePetBody(spec.genes); }catch(e){ return null; }
+      petStageApply(body, st);
+      var root = new T.Group(); root.add(body.g); root.scale.setScalar(0.001); root.visible = false; scene.add(root);
+      var sh = new T.Mesh(shadowG, new T.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.3 }));
+      sh.rotation.x = -Math.PI / 2; sh.position.y = 0.012; sh.visible = false; scene.add(sh);
+      return { root:root, body:body, sh:sh, st:st, sc:0.36 + st * 0.035, x:Fi.home - Fi.dir * 0.9, z:-2.8, y:0, vy:0, sq:0, sqV:0, yaw:0, spinRem:0, spinSpd:0,
+        born:-1, worry:0, win:false, ko:false, idleT:0.6 + Math.random(), blinkT:1.5 + Math.random() * 2, blinkOn:0 };
+    }
+    function petJump(P, power, turns){
+      if(!P || P.ko || P.y > 0.05) return;
+      P.vy = power; P.sq = 0.5;
+      if(turns){ P.spinRem = turns * Math.PI * 2; P.spinSpd = P.spinRem / (2 * power / 16); }
+    }
+    function petAssistFor(Fi){
+      var P = Fi.pet; if(!P) return null; var n = Fi.turns, st = P.st;
+      if(st === 1) return n % 4 === 0 ? { heal:0.05 } : null;
+      if(st === 2) return n % 3 === 0 ? { shield:0.30 } : null;
+      if(st === 3) return n % 3 === 0 ? { power:1.25 } : null;
+      if(st === 4) return n % 2 === 0 ? ((n / 2) % 2 === 1 ? { heal:0.06 } : { shield:0.35 }) : null;
+      return n % 2 === 0 ? { heal:0.06, shield:0.35, power:1.3 } : null;
+    }
+    function doAssist(Fi, as, done){
+      var P = Fi.pet;
+      petJump(P, 7.5, 1);
+      after(0.38, function(){
+        var col = as.heal && !as.shield ? 0xff9ad0 : (as.shield && !as.power ? 0x7fe0ff : (as.power && !as.shield ? 0xffb040 : 0xfff3a0));
+        var sparks = [];
+        for(var i = 0; i < 9; i++){
+          var m = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshBasicMaterial({ color:col, transparent:true, opacity:1 })); scene.add(m);
+          sparks.push({ m:m, off:(Math.random() - 0.5) * 1.6, delay:i * 0.04 });
+        }
+        var sx = P.x, sy = P.y + 1.0, sz = P.z;
+        anim(0.55, function(p){
+          sparks.forEach(function(k){
+            var q = Math.max(0, Math.min(1, (p - k.delay) / (1 - k.delay)));
+            k.m.position.set(sx + (Fi.x - sx) * q, sy + (Fi.y + 1.5 - sy) * q + Math.sin(q * Math.PI) * (1.2 + k.off), sz + (Fi.z - sz) * q);
+            k.m.scale.setScalar(1 - q * 0.5); k.m.material.opacity = 1 - q * 0.3;
+          });
+        }, function(){ sparks.forEach(function(k){ scene.remove(k.m); }); });
+        after(0.55, function(){
+          var sc = toScreen(Fi.x, 3.0, 0);
+          if(as.heal){
+            var amt = Math.max(1, Math.round(Fi.max * as.heal));
+            if(Fi.hp < Fi.max){ Fi.hp = Math.min(Fi.max, Fi.hp + amt); setHp(Fi); }
+            pop(hooks.onAssist, { side:Fi.side, kind:'heal', text:'💗 회복 +' + amt, x:sc.x, y:sc.y });
+          }
+          if(as.shield){ Fi.shield = as.shield; pop(hooks.onAssist, { side:Fi.side, kind:'shield', text:'🛡️ 보호막', x:sc.x, y:sc.y - (as.heal ? 0.07 : 0) }); }
+          if(as.power){ Fi.atkBuff = as.power; pop(hooks.onAssist, { side:Fi.side, kind:'power', text:'⚡ 힘 +' + Math.round((as.power - 1) * 100) + '%', x:sc.x, y:sc.y - ((as.heal ? 1 : 0) + (as.shield ? 1 : 0)) * 0.07 }); }
+          Fi.gl = 1; Fi.glc = as.power ? [0.9, 0.5, 0.1] : (as.shield ? [0.1, 0.55, 0.9] : [0.9, 0.3, 0.6]);
+          shake = Math.max(shake, 0.08);
+          after(0.4, done);
+        });
+      });
+    }
+    function mk(side, vIdx, st, petSpec){
       var v = VARIANTS[vIdx];
       ENV_CUR = envTex;
       var root = buildMascot(v, { battle:true });
@@ -2338,11 +2412,28 @@
       var F = { side:side, v:v, root:root, U:U, shadow:sh, dir: side === 0 ? 1 : -1, home: side === 0 ? -HOME : HOME,
         x: side === 0 ? -HOME : HOME, y: 0, z: 0, tilt: 0, yaw: 0, ex: 0, vex: 0, exT: 0, ey: 0, vey: 0, eyT: 0,
         hp: st.hp, max: st.hp, atk: st.atk, def: st.def, spd: st.spd, name: st.name || v.name, flash: 0, hurt: 0, ko: false,
+        gl: 0, glc: [0, 0.6, 0.3], shield: 0, atkBuff: 1, pet: null, aura: null, shieldM: null, tr: CHAR_TRAIT[v.name] || null, st: null,
         armUp: 0, swing: 0, nextBlink: 1.5 + side, turns: 0, py: 0, vy: 0, wRate: 0, attacking: false, hide: true };
       root.visible = false; sh.visible = false;
+      var sm = new T.Mesh(new T.SphereGeometry(1.75, 24, 16), new T.MeshBasicMaterial({ color:0x7fe0ff, transparent:true, opacity:0.2, blending:T.AdditiveBlending, depthWrite:false, side:T.DoubleSide }));
+      sm.visible = false; scene.add(sm); F.shieldM = sm;
+      // 서영준(신화): 싸우는 동안에도 부드러운 아우라를 유지해요
+      if(v.mythic){
+        var AT = auraTex();
+        var mkS = function(tex, op){ return new T.Sprite(new T.SpriteMaterial({ map:tex, color:v.fx, transparent:true, opacity:op, blending:T.AdditiveBlending, depthWrite:false })); };
+        var pil = mkS(AT.pillar, 0.5); pil.scale.set(3.4, 8, 1); pil.visible = false; scene.add(pil);
+        var glow = mkS(AT.glow, 0.45); glow.scale.set(5.4, 5.4, 1); glow.position.y = 1.3; glow.visible = false; root.add(glow);
+        var baseG = mkS(AT.base, 0.6); baseG.scale.set(4.6, 1.6, 1); baseG.visible = false; scene.add(baseG);
+        var fr = new T.Group(), r1 = new T.Mesh(new T.TorusGeometry(2.0, 0.04, 6, 64), glowMat(0xffd24a, 0.8)); r1.rotation.x = Math.PI / 2; fr.add(r1);
+        for(var rbn = 0; rbn < 12; rbn++){ var rba = rbn / 12 * Math.PI * 2, rb = new T.Mesh(new T.BoxGeometry(0.2, 0.02, 0.11), glowMat(0xffd24a, 0.8)); rb.position.set(Math.cos(rba) * 2.0, 0, Math.sin(rba) * 2.0); rb.rotation.y = -rba; fr.add(rb); }
+        fr.visible = false; scene.add(fr);
+        F.aura = { pil:pil, glow:glow, baseG:baseG, ring:fr, r1:r1, vis:0 };
+      }
+      F.pet = mkPet(F, petSpec);
       return F;
     }
-    var FA = mk(0, cfg.left, cfg.leftStats), FB = mk(1, cfg.right, cfg.rightStats);
+    var FA = mk(0, cfg.left, cfg.leftStats, cfg.leftPet), FB = mk(1, cfg.right, cfg.rightStats, cfg.rightPet);
+    trInit(FA); trInit(FB); trIntimidate(FA, FB); trIntimidate(FB, FA);
     var F = [FA, FB];
 
     // 쫀득한 끈적 가닥 (부딪힌 뒤 떨어질 때 늘어나다가 툭 끊겨요)
@@ -2459,20 +2550,42 @@
     }
 
     function calcDmg(A, D, special){
-      var crit = Math.random() < 0.12;
-      var dmg = A.atk * 100 / (100 + D.def) * (0.9 + Math.random() * 0.25) * (special ? 1.7 : 1) * (crit ? 1.5 : 1) * 0.9;
-      return { dmg:Math.max(1, Math.round(dmg)), crit:crit };
+      var r = trCalc(A, D, special);                    // 특성(회피, 치명타, 관통, 분노 …)까지 반영한 공격 계산
+      if(r.dodge) return r;
+      var buff = A.atkBuff || 1, red = D.shield || 0;   // 펫 보조
+      A.atkBuff = 1;
+      if(red > 0){ D.shield = 0; D.gl = 1; D.glc = [0.2, 0.7, 1]; }
+      r.dmg = Math.max(1, Math.round(r.dmg * buff * (1 - red)));
+      return r;
+    }
+    // 특성이 발동했을 때: 글씨를 띄우고, 몸이 반짝이고, 체력 막대를 갱신해요
+    function showTrait(evs){
+      evs.forEach(function(ev, i){
+        var sc = toScreen(ev.who.x, 3.1, 0);
+        pop(hooks.onAssist, { side:ev.who.side, kind:'trait', text:ev.txt, x:sc.x, y:sc.y - i * 0.065 });
+        if(ev.col){ ev.who.gl = 1; ev.who.glc = ev.col; }
+      });
+      setHp(FA); setHp(FB);
     }
     function attack(A, D, special, done){
       var r = calcDmg(A, D, special);
+      if(A.pet) petJump(A.pet, 4.6, 0);
       var landX = D.x - A.dir * 1.0;
       crouch(A, special ? 0.42 : 0.3, function(){
         pop(hooks.onSound, 'jump');
         leap(A, landX, special ? 0.72 : 0.55, special ? 3.2 : 2.0, function(){
-          D.hp = Math.max(0, D.hp - r.dmg); setHp(D);
-          D.flash = 1; D.hurt = 0.6;
+          if(r.dodge){                                          // 회피: 상대가 옆으로 폴짝 피해요
+            var sc0 = toScreen(D.x, 2.4, 0);
+            pop(hooks.onAssist, { side:D.side, kind:'trait', text:'💨 회피!', x:sc0.x, y:sc0.y });
+            var z0 = D.z; anim(0.32, function(p){ D.z = z0 + Math.sin(p * Math.PI) * 1.9; }, function(){ D.z = z0; });
+            moveHome(A, 0.8, false, function(){ done(false); });
+            return;
+          }
+          trApply(D, r.dmg); setHp(D);
+          D.flash = 1; D.hurt = 0.6; if(D.pet) D.pet.worry = 1.3;
           var sc = toScreen(D.x, 2.4, 0);
           pop(hooks.onHit, { side:D.side, dmg:r.dmg, crit:r.crit, special:special, x:sc.x, y:sc.y });
+          var evs = trAfter(A, D, r); if(evs.length) showTrait(evs);
           var kx0 = D.x;
           anim(0.2, function(p){ D.x = kx0 + A.dir * 0.65 * easeOut(p); }, null);       // 맞은 쪽은 뒤로 밀려나요
           collide(A, D, special || r.crit, function(){
@@ -2487,7 +2600,8 @@
     function finish(winner, loser){
       over = true;
       timeScale = 0.3; after(0.5, function(){ timeScale = 1; });
-      loser.ko = true; loser.eyT = -1.15; loser.exT = 0.6;               // 납작하게 철푸덕
+      loser.ko = true; loser.eyT = -1.15; loser.exT = 0.6;
+      if(loser.pet) loser.pet.ko = true; if(winner.pet) winner.pet.win = true;               // 납작하게 철푸덕
       loser.U.jelly.e = 1.3;
       pop(hooks.onSound, 'ko');
       winner.eyT = 0; winner.exT = 0;
@@ -2505,10 +2619,23 @@
       ti++;
       var special = (a.turns % 3 === 2); a.turns++;
       if(FA.turns + FB.turns > 60){ var w = FA.hp >= FB.hp ? FA : FB; finish(w, w === FA ? FB : FA); return; }
-      attack(a, d, special, function(ko){
-        if(ko) finish(a, d);
-        else after(0.4, nextTurn);
-      });
+      var tev = trTurn(a, a.turns);                      // 화상 피해, 등불/축복/무지개 회복 …
+      if(tev.length) showTrait(tev);
+      if(a.hp <= 0){ finish(d, a); return; }
+      if(a.st.stun > 0){                                  // 감전되면 이번 턴을 쉬어요
+        a.st.stun--;
+        var scs = toScreen(a.x, 3.1, 0); pop(hooks.onAssist, { side:a.side, kind:'trait', text:'⚡ 감전! 쉬어요', x:scs.x, y:scs.y });
+        a.gl = 1; a.glc = [1, 0.9, 0.2];
+        after(0.9, nextTurn); return;
+      }
+      var go = function(){
+        attack(a, d, special, function(ko){
+          if(ko) finish(a, d);
+          else after(0.4, nextTurn);
+        });
+      };
+      var as = petAssistFor(a);
+      if(as) doAssist(a, as, go); else go();
     }
     function intro(){
       // 위에서 툭 떨어지며 등장
@@ -2540,6 +2667,44 @@
       });
     }
 
+    function updPet(Fi, rdt, t){
+      var P = Fi.pet; if(!P) return;
+      if(!Fi.hide && P.born < 0) P.born = 0;
+      if(P.born >= 0 && P.born < 1) P.born = Math.min(1, P.born + rdt * 1.5);
+      var vis = P.born >= 0; P.root.visible = vis; P.sh.visible = vis;
+      if(!vis) return;
+      var bk = easeBack(Math.min(1, P.born));
+      // 자기 편 뒤쪽에 있으면서, 슬라임이 움직이면 살짝만 따라가요 (양쪽 펫은 서로 멀리 있어서 부딪히지 않아요)
+      var tx = Fi.home - Fi.dir * 0.9 + (Fi.x - Fi.home) * 0.25;
+      P.x += (tx - P.x) * Math.min(1, rdt * 2.2); P.z += (-2.8 - P.z) * Math.min(1, rdt * 2.2);
+      P.vy -= 16 * rdt; P.y += P.vy * rdt;
+      if(P.y <= 0){
+        if(P.vy < -0.5){ P.sq = Math.max(P.sq, 0.4); P.sqV = 0; }
+        P.y = 0; P.vy = 0;
+        if(!P.ko){
+          P.idleT -= rdt;
+          if(P.win && P.idleT <= 0){ P.vy = 6.2; P.spinRem = Math.PI * 2; P.spinSpd = P.spinRem / (2 * 6.2 / 16); P.idleT = 0.9; }
+          else if(P.idleT <= 0){ P.vy = 2.6 + Math.random(); P.idleT = 1.3 + Math.random() * 1.8; }
+        }
+      }
+      if(P.spinRem > 0){ var d = Math.min(P.spinRem, P.spinSpd * rdt); P.yaw += d; P.spinRem -= d; }
+      P.sqV += (-110 * P.sq - 10 * P.sqV) * rdt; P.sq += P.sqV * rdt; P.sq = Math.max(-0.4, Math.min(0.8, P.sq));
+      var stretch = P.y > 0.05 ? Math.min(0.25, Math.abs(P.vy) * 0.035) : 0, kk = P.ko ? 0.55 : 0;
+      var s = P.sc * bk, sq = P.sq + kk + Math.sin(t * 2.4 + Fi.side) * 0.02;
+      P.root.position.set(P.x, P.y, P.z);
+      P.root.scale.set(s * (1 + sq * 0.4 - stretch * 0.4), s * (1 - sq * 0.55 + stretch), s * (1 + sq * 0.4 - stretch * 0.4));
+      P.root.rotation.set(0, Fi.dir * 0.55 + P.yaw, P.ko ? Fi.dir * 0.35 : 0);
+      var b = P.body, worry = P.worry > 0; if(worry) P.worry -= rdt;
+      P.blinkT -= rdt; if(P.blinkT <= 0){ P.blinkOn = 0.13; P.blinkT = 2 + Math.random() * 2.5; } if(P.blinkOn > 0) P.blinkOn -= rdt;
+      var happy = P.win || (P.y > 0.3 && !worry && !P.ko), ey = P.ko ? 0.1 : (P.blinkOn > 0 ? 0.1 : (worry ? 0.55 : 1));
+      b.eyes.forEach(function(e){ e.scale.set(1, ey, 1); e.visible = !happy; });
+      b.happyEyes.visible = happy && !P.ko;
+      b.smile.rotation.z = (worry || P.ko) ? 0 : Math.PI;
+      b.earsG.children.forEach(function(e, i){ e.rotation.z = (i ? 1 : -1) * (0.45 + Math.sin(t * 3 + i) * 0.06 + (P.y > 0.1 ? 0.3 : 0)); });
+      if(b.wings.visible && b.wingL){ var fl = Math.sin(t * (P.y > 0.1 ? 14 : 3)) * (P.y > 0.1 ? 0.5 : 0.18); b.wingL.rotation.y = -0.4 + fl; b.wingR.rotation.y = 0.4 - fl; }
+      if(b.halo.visible){ b.halo.position.y = 1.95 + Math.sin(t * 2) * 0.05; b.halo.rotation.z = t * 0.8; }
+      P.sh.position.set(P.x, 0.012, P.z); var shs = s * (1.0 - Math.min(0.5, P.y * 0.1)); P.sh.scale.set(shs, shs, shs);
+    }
     function updFighter(Fi, dt, rdt, t){
       var kx = 150, c = 5.5;
       Fi.vex += (-kx * (Fi.ex - Fi.exT) - c * Fi.vex) * dt; Fi.ex += Fi.vex * dt;
@@ -2556,7 +2721,8 @@
       J.amp = (J.rainbow ? 0.03 : 0.012) + Math.min(J.e, 1.3) * 0.11;
       jellyVerts(Fi.U, t);
       Fi.flash = Math.max(0, Fi.flash - rdt * 3.2); Fi.hurt = Math.max(0, Fi.hurt - rdt);
-      Fi.U.body.material.emissive.setRGB(Fi.flash * 0.9, Fi.flash * 0.15, Fi.flash * 0.15);
+      Fi.gl = Math.max(0, Fi.gl - rdt * 1.6);
+      Fi.U.body.material.emissive.setRGB(Fi.flash * 0.9 + Fi.gl * Fi.glc[0], Fi.flash * 0.15 + Fi.gl * Fi.glc[1], Fi.flash * 0.15 + Fi.gl * Fi.glc[2]);
       Fi.vy = (Fi.y - Fi.py) / Math.max(rdt, 0.001); Fi.py = Fi.y;
       // 장식/장비 움직임
       var u = Fi.U;
@@ -2569,6 +2735,25 @@
       if(u.orbAura){ u.orbAura.scale.setScalar(0.22 + Math.sin(t * 5) * 0.03); }
       if(u.glowBlade){ u.glowBlade.material.opacity = 0.2 + Math.sin(t * 6) * 0.06; }
       u.anims.forEach(function(f){ f(t); });
+      if(Fi.shieldM){
+        var on = (Fi.shield > 0 || (Fi.st && Fi.st.shield > 0)) && !Fi.ko; Fi.shieldM.visible = on;
+        if(on){ Fi.shieldM.position.set(Fi.x, Fi.y + 1.2, Fi.z); var ss = 1 + Math.sin(t * 6) * 0.03; Fi.shieldM.scale.set(ss, ss * 1.08, ss); }
+      }
+      // 서영준 아우라: 땅에 서 있는 빛기둥과 발밑 문양은 x만 따라가고, 몸을 감싼 빛은 점프를 따라가요
+      if(Fi.aura){
+        var Au = Fi.aura, tv = (Fi.ko || Fi.hide) ? 0 : 1;
+        Au.vis += (tv - Au.vis) * Math.min(1, rdt * (tv ? 3 : 2.2));
+        var on2 = Au.vis > 0.02 && !Fi.hide; Au.pil.visible = Au.glow.visible = Au.baseG.visible = Au.ring.visible = on2;
+        if(on2){
+          var hue = (t * 0.12 + 0.1) % 1, flick = 1 + Fi.flash * 0.35;
+          Au.pil.material.color.setHSL(hue, 0.8, 0.6); Au.glow.material.color.setHSL((hue + 0.2) % 1, 0.8, 0.62); Au.baseG.material.color.setHSL(hue, 0.8, 0.6);
+          if(Au.r1.material.color.setHSL) Au.r1.material.color.setHSL((t * 0.12) % 1, 0.8, 0.6);
+          Au.pil.position.set(Fi.x, 4.0, Fi.z); Au.pil.material.opacity = (0.42 + Math.sin(t * 2) * 0.1) * Au.vis * flick;
+          Au.glow.material.opacity = (0.38 + Math.sin(t * 3) * 0.08 + Fi.flash * 0.2) * Au.vis;
+          Au.baseG.position.set(Fi.x, 0.15, Fi.z); Au.baseG.material.opacity = (0.55 + Math.sin(t * 2.4) * 0.1) * Au.vis;
+          Au.ring.position.set(Fi.x, 0.03, Fi.z); Au.ring.rotation.y = -t * 0.5; Au.ring.scale.setScalar(0.9 + Math.sin(t * 2) * 0.03);
+        }
+      }
       u.waves.forEach(function(w, i){ w.rotation.z = (w.userData.base || 0) + Math.sin(t * 6 + i) * 0.22; w.rotation.x = Math.sin(t * 5 + i) * 0.15; });
       u.wings.forEach(function(w){ w.rotation.z = w.userData.side * (0.1 + Math.sin(t * 4) * 0.12 + (Fi.armUp ? 0.3 : 0)); });
       if(u.tail){ u.tail.position.x = Math.sin(t * 5) * 0.12; if(u.tail.isGroup) u.tail.rotation.y = Math.sin(t * 4) * 0.25; }
@@ -2592,7 +2777,7 @@
         a.fn(p);
         if(p >= 1){ anims.splice(i, 1); if(a.done) a.done(); }
       }
-      F.forEach(function(Fi){ updFighter(Fi, dt, rdt, tReal); });
+      F.forEach(function(Fi){ updFighter(Fi, dt, rdt, tReal); updPet(Fi, rdt, tReal); });
       bridgeStep();
       fxStep(rdt);
       // 카메라
@@ -3695,11 +3880,11 @@
       });
       var ap = new T.Mesh(new T.SphereGeometry(0.09, 10, 8), new T.MeshStandardMaterial({ color:0xff5a5a })); ap.position.set(0.3, 1.2, 0.55); g.add(ap);
     },
-    house: function(g){
+    house: function(g, A){
       var wall = new T.Mesh(new T.SphereGeometry(0.75, 20, 16), new T.MeshStandardMaterial({ color:0xfff1d6, roughness:0.8 })); wall.scale.set(1, 0.85, 1); wall.position.y = 0.6; g.add(wall);
       var roof = new T.Mesh(new T.ConeGeometry(0.95, 0.8, 20), new T.MeshStandardMaterial({ color:0xff8f8a, roughness:0.6 })); roof.position.y = 1.5; g.add(roof);
       var door = new T.Mesh(new T.SphereGeometry(0.2, 14, 10), new T.MeshStandardMaterial({ color:0x9a6a46 })); door.scale.set(1, 1.4, 0.4); door.position.set(0, 0.32, 0.72); g.add(door);
-      [-0.38, 0.38].forEach(function(x){ var w = new T.Mesh(new T.SphereGeometry(0.13, 12, 10), new T.MeshStandardMaterial({ color:0xfff0a0, emissive:0xffd86a, emissiveIntensity:0.6 })); w.scale.set(1, 1, 0.3); w.position.set(x, 0.75, 0.66); g.add(w); });
+      [-0.38, 0.38].forEach(function(x){ var w = new T.Mesh(new T.SphereGeometry(0.13, 12, 10), new T.MeshStandardMaterial({ color:0xfff0a0, emissive:0xffd86a, emissiveIntensity:0.6 })); w.scale.set(1, 1, 0.3); w.position.set(x, 0.75, 0.66); g.add(w); A.push(function(t, n){ w.material.emissiveIntensity = 0.25 + (n || 0) * 1.5; }); });
       var ch = new T.Mesh(new T.CylinderGeometry(0.12, 0.14, 0.4, 10), new T.MeshStandardMaterial({ color:0xd9b49a })); ch.position.set(0.45, 1.55, -0.1); g.add(ch);
     },
     cushion: function(g){
@@ -3742,7 +3927,7 @@
     lantern: function(g, A){
       var po = new T.Mesh(new T.CylinderGeometry(0.05, 0.07, 1.5, 8), new T.MeshStandardMaterial({ color:0x7a6a8a })); po.position.y = 0.75; g.add(po);
       var l = new T.Mesh(new T.SphereGeometry(0.2, 14, 12), new T.MeshStandardMaterial({ color:0xfff0a0, emissive:0xffd060, emissiveIntensity:1.0 })); l.position.y = 1.6; g.add(l);
-      A.push(function(t){ l.material.emissiveIntensity = 0.85 + Math.sin(t * 3) * 0.2; });
+      A.push(function(t, n){ l.material.emissiveIntensity = 0.4 + (n || 0) * 1.4 + Math.sin(t * 3) * 0.12; });
     },
     pond: function(g, A){
       var w = new T.Mesh(new T.CylinderGeometry(0.85, 0.85, 0.08, 32), new T.MeshStandardMaterial({ color:0x7fd0ff, roughness:0.15, metalness:0.2 })); w.position.y = 0.02; g.add(w);
@@ -3757,49 +3942,392 @@
     rainbow:[0, -3.7], mushrooms:[-1.8, -2.5], fence:[0, -3.25], lantern:[-3.4, 0.9], pond:[2.5, 2.2]
   };
 
+  // ==TRAITS_BEGIN==
+  // =====================================================================
+  //  고유 특성: 캐릭터마다 하나씩, 이름에 어울리는 능력이 있어요 (너무 세지 않게 비슷한 크기로 맞췄어요)
+  // =====================================================================
+  var CHAR_TRAIT = {
+    '닌자곰':'shadow', '기사 슬라임':'ironwall', '유령 등불지기':'lantern', '판다 파이터':'bamboo', '젤리 슬라임':'bounce',
+    '마법사 병아리':'spark', '사무라이 토끼':'iai', '해적 고양이':'plunder', '번개 여우':'thunder', '로봇 용병':'pierce', '불꽃 정령':'ember', '프린세스 슬라임':'crown',
+    '악마 버섯':'spore', '서리 펭귄':'frost', '용기사':'dragonrage', '해골 기사':'reaper', '대천사':'blessing', '왕곰':'reign',
+    '서영준':'rainbow'
+  };
+  var TRAIT_INFO = {
+    shadow:   { name:'그림자 걸음',   icon:'🌑', kind:'방어', desc:'적의 공격을 6% 확률로 완전히 피해요', p:{ dodge:0.06 } },
+    ironwall: { name:'굳건한 방패',   icon:'🛡️', kind:'방어', desc:'받는 모든 피해가 5% 줄어요', p:{ reduce:0.05 } },
+    lantern:  { name:'등불의 인도',   icon:'🏮', kind:'회복', desc:'내 턴마다 최대 체력의 0.7%를 회복해요', p:{ regen:0.007 } },
+    bamboo:   { name:'대나무 맷집',   icon:'🎋', kind:'방어', desc:'체력이 절반 이하가 되면 방어력이 22% 올라요', p:{ bamboo:1.22 } },
+    bounce:   { name:'말랑 튕김',     icon:'🫧', kind:'반격', desc:'맞을 때 20% 확률로 받은 피해의 36%를 튕겨내요', p:{ counter:0.2, reflect:0.36 } },
+    spark:    { name:'병아리의 마법', icon:'✨', kind:'공격', desc:'3번째 공격(특수 공격)이 더 강해져요 (1.7배 → 2.05배)', p:{ special:2.05 } },
+    iai:      { name:'일섬',         icon:'⚔️', kind:'공격', desc:'치명타가 터질 확률이 14%p 올라요', p:{ crit:0.14 } },
+    plunder:  { name:'바다의 약탈',   icon:'🏴‍☠️', kind:'회복', desc:'입힌 피해의 6%를 체력으로 되찾아요', p:{ lifesteal:0.06 } },
+    thunder:  { name:'번개의 주인',   icon:'⚡', kind:'방해', desc:'공격이 맞으면 6.5% 확률로 상대가 감전돼 다음 턴을 쉬어요', p:{ stun:0.065 } },
+    pierce:   { name:'정밀 사격',     icon:'🎯', kind:'공격', desc:'상대 방어력의 14%를 무시하고 공격해요', p:{ pierce:0.14 } },
+    ember:    { name:'작열',         icon:'🔥', kind:'방해', desc:'공격이 맞으면 상대가 불타서 2턴 동안 최대 체력의 0.9%씩 잃어요', p:{ burn:0.009 } },
+    crown:    { name:'왕관의 가호',   icon:'👑', kind:'방어', desc:'전투 시작 때 최대 체력의 5%만큼 보호막이 생겨요', p:{ startShield:0.05 } },
+    spore:    { name:'독 포자',       icon:'🍄', kind:'방해', desc:'공격이 맞을 때마다 상대 공격력이 1.3%씩 줄어요 (최대 6.5%)', p:{ weaken:0.013, weakCap:0.065 } },
+    frost:    { name:'서릿발',       icon:'❄️', kind:'방해', desc:'공격이 맞으면 13% 확률로 상대가 얼어 다음 공격이 40% 약해져요', p:{ freeze:0.13 } },
+    dragonrage:{ name:'용의 분노',    icon:'🐲', kind:'공격', desc:'체력이 낮아질수록 공격력이 올라요 (최대 +14.5%)', p:{ rage:0.145 } },
+    reaper:   { name:'저승의 처형',   icon:'💀', kind:'공격', desc:'상대 체력이 30% 이하일 때 입히는 피해가 38% 늘어요', p:{ execute:0.38, thr:0.3 } },
+    blessing: { name:'천사의 축복',   icon:'😇', kind:'회복', desc:'내 턴 3번마다 최대 체력의 2.5%를 회복해요', p:{ heal3:0.025 } },
+    reign:    { name:'왕의 군림',     icon:'🐻', kind:'방해', desc:'전투 시작 때 상대의 공격력을 5% 깎아요', p:{ intimidate:0.05 } },
+    rainbow:  { name:'무지개의 은총', icon:'🌈', kind:'회복', desc:'내 턴 4번마다 체력 2.2% 회복, 나쁜 효과 해제, 다음 공격 +4.8%', p:{ rainbow:0.022, rbuff:0.048 } }
+  };
+  function trP(F){ var t = F && F.tr ? TRAIT_INFO[F.tr] : null; return t ? t.p : null; }
+  function trHeal(F, v){ var h = Math.max(0, Math.min(F.max - F.hp, Math.round(v))); F.hp += h; return h; }
+  function trInit(F){ F.st = { burn:0, burnPct:0, stun:0, freeze:0, weakMul:1, shield:0, bamboo:false, undying:false, buff:1 }; var p = trP(F); if(p && p.startShield) F.st.shield = Math.round(F.max * p.startShield); }
+  function trIntimidate(F, E){ var p = trP(F); if(p && p.intimidate) E.atk = E.atk * (1 - p.intimidate); }
+  // 한 번의 공격 계산: 회피, 치명타, 방어 관통, 용의 분노, 약화/빙결 등을 모두 반영해요
+  function trCalc(A, D, special){
+    var pa = trP(A) || {}, pd = trP(D) || {};
+    if(pd.dodge && Math.random() < pd.dodge) return { dodge:true, dmg:0, crit:false };
+    var crit = Math.random() < (0.12 + (pa.crit || 0));
+    var atk = A.atk * (A.st.weakMul || 1) * (pa.rage ? 1 + pa.rage * (1 - A.hp / A.max) : 1) * (A.st.buff || 1) * (pa.execute && D.hp <= D.max * pa.thr ? 1 + pa.execute : 1);
+    var def = D.def * (D.st.bamboo ? pd.bamboo : 1) * (1 - (pa.pierce || 0));
+    var sm = special ? (pa.special || 1.7) : 1;
+    var frz = 1; if(A.st.freeze > 0){ frz = 0.6; A.st.freeze--; }
+    var dmg = atk * 100 / (100 + def) * (0.9 + Math.random() * 0.25) * sm * (crit ? 1.5 : 1) * 0.9 * frz * (1 - (pd.reduce || 0));
+    A.st.buff = 1;
+    return { dodge:false, dmg:Math.max(1, Math.round(dmg)), crit:crit };
+  }
+  // 피해 적용 (보호막이 먼저 막아요)
+  function trApply(D, dmg){
+    var ab = Math.min(D.st.shield, dmg); D.st.shield -= ab; var real = dmg - ab;
+    D.hp = Math.max(0, D.hp - real); return real;
+  }
+  // 맞춘 뒤에 일어나는 일들: 약탈, 화상, 감전, 빙결, 약화, 튕김 …
+  function trAfter(A, D, r){
+    var ev = [], pa = trP(A) || {}, pd = trP(D) || {};
+    if(pa.lifesteal && r.dmg > 0){ var h = trHeal(A, r.dmg * pa.lifesteal); if(h > 0) ev.push({ t:'heal', who:A, v:h, txt:'🏴‍☠️ 약탈 +' + h, col:[0.9, 0.3, 0.6] }); }
+    if(D.hp > 0){
+      if(pa.burn){ D.st.burn = 2; D.st.burnPct = pa.burn; ev.push({ t:'burn', who:D, txt:'🔥 화상', col:[1, 0.35, 0.05] }); }
+      if(pa.stun && Math.random() < pa.stun){ D.st.stun = 1; ev.push({ t:'stun', who:D, txt:'⚡ 감전!', col:[1, 0.9, 0.2] }); }
+      if(pa.freeze && Math.random() < pa.freeze){ D.st.freeze = 1; ev.push({ t:'freeze', who:D, txt:'❄️ 빙결', col:[0.3, 0.8, 1] }); }
+      if(pa.weaken){ var was = D.st.weakMul; D.st.weakMul = Math.max(1 - pa.weakCap, was - pa.weaken); if(D.st.weakMul < was) ev.push({ t:'weak', who:D, txt:'🍄 중독 ' + Math.round((1 - D.st.weakMul) * 100) + '%', col:[0.6, 0.3, 0.8] }); }
+      if(pd.bamboo && !D.st.bamboo && D.hp <= D.max * 0.5){ D.st.bamboo = true; ev.push({ t:'buff', who:D, txt:'🎋 맷집!', col:[0.3, 0.8, 0.4] }); }
+    }
+    if(pd.counter && r.dmg > 0 && Math.random() < pd.counter){ var rf = Math.max(1, Math.round(r.dmg * pd.reflect)); A.hp = Math.max(1, A.hp - rf); ev.push({ t:'reflect', who:A, v:rf, txt:'🫧 튕김 -' + rf, col:[0.3, 0.8, 1] }); }
+    return ev;
+  }
+  // 쓰러질 뻔할 때 한 번 일어나요
+  function trLethal(D){
+    var pd = trP(D); if(pd && pd.undying && !D.st.undying){ D.st.undying = true; D.hp = Math.max(1, Math.round(D.max * pd.undying)); return true; }
+    return false;
+  }
+  // 자기 턴이 시작될 때: 화상 피해, 회복, 해제 …
+  function trTurn(F, n){
+    var ev = [], p = trP(F) || {};
+    if(F.st.burn > 0){ var d = Math.max(1, Math.round(F.max * F.st.burnPct)); F.hp = Math.max(0, F.hp - d); F.st.burn--; ev.push({ t:'burnTick', who:F, v:d, txt:'🔥 -' + d, col:[1, 0.35, 0.05] }); }
+    if(F.hp <= 0) return ev;
+    if(p.regen){ var h = trHeal(F, F.max * p.regen); if(h > 0) ev.push({ t:'heal', who:F, v:h, txt:'🏮 +' + h, col:[0.9, 0.7, 0.2] }); }
+    if(p.heal3 && n % 3 === 0){ var h2 = trHeal(F, F.max * p.heal3); if(h2 > 0) ev.push({ t:'heal', who:F, v:h2, txt:'😇 축복 +' + h2, col:[1, 0.95, 0.6] }); }
+    if(p.rainbow && n % 4 === 0){ var h3 = trHeal(F, F.max * p.rainbow); F.st.burn = 0; F.st.freeze = 0; F.st.stun = 0; F.st.weakMul = 1; F.st.buff = 1 + (p.rbuff || 0.1); ev.push({ t:'heal', who:F, v:h3, txt:'🌈 은총 +' + h3, col:[0.9, 0.6, 1] }); }
+    return ev;
+  }
+  // 같은 등급끼리 공평하게 맞추기 위한 보정 (역할별, 캐릭터별)
+  var ROLE_BAL = {'공격': 0.91, '방어': 1.11, '마법': 0.91, '속도': 1.09, '올라운드': 0.98};
+  var CHAR_BAL = {'서영준': 1, '마법사 병아리': 0.975, '사무라이 토끼': 1.005, '해적 고양이': 1.008, '번개 여우': 1.003, '로봇 용병': 1.037, '불꽃 정령': 0.991, '프린세스 슬라임': 0.982, '악마 버섯': 1.005, '서리 펭귄': 1.005, '용기사': 0.99, '해골 기사': 1.015, '대천사': 0.987, '왕곰': 0.998, '닌자곰': 0.989, '기사 슬라임': 1.023, '유령 등불지기': 0.949, '판다 파이터': 1.024, '젤리 슬라임': 1.016};
+  // ==TRAITS_END==
+
+  // ---- 부드러운 아우라 그림 (도감과 전투가 같이 써요) ----
+  var AURA_TEX = null;
+  function auraTex(){
+    if(AURA_TEX) return AURA_TEX;
+    var pg = document.createElement('canvas'); pg.width = 128; pg.height = 256;
+    var px = pg.getContext('2d'), pv = px.createLinearGradient(0, 0, 0, 256);
+    pv.addColorStop(0, 'rgba(255,255,255,0)'); pv.addColorStop(0.45, 'rgba(255,255,255,0.14)'); pv.addColorStop(1, 'rgba(255,255,255,0.7)');
+    px.fillStyle = pv; px.fillRect(0, 0, 128, 256);
+    px.globalCompositeOperation = 'destination-in';
+    var ph = px.createLinearGradient(0, 0, 128, 0);
+    ph.addColorStop(0, 'rgba(0,0,0,0)'); ph.addColorStop(0.22, 'rgba(0,0,0,0.25)'); ph.addColorStop(0.5, 'rgba(0,0,0,1)'); ph.addColorStop(0.78, 'rgba(0,0,0,0.25)'); ph.addColorStop(1, 'rgba(0,0,0,0)');
+    px.fillStyle = ph; px.fillRect(0, 0, 128, 256);
+    var bc = document.createElement('canvas'); bc.width = 128; bc.height = 64;
+    var bx = bc.getContext('2d'), bg = bx.createRadialGradient(64, 32, 2, 64, 32, 62);
+    bg.addColorStop(0, 'rgba(255,255,255,0.85)'); bg.addColorStop(0.5, 'rgba(255,255,255,0.28)'); bg.addColorStop(1, 'rgba(255,255,255,0)');
+    bx.fillStyle = bg; bx.fillRect(0, 0, 128, 64);
+    var gc = document.createElement('canvas'); gc.width = 128; gc.height = 128;
+    var gx = gc.getContext('2d'), gg = gx.createRadialGradient(64, 64, 4, 64, 64, 64);
+    gg.addColorStop(0, 'rgba(255,255,255,0.9)'); gg.addColorStop(0.45, 'rgba(255,255,255,0.28)'); gg.addColorStop(1, 'rgba(255,255,255,0)');
+    gx.fillStyle = gg; gx.fillRect(0, 0, 128, 128);
+    return (AURA_TEX = { pillar:new T.CanvasTexture(pg), base:new T.CanvasTexture(bc), glow:new T.CanvasTexture(gc) });
+  }
+
+  // ---- 펫 슬라임 몸 (키우기 화면과 전투 화면이 같이 써요) ----
+  function petHsl(h, s, l){ return new T.Color().setHSL(h, s, l); }
+  function petMat(c, rough, extra){ return new T.MeshStandardMaterial(Object.assign({ color:c, roughness:rough == null ? 0.5 : rough }, extra || {})); }
+  var PET_BLOB_GEO = null;
+  function petBlob(){
+    if(PET_BLOB_GEO) return PET_BLOB_GEO;
+    var geo = new T.SphereGeometry(1, 40, 28), p = geo.attributes.position;
+    for(var i = 0; i < p.count; i++){
+      var x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+      if(y < 0){ var k = 1 + (-y) * 0.2; x *= k; z *= k; y *= 0.62; } else { y *= 0.92; }
+      p.setXYZ(i, x, y, z);
+    }
+    geo.computeVertexNormals();
+    return (PET_BLOB_GEO = geo);
+  }
+  function makePetBody(gn){
+    var g = new T.Group();
+    var sat = Math.max(0.68, gn.sat), lit = Math.min(0.72, gn.lit);
+    var base = petHsl(gn.hue / 360, sat, lit), belly = petHsl(gn.hue / 360, sat * 0.7, Math.min(0.92, lit + 0.14)), acc = petHsl(gn.acc / 360, 0.75, 0.7), dark = petHsl(gn.hue / 360, Math.min(1, sat * 1.05), lit - 0.16);
+    var bodyMat = new T.MeshStandardMaterial({ color:base, roughness:0.42, emissive:base, emissiveIntensity:0.22 });
+    var bodyG = new T.Group(); bodyG.position.y = 0.62; g.add(bodyG);
+    var body = new T.Mesh(petBlob(), bodyMat); bodyG.add(body);
+    var bout = new T.Mesh(petBlob(), new T.MeshBasicMaterial({ color:petHsl(gn.hue / 360, Math.min(1, sat), 0.34), side:T.BackSide })); bout.scale.set(1.05, 1.05, 1.05); body.add(bout);
+    var bl = new T.Mesh(new T.SphereGeometry(0.62, 20, 16), petMat(belly, 0.5, { emissive:belly, emissiveIntensity:0.1 })); bl.scale.set(1, 0.85, 0.5); bl.position.set(0, -0.2, 0.62); if(gn.belly) bodyG.add(bl);
+    var hl = new T.Mesh(new T.SphereGeometry(0.16, 12, 10), new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.75 })); hl.scale.set(1.5, 0.8, 0.5); hl.position.set(-0.45, 0.62, 0.62); hl.rotation.z = 0.7; bodyG.add(hl);
+    // 얼굴
+    var eyeMat = new T.MeshStandardMaterial({ color:0x2a1c3a, roughness:0.15, metalness:0.1 });
+    var eyes = [], eyeGroup = new T.Group(); bodyG.add(eyeGroup);
+    [-1, 1].forEach(function(s){
+      var e = new T.Group(); e.position.set(s * 0.36, 0.12, 0.88); eyeGroup.add(e);
+      var ball = new T.Mesh(new T.SphereGeometry(1, 16, 14), eyeMat); ball.scale.set(0.115, 0.16, 0.07); e.add(ball);
+      var h1 = new T.Mesh(new T.SphereGeometry(1, 10, 8), new T.MeshBasicMaterial({ color:0xffffff })); h1.scale.set(0.04, 0.045, 0.03); h1.position.set(-0.03, 0.06, 0.06); e.add(h1);
+      if(gn.eye === 1){ var h2 = new T.Mesh(new T.SphereGeometry(1, 8, 6), new T.MeshBasicMaterial({ color:0xffffff })); h2.scale.set(0.022, 0.022, 0.02); h2.position.set(0.035, -0.05, 0.06); e.add(h2); }
+      eyes.push(e);
+    });
+    var happyEyes = new T.Group(); bodyG.add(happyEyes); happyEyes.visible = false;
+    [-1, 1].forEach(function(s){ var a = new T.Mesh(new T.TorusGeometry(0.1, 0.028, 8, 16, Math.PI), new T.MeshBasicMaterial({ color:0x2a1c3a })); a.position.set(s * 0.36, 0.14, 0.9); happyEyes.add(a); });
+    var mouthG = new T.Group(); mouthG.position.set(0, -0.02, 0.96); bodyG.add(mouthG);
+    var smile = new T.Mesh(new T.TorusGeometry(0.075, 0.018, 8, 16, Math.PI), new T.MeshBasicMaterial({ color:0x6a3a4a })); smile.rotation.z = Math.PI; mouthG.add(smile);
+    var open = new T.Mesh(new T.SphereGeometry(0.1, 14, 12), new T.MeshBasicMaterial({ color:0xc2506a })); open.scale.set(1, 0.1, 0.5); open.visible = false; mouthG.add(open);
+    var cheeks = [];
+    [-1, 1].forEach(function(s){ var c = new T.Mesh(new T.SphereGeometry(0.17, 12, 10), new T.MeshBasicMaterial({ color:petHsl(gn.cheek / 360, 0.9, 0.78), transparent:true, opacity:0.7 })); c.scale.set(1, 0.62, 0.3); c.position.set(s * 0.6, -0.04, 0.74); c.rotation.y = s * 0.7; bodyG.add(c); cheeks.push(c); });
+    // 무늬
+    var pat = new T.Group(); bodyG.add(pat);
+    function onBody(az, el, r){ var nx = Math.sin(az) * Math.cos(el), ny = Math.sin(el), nz = Math.cos(az) * Math.cos(el); return { x:nx * r, y:ny * r * 0.92, z:nz * r, nx:nx, ny:ny, nz:nz }; }
+    function sticker(az, el, size, col, shape){
+      var q = onBody(az, el, 0.985), m = new T.Mesh(new T.SphereGeometry(1, 14, 10), new T.MeshBasicMaterial({ color:col }));
+      m.scale.set(size, size, 0.05); m.position.set(q.x, q.y, q.z); m.rotation.order = 'YXZ'; m.rotation.y = Math.atan2(q.nx, q.nz); m.rotation.x = -Math.asin(q.ny); pat.add(m); return m;
+    }
+    if(gn.pat === 1){ [[0.9, 0.55, 0.12], [-0.8, 0.65, 0.1], [2.2, 0.35, 0.13], [-2.0, 0.3, 0.11], [3.2, 0.5, 0.1], [1.5, 0.9, 0.08]].forEach(function(s){ sticker(s[0], s[1], s[2], dark, 0); }); }
+    if(gn.pat === 2){ [0.15, 0.4, 0.65].forEach(function(el){ var r = new T.Mesh(new T.TorusGeometry(Math.cos(el) * 0.97, 0.025, 6, 40), new T.MeshBasicMaterial({ color:dark })); r.rotation.x = Math.PI / 2; r.position.y = Math.sin(el) * 0.9 - 0.18; pat.add(r); }); }
+    if(gn.pat === 3){ [[-0.5, 0.5], [0.5, 0.55], [0, 0.85]].forEach(function(s){ var h = sticker(s[0], s[1], 0.1, acc, 0); }); }
+    if(gn.pat === 4){ [[0.7, 0.6], [-0.7, 0.5], [2.4, 0.4], [-2.4, 0.5], [3.1, 0.6]].forEach(function(s, i){ var st = sticker(s[0], s[1], 0.075, 0xfff3a0, 0); }); }
+    // 귀 / 머리 장식 / 리본 / 날개 / 후광 (자랄수록 하나씩 생겨요)
+    var earsG = new T.Group(); bodyG.add(earsG);
+    if(gn.ears > 0){
+      [-1, 1].forEach(function(s){
+        var e = new T.Group(); e.position.set(s * 0.55, 0.78, 0); e.rotation.z = -s * 0.45; earsG.add(e);
+        if(gn.ears === 1){ var c = new T.Mesh(new T.ConeGeometry(0.22, 0.42, 4), new T.MeshStandardMaterial({ color:base, roughness:0.4 })); c.position.y = 0.15; e.add(c); var ci = new T.Mesh(new T.ConeGeometry(0.12, 0.26, 4), new T.MeshBasicMaterial({ color:acc })); ci.position.set(0, 0.12, 0.07); e.add(ci); }
+        if(gn.ears === 2){ var bn = new T.Mesh(new T.SphereGeometry(0.16, 12, 10), new T.MeshStandardMaterial({ color:base, roughness:0.4 })); bn.scale.set(0.8, 2.3, 0.6); bn.position.y = 0.3; e.add(bn); var bi = new T.Mesh(new T.SphereGeometry(0.09, 10, 8), new T.MeshBasicMaterial({ color:acc })); bi.scale.set(0.8, 2.0, 0.4); bi.position.set(0, 0.3, 0.08); e.add(bi); }
+        if(gn.ears === 3){ var br = new T.Mesh(new T.SphereGeometry(0.2, 14, 12), new T.MeshStandardMaterial({ color:base, roughness:0.4 })); br.position.y = 0.05; e.add(br); var bi2 = new T.Mesh(new T.SphereGeometry(0.1, 10, 8), new T.MeshBasicMaterial({ color:acc })); bi2.position.set(0, 0.04, 0.12); e.add(bi2); }
+        if(gn.ears === 4){ var hn = new T.Mesh(new T.ConeGeometry(0.1, 0.38, 8), new T.MeshStandardMaterial({ color:acc, roughness:0.3 })); hn.position.y = 0.12; e.add(hn); }
+      });
+    }
+    var topG = new T.Group(); topG.position.y = 1.5; bodyG.add(topG);
+    if(gn.top === 0){ var stm = new T.Mesh(new T.CylinderGeometry(0.02, 0.025, 0.25, 6), petMat(0x58a64e)); stm.position.y = 0.12; topG.add(stm); [-1, 1].forEach(function(s){ var lf = new T.Mesh(new T.SphereGeometry(0.15, 12, 10), petMat(0x7ad674, 0.5)); lf.scale.set(1.3, 0.4, 0.7); lf.position.set(s * 0.16, 0.28, 0); lf.rotation.z = s * 0.5; topG.add(lf); }); }
+    if(gn.top === 1){ var an = new T.Mesh(new T.CylinderGeometry(0.014, 0.014, 0.4, 6), petMat(0x7a6a8a)); an.position.y = 0.2; topG.add(an); var ab = new T.Mesh(new T.SphereGeometry(0.075, 12, 10), new T.MeshStandardMaterial({ color:acc, emissive:acc, emissiveIntensity:0.9 })); ab.position.y = 0.43; topG.add(ab); topG.userData.glow = ab; }
+    if(gn.top === 2){ var tf = new T.Mesh(new T.ConeGeometry(0.1, 0.34, 8), petMat(base, 0.4)); tf.position.y = 0.15; tf.rotation.z = 0.3; topG.add(tf); var tf2 = new T.Mesh(new T.ConeGeometry(0.08, 0.26, 8), petMat(base, 0.4)); tf2.position.set(0.1, 0.1, 0); tf2.rotation.z = -0.5; topG.add(tf2); }
+    if(gn.top === 3){ for(var k = 0; k < 5; k++){ var a = k / 5 * Math.PI * 2; var pt = new T.Mesh(new T.SphereGeometry(0.08, 10, 8), petMat(0xffa6c8, 0.4)); pt.position.set(Math.cos(a) * 0.1, 0.05, Math.sin(a) * 0.1); topG.add(pt); } var fc = new T.Mesh(new T.SphereGeometry(0.06, 10, 8), petMat(0xffe066)); fc.position.y = 0.05; topG.add(fc); }
+    if(gn.top === 4){ var sp = new T.Mesh(new T.OctahedronGeometry(0.14, 0), new T.MeshStandardMaterial({ color:0xfff3a0, emissive:0xffe066, emissiveIntensity:0.7 })); sp.position.y = 0.2; topG.add(sp); topG.userData.spin = sp; }
+    var bow = new T.Group(); bow.position.set(0.6, 1.22, 0.45); bodyG.add(bow);
+    [-1, 1].forEach(function(s){ var w = new T.Mesh(new T.SphereGeometry(0.13, 12, 10), new T.MeshStandardMaterial({ color:acc, roughness:0.4 })); w.scale.set(1.3, 0.8, 0.5); w.position.x = s * 0.13; w.rotation.z = s * 0.3; bow.add(w); });
+    var bk = new T.Mesh(new T.SphereGeometry(0.07, 10, 8), petMat(0xffffff, 0.4)); bow.add(bk);
+    var wings = new T.Group(); bodyG.add(wings); var wingL = null, wingR = null;
+    [-1, 1].forEach(function(s){ var w = new T.Group(); w.position.set(s * 0.85, 0.15, -0.35); wings.add(w); for(var f = 0; f < 3; f++){ var ft = new T.Mesh(new T.SphereGeometry(0.17, 10, 8), new T.MeshStandardMaterial({ color:0xffffff, roughness:0.3, emissive:0xfff6d0, emissiveIntensity:0.25 })); ft.scale.set(2.0 - f * 0.3, 0.55, 0.25); ft.position.set(s * (0.28 + f * 0.1), 0.14 - f * 0.12, 0); ft.rotation.z = s * (0.5 - f * 0.25); w.add(ft); } if(s < 0) wingL = w; else wingR = w; });
+    var halo = new T.Mesh(new T.TorusGeometry(0.34, 0.035, 8, 28), new T.MeshBasicMaterial({ color:0xffe066 })); halo.position.set(0, 1.95, 0); halo.rotation.x = Math.PI / 2 - 0.2; bodyG.add(halo);
+    return { g:g, bodyG:bodyG, body:body, eyes:eyes, eyeGroup:eyeGroup, happyEyes:happyEyes, smile:smile, open:open, cheeks:cheeks, earsG:earsG, topG:topG, bow:bow, wings:wings, wingL:wingL, wingR:wingR, halo:halo, genes:gn, bodyMat:bodyMat };
+  }
+  function petStageApply(sl, st){
+    if(!sl) return;
+    sl.earsG.visible = st >= 2; sl.topG.visible = st >= 3; sl.bow.visible = st >= 4; sl.wings.visible = st >= 5; sl.halo.visible = st >= 5;
+  }
+
+
   function makePet(canvas, hooks){
     hooks = hooks || {};
     var renderer = new T.WebGLRenderer({ canvas:canvas, antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     var scene = new T.Scene();
-    var camera = new T.PerspectiveCamera(38, 1, 0.1, 100);
-    camera.position.set(0, 3.3, 9.6); camera.lookAt(0, 1.0, 0);
-    var hemi = new T.HemisphereLight(0xffffff, 0xd8ecc8, 1.05); scene.add(hemi);
-    var sun = new T.DirectionalLight(0xfff4e0, 0.8); sun.position.set(3, 7, 6); scene.add(sun);
-    var env = null; try{ env = makeEnv(renderer); }catch(e){}
+    var camera = new T.PerspectiveCamera(40, 1, 0.1, 400);
+    camera.position.set(0, 2.5, 9.4); camera.lookAt(0, 1.5, 0);
+    var hemi = new T.HemisphereLight(0xffffff, 0x8fa870, 0.62); scene.add(hemi);
+    var sun = new T.DirectionalLight(0xfff1d8, 0.8); sun.position.set(3, 7, 6); scene.add(sun);
+    var env = null;   // 반사 환경은 쓰지 않아요 (말랑한 몸이 안 보이는 문제를 막기 위해 단순한 재질을 써요)
 
-    // ---- 하늘/땅 (분위기) ----
-    var THEMES = {
-      meadow: { top:'#a9dcff', bot:'#eaf8ff', floor:0x95d98a, rim:0xc8f0b8, hemi:0xffffff },
-      sunset: { top:'#ff9f8a', bot:'#ffe6b8', floor:0xb9d68a, rim:0xe6e8a8, hemi:0xfff0dd },
-      night:  { top:'#1c2760', bot:'#5b6fb8', floor:0x4f9a82, rim:0x7fc9a8, hemi:0xbfc8ff, stars:true },
-      blossom:{ top:'#ffd1e3', bot:'#fff4f8', floor:0xa9dc94, rim:0xd4f2c4, hemi:0xfff0f6, petals:true }
-    };
-    var floor = new T.Mesh(new T.CylinderGeometry(4.6, 4.8, 0.5, 56), new T.MeshStandardMaterial({ color:0x95d98a, roughness:0.9 }));
-    floor.position.y = -0.25; scene.add(floor);
-    var rim = new T.Mesh(new T.TorusGeometry(4.6, 0.12, 8, 64), new T.MeshStandardMaterial({ color:0xc8f0b8, roughness:0.8 }));
-    rim.rotation.x = Math.PI / 2; scene.add(rim);
-    var skyStars = new T.Group(); scene.add(skyStars); skyStars.visible = false;
-    for(var si = 0; si < 40; si++){
-      var sm = new T.Mesh(new T.SphereGeometry(0.06 + Math.random() * 0.05, 6, 6), new T.MeshBasicMaterial({ color:0xffffff }));
-      sm.position.set((Math.random() - 0.5) * 18, 2 + Math.random() * 7, -10 - Math.random() * 3); sm.userData.ph = Math.random() * 6; skyStars.add(sm);
+    // ---- 풍경: 진짜 시간에 따라 낮 / 노을 / 밤이 바뀌어요 ----
+    var world = new T.Group(); scene.add(world);
+    function mkc(h){ return new T.Color(h); }
+    function rnd(a, b){ return a + Math.random() * (b - a); }
+    var TOD = [   // 시각별 하늘과 조명
+      { h:0,    top:0x0b1233, bot:0x1f2c5a, hs:0x7f90d8, hg:0x1e2a3a, hi:0.34, sc:0x9fb4ff, si:0.42, n:1 },
+      { h:5,    top:0x101a42, bot:0x2a3a72, hs:0x7f90d8, hg:0x1e2a3a, hi:0.34, sc:0x9fb4ff, si:0.4,  n:1 },
+      { h:6.4,  top:0x5a6fb5, bot:0xffb59a, hs:0xffd0c0, hg:0x7a7060, hi:0.5,  sc:0xffb080, si:0.55, n:0.35 },
+      { h:8.5,  top:0x5fb4f5, bot:0xcfeeff, hs:0xffffff, hg:0x8fa870, hi:0.62, sc:0xfff1d8, si:0.8,  n:0 },
+      { h:16,   top:0x5fb4f5, bot:0xcfeeff, hs:0xffffff, hg:0x8fa870, hi:0.62, sc:0xfff1d8, si:0.8,  n:0 },
+      { h:18.3, top:0x3b4a9a, bot:0xff9a62, hs:0xffd2b0, hg:0x7a6a5a, hi:0.5,  sc:0xff9a60, si:0.6,  n:0.3 },
+      { h:20.2, top:0x141c48, bot:0x2c3a78, hs:0x7f90d8, hg:0x1e2a3a, hi:0.36, sc:0x9fb4ff, si:0.4,  n:0.95 },
+      { h:24,   top:0x0b1233, bot:0x1f2c5a, hs:0x7f90d8, hg:0x1e2a3a, hi:0.34, sc:0x9fb4ff, si:0.42, n:1 }
+    ];
+    var timeMode = 'auto', nightK = 0, lastSky = -1e9, lastLight = -1e9, hourNow = 12;
+    function curHour(){
+      if(timeMode === 'day') return 12.5; if(timeMode === 'sunset') return 18.2; if(timeMode === 'night') return 23;
+      var d = new Date(); return d.getHours() + d.getMinutes() / 60;
     }
-    var moon = new T.Mesh(new T.SphereGeometry(0.8, 20, 16), new T.MeshBasicMaterial({ color:0xfff6c8 })); moon.position.set(5, 6.5, -11); skyStars.add(moon);
-    var petals = new T.Group(); scene.add(petals); petals.visible = false;
-    for(var pi = 0; pi < 26; pi++){
-      var pm = new T.Mesh(new T.SphereGeometry(0.09, 8, 6), new T.MeshBasicMaterial({ color:0xffb6d0 })); pm.scale.set(1, 0.4, 0.8);
-      pm.userData = { x:(Math.random() - 0.5) * 9, y:Math.random() * 6, z:(Math.random() - 0.5) * 6, sp:0.4 + Math.random() * 0.5, ph:Math.random() * 6 }; petals.add(pm);
+    function todAt(h){
+      var a = TOD[0], b = TOD[1];
+      for(var i = 0; i < TOD.length - 1; i++){ if(h >= TOD[i].h && h <= TOD[i + 1].h){ a = TOD[i]; b = TOD[i + 1]; break; } }
+      var t = (h - a.h) / Math.max(0.001, b.h - a.h); t = Math.max(0, Math.min(1, t)); t = t * t * (3 - 2 * t);
+      var L = function(k){ return mkc(a[k]).lerp(mkc(b[k]), t); };
+      return { top:L('top'), bot:L('bot'), hs:L('hs'), hg:L('hg'), sc:L('sc'), hi:a.hi + (b.hi - a.hi) * t, si:a.si + (b.si - a.si) * t, n:a.n + (b.n - a.n) * t };
     }
+    function hex(c){ return '#' + c.getHexString(); }
+
+    // 땅
+    function grassTex(){
+      var cv = document.createElement('canvas'); cv.width = 256; cv.height = 256; var c = cv.getContext('2d');
+      c.fillStyle = '#6fae58'; c.fillRect(0, 0, 256, 256);
+      for(var i = 0; i < 1100; i++){ c.fillStyle = 'hsla(' + (86 + Math.random() * 34) + ',' + (34 + Math.random() * 26) + '%,' + (30 + Math.random() * 24) + '%,0.5)'; c.beginPath(); c.arc(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 5, 0, 6.3); c.fill(); }
+      var t = new T.CanvasTexture(cv); if(T.RepeatWrapping){ t.wrapS = t.wrapT = T.RepeatWrapping; } t.repeat.set(14, 14); return t;
+    }
+    var groundMat = new T.MeshStandardMaterial({ color:0xffffff, map:grassTex(), roughness:1 });
+    var ground = new T.Mesh(new T.CircleGeometry(70, 64), groundMat); ground.rotation.x = -Math.PI / 2; world.add(ground);
+    function lawnTex(){
+      var cv = document.createElement('canvas'); cv.width = 128; cv.height = 128; var c = cv.getContext('2d');
+      var g = c.createRadialGradient(64, 64, 6, 64, 64, 64); g.addColorStop(0, 'rgba(190,235,150,0.95)'); g.addColorStop(0.7, 'rgba(170,222,130,0.7)'); g.addColorStop(1, 'rgba(160,215,120,0)');
+      c.fillStyle = g; c.fillRect(0, 0, 128, 128); return new T.CanvasTexture(cv);
+    }
+    var lawn = new T.Mesh(new T.CircleGeometry(4.6, 48), new T.MeshStandardMaterial({ map:lawnTex(), transparent:true, roughness:1, depthWrite:false }));
+    lawn.rotation.x = -Math.PI / 2; lawn.position.y = 0.015; world.add(lawn);
+    var snowPatch = new T.Mesh(new T.CircleGeometry(70, 48), new T.MeshStandardMaterial({ color:0xf2f8ff, roughness:1, transparent:true, opacity:0.0 }));
+    snowPatch.rotation.x = -Math.PI / 2; snowPatch.position.y = 0.02; world.add(snowPatch);
+
+    // 멀리 있는 언덕과 산
+    var hillMats = [];
+    [[-26, -26, 14, 3.2, 9, 0x78b868], [20, -30, 18, 4.2, 10, 0x6aa85c], [-4, -34, 22, 3.6, 10, 0x86c070], [42, -22, 12, 3, 8, 0x74b064], [-46, -20, 13, 3.4, 8, 0x6eac60]].forEach(function(h){
+      var m = new T.MeshStandardMaterial({ color:h[5], roughness:1 }); hillMats.push(m);
+      var s = new T.Mesh(new T.SphereGeometry(1, 28, 14), m); s.scale.set(h[2], h[3], h[4]); s.position.set(h[0], -0.4, h[1]); world.add(s);
+    });
+    [[-34, -62, 13, 16], [-8, -70, 16, 20], [24, -66, 14, 17], [50, -58, 12, 14], [-58, -52, 12, 13]].forEach(function(m){
+      var mt = new T.Mesh(new T.ConeGeometry(m[2], m[3], 8), new T.MeshStandardMaterial({ color:0x7d8fb3, roughness:1, flatShading:true })); mt.position.set(m[0], m[3] / 2 - 1, m[1]); world.add(mt);
+      var cap = new T.Mesh(new T.ConeGeometry(m[2] * 0.42, m[3] * 0.34, 8), new T.MeshStandardMaterial({ color:0xf4f8ff, roughness:0.9, flatShading:true })); cap.position.set(m[0], m[3] - m[3] * 0.17 - 1, m[1]); world.add(cap);
+    });
+
+    // 나무 (계절마다 잎 색이 바뀌어요)
+    var leafMats = [new T.MeshStandardMaterial({ color:0x5db35a, roughness:0.9 }), new T.MeshStandardMaterial({ color:0x6cc468, roughness:0.9 }), new T.MeshStandardMaterial({ color:0x4ea44f, roughness:0.9 })];
+    var trunkMat = new T.MeshStandardMaterial({ color:0x8a6240, roughness:1 });
+    var snowCaps = [];
+    function makeTree(x, z, s, kind){
+      var g = new T.Group(); g.position.set(x, 0, z); g.scale.setScalar(s);
+      var tr = new T.Mesh(new T.CylinderGeometry(0.14, 0.22, 1.6, 8), trunkMat); tr.position.y = 0.8; g.add(tr);
+      if(kind === 1){
+        [[1.0, 1.5, 1.9], [0.78, 1.3, 2.7], [0.55, 1.1, 3.4]].forEach(function(c, i){ var cn = new T.Mesh(new T.ConeGeometry(c[0], c[1], 9), leafMats[i % 3]); cn.position.y = c[2]; g.add(cn); var sc = new T.Mesh(new T.ConeGeometry(c[0] * 0.8, c[1] * 0.35, 9), new T.MeshStandardMaterial({ color:0xffffff, roughness:1 })); sc.position.y = c[2] + c[1] * 0.3; sc.visible = false; g.add(sc); snowCaps.push(sc); });
+      }else{
+        [[0, 2.3, 0, 1.15], [-0.7, 1.8, 0.2, 0.8], [0.75, 1.9, -0.2, 0.85], [0.1, 2.9, 0.1, 0.8]].forEach(function(b, i){
+          var f = new T.Mesh(new T.SphereGeometry(b[3], 16, 12), leafMats[i % 3]); f.position.set(b[0], b[1], b[2]); g.add(f);
+          if(i === 0 || i === 3){ var sc2 = new T.Mesh(new T.SphereGeometry(b[3] * 0.82, 12, 8, 0, Math.PI * 2, 0, 0.9), new T.MeshStandardMaterial({ color:0xffffff, roughness:1 })); sc2.position.set(b[0], b[1] + b[3] * 0.22, b[2]); sc2.visible = false; g.add(sc2); snowCaps.push(sc2); }
+        });
+      }
+      world.add(g); return g;
+    }
+    var treeSpots = [[-7, -3], [-9, -9], [-12, -14], [-5.5, -12], [8, -4], [10.5, -10], [6, -13], [13, -16], [-16, -6], [17, -8], [-3, -17], [3, -19], [-20, -18], [21, -17], [-8.5, 2.5], [9.5, 2], [0, -26], [-14, -24], [15, -25]];
+    treeSpots.forEach(function(p, i){ makeTree(p[0] + rnd(-0.6, 0.6), p[1] + rnd(-0.6, 0.6), rnd(0.9, 1.6), i % 4 === 1 ? 1 : 0); });
+    var bushMat = new T.MeshStandardMaterial({ color:0x58a652, roughness:1 });
+    for(var bi = 0; bi < 14; bi++){ var bx = rnd(-14, 14), bz = rnd(-14, 1); if(Math.hypot(bx, bz) < 5.5) continue; var bs = new T.Mesh(new T.SphereGeometry(rnd(0.4, 0.7), 12, 9), bushMat); bs.scale.y = 0.75; bs.position.set(bx, 0.3, bz); world.add(bs); }
+    var rockMat = new T.MeshStandardMaterial({ color:0x9a9aa4, roughness:1, flatShading:true });
+    for(var ri = 0; ri < 8; ri++){ var rx = rnd(-12, 12), rz = rnd(-10, 0); if(Math.hypot(rx, rz) < 5.8) continue; var rk = new T.Mesh(new T.DodecahedronGeometry(rnd(0.25, 0.6), 0), rockMat); rk.position.set(rx, 0.15, rz); rk.rotation.set(rnd(0, 3), rnd(0, 3), 0); rk.scale.y = 0.7; world.add(rk); }
+
+    // 풀과 꽃 (한 번에 그려서 가벼워요)
+    var grassMat = new T.MeshStandardMaterial({ color:0x6ab85a, roughness:1 });
+    var GN = 520, grassI = new T.InstancedMesh(new T.ConeGeometry(0.05, 0.38, 4), grassMat, GN), dm = new T.Object3D();
+    for(var gi = 0; gi < GN; gi++){ var ga = Math.random() * 6.283, gr = 2.2 + Math.sqrt(Math.random()) * 17; dm.position.set(Math.cos(ga) * gr, 0.17, Math.sin(ga) * gr - 2); dm.rotation.set(rnd(-0.2, 0.2), rnd(0, 6), rnd(-0.25, 0.25)); dm.scale.setScalar(rnd(0.7, 1.7)); dm.updateMatrix(); grassI.setMatrixAt(gi, dm.matrix); }
+    world.add(grassI);
+    var FN = 150, flowerI = new T.InstancedMesh(new T.SphereGeometry(0.075, 7, 6), new T.MeshStandardMaterial({ color:0xffffff, roughness:0.6 }), FN), fcols = [0xffffff, 0xffd24a, 0xff8fb8, 0xc3a6ff, 0xff9a7a];
+    for(var fi = 0; fi < FN; fi++){ var fa = Math.random() * 6.283, fr = 3 + Math.sqrt(Math.random()) * 15; dm.position.set(Math.cos(fa) * fr, 0.3, Math.sin(fa) * fr - 2); dm.rotation.set(0, 0, 0); dm.scale.setScalar(rnd(0.8, 1.5)); dm.updateMatrix(); flowerI.setMatrixAt(fi, dm.matrix); if(flowerI.setColorAt) flowerI.setColorAt(fi, mkc(fcols[fi % 5])); }
+    world.add(flowerI);
+
+    // 하늘: 해, 달, 별, 구름
+    var sunMesh = new T.Mesh(new T.SphereGeometry(2.2, 20, 16), new T.MeshBasicMaterial({ color:0xfff4c8 })); sunMesh.material.fog = false; scene.add(sunMesh);
+    var sunGlow = new T.Mesh(new T.SphereGeometry(4.6, 20, 16), new T.MeshBasicMaterial({ color:0xffe9a0, transparent:true, opacity:0.22, depthWrite:false })); sunGlow.material.fog = false; scene.add(sunGlow);
+    var moonMesh = new T.Mesh(new T.SphereGeometry(1.7, 20, 16), new T.MeshBasicMaterial({ color:0xf6f1d6 })); moonMesh.material.fog = false; scene.add(moonMesh);
+    [[-0.5, 0.4, 0.45], [0.55, -0.3, 0.35], [0.1, -0.7, 0.28]].forEach(function(c){ var cr = new T.Mesh(new T.SphereGeometry(0.3, 10, 8), new T.MeshBasicMaterial({ color:0xd9d3b4 })); cr.material.fog = false; cr.scale.z = 0.3; cr.position.set(c[0] * 1.2, c[1] * 1.2, 1.55); moonMesh.add(cr); });
+    var moonGlow = new T.Mesh(new T.SphereGeometry(3.4, 20, 16), new T.MeshBasicMaterial({ color:0xcfd8ff, transparent:true, opacity:0.18, depthWrite:false })); moonGlow.material.fog = false; scene.add(moonGlow);
+    var starPts = null;
+    try{
+      var sp = [], sc3 = [];
+      for(var si = 0; si < 260; si++){ var u = Math.random() * 6.283, v = 0.06 + Math.random() * 0.9, rr = 120; sp.push(Math.cos(u) * Math.sqrt(1 - v * v) * rr, v * rr * 0.75 + 4, Math.sin(u) * Math.sqrt(1 - v * v) * rr * -0.6 - 20); }
+      var sg = new T.BufferGeometry(); sg.setAttribute('position', new T.Float32BufferAttribute(sp, 3));
+      starPts = new T.Points(sg, new T.PointsMaterial({ color:0xffffff, size:2.4, sizeAttenuation:false, transparent:true, opacity:0, depthWrite:false })); starPts.material.fog = false; scene.add(starPts);
+    }catch(e){ starPts = null; }
+    var cloudG = new T.Group(); scene.add(cloudG); var cloudMats = [];
+    for(var ci = 0; ci < 9; ci++){
+      var cg = new T.Group(), cm = new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.92 }); cm.fog = false; cloudMats.push(cm);
+      for(var cj = 0; cj < 5; cj++){ var cb = new T.Mesh(new T.SphereGeometry(rnd(1.6, 2.8), 12, 9), cm); cb.position.set(cj * 2.1 - 4 + rnd(-0.5, 0.5), rnd(-0.4, 0.8), rnd(-0.8, 0.8)); cb.scale.y = 0.6; cg.add(cb); }
+      cg.position.set(rnd(-70, 70), rnd(15, 26), rnd(-60, -38)); cg.userData.sp = rnd(0.25, 0.7); cloudG.add(cg);
+    }
+    // 반딧불 (밤), 나비 (낮)
+    var flies = new T.Group(); scene.add(flies);
+    for(var ff = 0; ff < 24; ff++){ var fm = new T.Mesh(new T.SphereGeometry(0.06, 8, 6), new T.MeshBasicMaterial({ color:0xe6ff8a, transparent:true, opacity:0 })); fm.userData = { cx:rnd(-7, 7), cy:rnd(0.6, 2.2), cz:rnd(-6, 3), ph:rnd(0, 6), sp:rnd(0.4, 0.9) }; flies.add(fm); }
+    var bfs = new T.Group(); scene.add(bfs);
+    for(var bf = 0; bf < 5; bf++){
+      var bg = new T.Group(), bcol = [0xffd24a, 0xff8fb8, 0x9fd4ff, 0xffffff, 0xc3a6ff][bf];
+      [-1, 1].forEach(function(s){ var w = new T.Mesh(new T.SphereGeometry(0.13, 8, 6), new T.MeshBasicMaterial({ color:bcol })); w.scale.set(1.2, 0.12, 0.9); w.position.x = s * 0.1; w.userData.s = s; bg.add(w); });
+      bg.userData = { cx:rnd(-6, 6), cz:rnd(-5, 2), ph:rnd(0, 6), r:rnd(1.2, 3), sp:rnd(0.3, 0.6) }; bfs.add(bg);
+    }
+    // 계절마다 날리는 것 (꽃잎, 단풍잎, 눈)
+    var fallMat = new T.MeshBasicMaterial({ color:0xffb6d0 }), fallG = new T.Group(); scene.add(fallG); fallG.visible = false;
+    for(var fl = 0; fl < 60; fl++){ var fp = new T.Mesh(new T.SphereGeometry(0.09, 8, 6), fallMat); fp.scale.set(1, 0.4, 0.8); fp.userData = { x:rnd(-10, 10), y:rnd(0, 9), z:rnd(-8, 5), sp:rnd(0.4, 1.0), ph:rnd(0, 6) }; fallG.add(fp); }
+    var fallKind = 'none';
+    var lampLight = new T.PointLight(0xffd080, 0, 9); lampLight.visible = false; scene.add(lampLight);
+    scene.fog = new T.Fog(0xcfeeff, 26, 105);
+
+    var themeName = 'meadow';
     function setTheme(name){
-      var th = THEMES[name] || THEMES.meadow;
-      var cv = document.createElement('canvas'); cv.width = 4; cv.height = 256;
-      var cx = cv.getContext('2d'); var gr = cx.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, th.top); gr.addColorStop(1, th.bot); cx.fillStyle = gr; cx.fillRect(0, 0, 4, 256);
-      scene.background = new T.CanvasTexture(cv);
-      floor.material.color.setHex(th.floor); rim.material.color.setHex(th.rim); hemi.color.setHex(th.hemi);
-      skyStars.visible = !!th.stars; petals.visible = !!th.petals;
-      hemi.intensity = th.stars ? 0.75 : 1.05;
+      themeName = THEMES_OK.indexOf(name) >= 0 ? name : 'meadow';
+      var L = leafMats;
+      if(themeName === 'autumn'){ L[0].color.setHex(0xe0842f); L[1].color.setHex(0xd9a22e); L[2].color.setHex(0xc4552a); bushMat.color.setHex(0xb8742a); grassMat.color.setHex(0xb59a3a); groundMat.color.setHex(0xffe6bd); }
+      else if(themeName === 'blossom'){ L[0].color.setHex(0xffb6d0); L[1].color.setHex(0xffa0c4); L[2].color.setHex(0xffd0e0); bushMat.color.setHex(0x6fb865); grassMat.color.setHex(0x78c468); groundMat.color.setHex(0xffffff); }
+      else if(themeName === 'snow'){ L[0].color.setHex(0x3f8f55); L[1].color.setHex(0x4a9a60); L[2].color.setHex(0x357a4a); bushMat.color.setHex(0x3a7a4a); grassMat.color.setHex(0x9fb8a0); groundMat.color.setHex(0xdfeaff); }
+      else{ L[0].color.setHex(0x5db35a); L[1].color.setHex(0x6cc468); L[2].color.setHex(0x4ea44f); bushMat.color.setHex(0x58a652); grassMat.color.setHex(0x6ab85a); groundMat.color.setHex(0xffffff); }
+      snowCaps.forEach(function(s){ s.visible = themeName === 'snow'; });
+      snowPatch.material.opacity = themeName === 'snow' ? 0.82 : 0;
+      flowerI.visible = themeName !== 'snow';
+      fallKind = themeName === 'blossom' ? 'petal' : (themeName === 'autumn' ? 'leaf' : (themeName === 'snow' ? 'snow' : 'none'));
+      fallG.visible = fallKind !== 'none';
+      fallMat.color.setHex(fallKind === 'petal' ? 0xffb6d0 : (fallKind === 'leaf' ? 0xe58a30 : 0xffffff));
+      fallG.children.forEach(function(p){ if(fallKind === 'snow') p.scale.set(0.9, 0.9, 0.9); else p.scale.set(1, 0.4, 0.8); });
+      lastSky = -1e9;
     }
-    setTheme('meadow');
+    var THEMES_OK = ['meadow', 'blossom', 'autumn', 'snow'];
+
+    function applySky(){
+      var T0 = todAt(hourNow);
+      var cv = document.createElement('canvas'); cv.width = 4; cv.height = 256;
+      var cx = cv.getContext('2d'), gr = cx.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, hex(T0.top)); gr.addColorStop(0.62, hex(T0.top.clone().lerp(T0.bot, 0.65))); gr.addColorStop(1, hex(T0.bot)); cx.fillStyle = gr; cx.fillRect(0, 0, 4, 256);
+      var old = scene.background; scene.background = new T.CanvasTexture(cv); if(old && old.dispose) old.dispose();
+      scene.fog.color.copy(T0.bot); scene.fog.near = 28 - T0.n * 8; scene.fog.far = 110 - T0.n * 30;
+    }
+    function applyLight(){
+      var T0 = todAt(hourNow); nightK = T0.n;
+      hemi.color.copy(T0.hs); hemi.groundColor.copy(T0.hg); hemi.intensity = T0.hi;
+      sun.color.copy(T0.sc); sun.intensity = T0.si;
+      var h = hourNow, ang = Math.PI * (h - 6) / 12, sunUp = Math.sin(ang);
+      var hm = h < 6 ? h + 24 : h, angM = Math.PI * (hm - 18) / 12, moonUp = Math.sin(angM);
+      sunMesh.position.set(-Math.cos(ang) * 40, Math.max(-6, sunUp * 28), -48); sunGlow.position.copy(sunMesh.position);
+      moonMesh.position.set(-Math.cos(angM) * 38, Math.max(-6, moonUp * 26), -50); moonGlow.position.copy(moonMesh.position);
+      var warm = Math.max(0, 1 - Math.abs(sunUp) * 3);   // 해가 낮을수록 붉게
+      sunMesh.material.color.setHex(0xfff4c8).lerp(mkc(0xff8a4a), warm); sunGlow.material.color.setHex(0xffe9a0).lerp(mkc(0xff7a3a), warm);
+      sunMesh.visible = sunUp > -0.08; sunGlow.visible = sunMesh.visible; moonMesh.visible = moonUp > -0.08 && T0.n > 0.25; moonGlow.visible = moonMesh.visible;
+      var from = sunUp > -0.02 ? sunMesh.position : moonMesh.position;
+      sun.position.set(from.x * 0.2 + 2, Math.max(7, from.y * 0.5 + 6), 8);
+      if(starPts) starPts.material.opacity = Math.max(0, Math.min(1, (T0.n - 0.3) * 1.6));
+      cloudMats.forEach(function(m){ m.color.setHex(0xffffff).lerp(mkc(0xffb48a), warm * 0.8).lerp(mkc(0x4a5688), Math.min(1, T0.n * 1.05)); });
+      lampLight.intensity = T0.n * 1.5;
+    }
+    function worldTick(dt, tt){
+      if(tt - lastLight > 1.0){ lastLight = tt; hourNow = curHour(); applyLight(); }
+      if(tt - lastSky > 20){ lastSky = tt; applySky(); }
+      cloudG.children.forEach(function(c){ c.position.x += c.userData.sp * dt; if(c.position.x > 80) c.position.x = -80; });
+      if(starPts && starPts.material.opacity > 0.05) starPts.material.opacity = Math.max(0, Math.min(1, (nightK - 0.3) * 1.6)) * (0.8 + Math.sin(tt * 2.2) * 0.15);
+      var fv = nightK > 0.5; flies.visible = fv;
+      if(fv) flies.children.forEach(function(f){ var u = f.userData; f.position.set(u.cx + Math.sin(tt * u.sp + u.ph) * 1.4, u.cy + Math.sin(tt * u.sp * 1.7 + u.ph) * 0.4, u.cz + Math.cos(tt * u.sp * 0.8 + u.ph) * 1.4); f.material.opacity = (0.35 + Math.abs(Math.sin(tt * 2.2 + u.ph)) * 0.65) * Math.min(1, (nightK - 0.5) * 3); });
+      var bv = nightK < 0.4 && themeName !== 'snow'; bfs.visible = bv;
+      if(bv) bfs.children.forEach(function(b){ var u = b.userData; b.position.set(u.cx + Math.cos(tt * u.sp + u.ph) * u.r, 1.0 + Math.sin(tt * 1.3 + u.ph) * 0.4, u.cz + Math.sin(tt * u.sp + u.ph) * u.r); b.rotation.y = -(tt * u.sp + u.ph); b.children.forEach(function(w){ w.rotation.z = w.userData.s * (0.2 + Math.abs(Math.sin(tt * 14 + u.ph)) * 0.9); }); });
+      if(fallG.visible) fallG.children.forEach(function(p){ var u = p.userData; u.y -= u.sp * dt * (fallKind === 'snow' ? 0.8 : 1); if(u.y < 0) u.y = 9; p.position.set(u.x + Math.sin(tt * 0.9 + u.ph) * (fallKind === 'snow' ? 0.4 : 0.9), u.y, u.z); if(fallKind !== 'snow') p.rotation.set(tt + u.ph, tt * 0.8, 0); });
+    }
+    setTheme('meadow'); hourNow = curHour(); applyLight(); applySky();
 
     // ---- 꾸미기 ----
     var decoRoot = new T.Group(); scene.add(decoRoot); var decoAnims = [], decoKey = '';
@@ -3809,6 +4337,7 @@
       decoKey = key;
       while(decoRoot.children.length) decoRoot.remove(decoRoot.children[0]);
       decoAnims = [];
+      var lp = (list || []).indexOf('lantern') >= 0; lampLight.visible = lp; if(lp) lampLight.position.set(PET_DECO_POS.lantern[0], 1.7, PET_DECO_POS.lantern[1] + 0.3);
       (list || []).forEach(function(id){
         var b = PET_DECO_BUILD[id], pos = PET_DECO_POS[id]; if(!b || !pos) return;
         var g = new T.Group(); g.position.set(pos[0], 0, pos[1]);
@@ -3840,66 +4369,7 @@
     function mat(c, rough, extra){ var m = new T.MeshStandardMaterial(Object.assign({ color:c, roughness:rough == null ? 0.5 : rough }, extra || {})); return m; }
     function buildSlime(gn){
       if(slime) spinG.remove(slime.g);
-      var g = new T.Group(); spinG.add(g);
-      var base = hsl(gn.hue / 360, gn.sat, gn.lit), belly = hsl(gn.hue / 360, gn.sat * 0.7, Math.min(0.95, gn.lit + 0.12)), acc = hsl(gn.acc / 360, 0.75, 0.72), dark = hsl(gn.hue / 360, gn.sat * 1.05, gn.lit - 0.13);
-      bodyMat = new T.MeshPhysicalMaterial({ color:base, roughness:0.28, clearcoat:1, clearcoatRoughness:0.12, emissive:base, emissiveIntensity:0.13 });
-      if(env){ bodyMat.envMap = env; bodyMat.envMapIntensity = 0.5; }
-      var bodyG = new T.Group(); bodyG.position.y = 0.62; g.add(bodyG);
-      var body = new T.Mesh(BLOB, bodyMat); bodyG.add(body);
-      var bl = new T.Mesh(new T.SphereGeometry(0.62, 20, 16), mat(belly, 0.5, { emissive:belly, emissiveIntensity:0.1 })); bl.scale.set(1, 0.85, 0.5); bl.position.set(0, -0.2, 0.62); if(gn.belly) bodyG.add(bl);
-      var hl = new T.Mesh(new T.SphereGeometry(0.16, 12, 10), new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.75 })); hl.scale.set(1.5, 0.8, 0.5); hl.position.set(-0.45, 0.62, 0.62); hl.rotation.z = 0.7; bodyG.add(hl);
-      // 얼굴
-      var eyeMat = new T.MeshStandardMaterial({ color:0x2a1c3a, roughness:0.15, metalness:0.1 });
-      var eyes = [], eyeGroup = new T.Group(); bodyG.add(eyeGroup);
-      [-1, 1].forEach(function(s){
-        var e = new T.Group(); e.position.set(s * 0.36, 0.12, 0.88); eyeGroup.add(e);
-        var ball = new T.Mesh(new T.SphereGeometry(1, 16, 14), eyeMat); ball.scale.set(0.115, 0.16, 0.07); e.add(ball);
-        var h1 = new T.Mesh(new T.SphereGeometry(1, 10, 8), new T.MeshBasicMaterial({ color:0xffffff })); h1.scale.set(0.04, 0.045, 0.03); h1.position.set(-0.03, 0.06, 0.06); e.add(h1);
-        if(gn.eye === 1){ var h2 = new T.Mesh(new T.SphereGeometry(1, 8, 6), new T.MeshBasicMaterial({ color:0xffffff })); h2.scale.set(0.022, 0.022, 0.02); h2.position.set(0.035, -0.05, 0.06); e.add(h2); }
-        eyes.push(e);
-      });
-      var happyEyes = new T.Group(); bodyG.add(happyEyes); happyEyes.visible = false;
-      [-1, 1].forEach(function(s){ var a = new T.Mesh(new T.TorusGeometry(0.1, 0.028, 8, 16, Math.PI), new T.MeshBasicMaterial({ color:0x2a1c3a })); a.position.set(s * 0.36, 0.14, 0.9); happyEyes.add(a); });
-      var mouthG = new T.Group(); mouthG.position.set(0, -0.02, 0.96); bodyG.add(mouthG);
-      var smile = new T.Mesh(new T.TorusGeometry(0.075, 0.018, 8, 16, Math.PI), new T.MeshBasicMaterial({ color:0x6a3a4a })); smile.rotation.z = Math.PI; mouthG.add(smile);
-      var open = new T.Mesh(new T.SphereGeometry(0.1, 14, 12), new T.MeshBasicMaterial({ color:0xc2506a })); open.scale.set(1, 0.1, 0.5); open.visible = false; mouthG.add(open);
-      var cheeks = [];
-      [-1, 1].forEach(function(s){ var c = new T.Mesh(new T.SphereGeometry(0.17, 12, 10), new T.MeshBasicMaterial({ color:hsl(gn.cheek / 360, 0.9, 0.78), transparent:true, opacity:0.7 })); c.scale.set(1, 0.62, 0.3); c.position.set(s * 0.6, -0.04, 0.74); c.rotation.y = s * 0.7; bodyG.add(c); cheeks.push(c); });
-      // 무늬
-      var pat = new T.Group(); bodyG.add(pat);
-      function onBody(az, el, r){ var nx = Math.sin(az) * Math.cos(el), ny = Math.sin(el), nz = Math.cos(az) * Math.cos(el); return { x:nx * r, y:ny * r * 0.92, z:nz * r, nx:nx, ny:ny, nz:nz }; }
-      function sticker(az, el, size, col, shape){
-        var q = onBody(az, el, 0.985), m = new T.Mesh(new T.SphereGeometry(1, 14, 10), new T.MeshBasicMaterial({ color:col }));
-        m.scale.set(size, size, 0.05); m.position.set(q.x, q.y, q.z); m.rotation.order = 'YXZ'; m.rotation.y = Math.atan2(q.nx, q.nz); m.rotation.x = -Math.asin(q.ny); pat.add(m); return m;
-      }
-      if(gn.pat === 1){ [[0.9, 0.55, 0.12], [-0.8, 0.65, 0.1], [2.2, 0.35, 0.13], [-2.0, 0.3, 0.11], [3.2, 0.5, 0.1], [1.5, 0.9, 0.08]].forEach(function(s){ sticker(s[0], s[1], s[2], dark, 0); }); }
-      if(gn.pat === 2){ [0.15, 0.4, 0.65].forEach(function(el){ var r = new T.Mesh(new T.TorusGeometry(Math.cos(el) * 0.97, 0.025, 6, 40), new T.MeshBasicMaterial({ color:dark })); r.rotation.x = Math.PI / 2; r.position.y = Math.sin(el) * 0.9 - 0.18; pat.add(r); }); }
-      if(gn.pat === 3){ [[-0.5, 0.5], [0.5, 0.55], [0, 0.85]].forEach(function(s){ var h = sticker(s[0], s[1], 0.1, acc, 0); }); }
-      if(gn.pat === 4){ [[0.7, 0.6], [-0.7, 0.5], [2.4, 0.4], [-2.4, 0.5], [3.1, 0.6]].forEach(function(s, i){ var st = sticker(s[0], s[1], 0.075, 0xfff3a0, 0); }); }
-      // 귀 / 머리 장식 / 리본 / 날개 / 후광 (자랄수록 하나씩 생겨요)
-      var earsG = new T.Group(); bodyG.add(earsG);
-      if(gn.ears > 0){
-        [-1, 1].forEach(function(s){
-          var e = new T.Group(); e.position.set(s * 0.55, 0.78, 0); e.rotation.z = -s * 0.45; earsG.add(e);
-          if(gn.ears === 1){ var c = new T.Mesh(new T.ConeGeometry(0.22, 0.42, 4), new T.MeshStandardMaterial({ color:base, roughness:0.4 })); c.position.y = 0.15; e.add(c); var ci = new T.Mesh(new T.ConeGeometry(0.12, 0.26, 4), new T.MeshBasicMaterial({ color:acc })); ci.position.set(0, 0.12, 0.07); e.add(ci); }
-          if(gn.ears === 2){ var bn = new T.Mesh(new T.SphereGeometry(0.16, 12, 10), new T.MeshStandardMaterial({ color:base, roughness:0.4 })); bn.scale.set(0.8, 2.3, 0.6); bn.position.y = 0.3; e.add(bn); var bi = new T.Mesh(new T.SphereGeometry(0.09, 10, 8), new T.MeshBasicMaterial({ color:acc })); bi.scale.set(0.8, 2.0, 0.4); bi.position.set(0, 0.3, 0.08); e.add(bi); }
-          if(gn.ears === 3){ var br = new T.Mesh(new T.SphereGeometry(0.2, 14, 12), new T.MeshStandardMaterial({ color:base, roughness:0.4 })); br.position.y = 0.05; e.add(br); var bi2 = new T.Mesh(new T.SphereGeometry(0.1, 10, 8), new T.MeshBasicMaterial({ color:acc })); bi2.position.set(0, 0.04, 0.12); e.add(bi2); }
-          if(gn.ears === 4){ var hn = new T.Mesh(new T.ConeGeometry(0.1, 0.38, 8), new T.MeshStandardMaterial({ color:acc, roughness:0.3 })); hn.position.y = 0.12; e.add(hn); }
-        });
-      }
-      var topG = new T.Group(); topG.position.y = 1.5; bodyG.add(topG);
-      if(gn.top === 0){ var stm = new T.Mesh(new T.CylinderGeometry(0.02, 0.025, 0.25, 6), mat(0x58a64e)); stm.position.y = 0.12; topG.add(stm); [-1, 1].forEach(function(s){ var lf = new T.Mesh(new T.SphereGeometry(0.15, 12, 10), mat(0x7ad674, 0.5)); lf.scale.set(1.3, 0.4, 0.7); lf.position.set(s * 0.16, 0.28, 0); lf.rotation.z = s * 0.5; topG.add(lf); }); }
-      if(gn.top === 1){ var an = new T.Mesh(new T.CylinderGeometry(0.014, 0.014, 0.4, 6), mat(0x7a6a8a)); an.position.y = 0.2; topG.add(an); var ab = new T.Mesh(new T.SphereGeometry(0.075, 12, 10), new T.MeshStandardMaterial({ color:acc, emissive:acc, emissiveIntensity:0.9 })); ab.position.y = 0.43; topG.add(ab); topG.userData.glow = ab; }
-      if(gn.top === 2){ var tf = new T.Mesh(new T.ConeGeometry(0.1, 0.34, 8), mat(base, 0.4)); tf.position.y = 0.15; tf.rotation.z = 0.3; topG.add(tf); var tf2 = new T.Mesh(new T.ConeGeometry(0.08, 0.26, 8), mat(base, 0.4)); tf2.position.set(0.1, 0.1, 0); tf2.rotation.z = -0.5; topG.add(tf2); }
-      if(gn.top === 3){ for(var k = 0; k < 5; k++){ var a = k / 5 * Math.PI * 2; var pt = new T.Mesh(new T.SphereGeometry(0.08, 10, 8), mat(0xffa6c8, 0.4)); pt.position.set(Math.cos(a) * 0.1, 0.05, Math.sin(a) * 0.1); topG.add(pt); } var fc = new T.Mesh(new T.SphereGeometry(0.06, 10, 8), mat(0xffe066)); fc.position.y = 0.05; topG.add(fc); }
-      if(gn.top === 4){ var sp = new T.Mesh(new T.OctahedronGeometry(0.14, 0), new T.MeshStandardMaterial({ color:0xfff3a0, emissive:0xffe066, emissiveIntensity:0.7 })); sp.position.y = 0.2; topG.add(sp); topG.userData.spin = sp; }
-      var bow = new T.Group(); bow.position.set(0.6, 1.22, 0.45); bodyG.add(bow);
-      [-1, 1].forEach(function(s){ var w = new T.Mesh(new T.SphereGeometry(0.13, 12, 10), new T.MeshStandardMaterial({ color:acc, roughness:0.4 })); w.scale.set(1.3, 0.8, 0.5); w.position.x = s * 0.13; w.rotation.z = s * 0.3; bow.add(w); });
-      var bk = new T.Mesh(new T.SphereGeometry(0.07, 10, 8), mat(0xffffff, 0.4)); bow.add(bk);
-      var wings = new T.Group(); bodyG.add(wings); var wingL = null, wingR = null;
-      [-1, 1].forEach(function(s){ var w = new T.Group(); w.position.set(s * 0.85, 0.15, -0.35); wings.add(w); for(var f = 0; f < 3; f++){ var ft = new T.Mesh(new T.SphereGeometry(0.17, 10, 8), new T.MeshStandardMaterial({ color:0xffffff, roughness:0.3, emissive:0xfff6d0, emissiveIntensity:0.25 })); ft.scale.set(2.0 - f * 0.3, 0.55, 0.25); ft.position.set(s * (0.28 + f * 0.1), 0.14 - f * 0.12, 0); ft.rotation.z = s * (0.5 - f * 0.25); w.add(ft); } if(s < 0) wingL = w; else wingR = w; });
-      var halo = new T.Mesh(new T.TorusGeometry(0.34, 0.035, 8, 28), new T.MeshBasicMaterial({ color:0xffe066 })); halo.position.set(0, 1.95, 0); halo.rotation.x = Math.PI / 2 - 0.2; bodyG.add(halo);
-      slime = { g:g, bodyG:bodyG, body:body, eyes:eyes, eyeGroup:eyeGroup, happyEyes:happyEyes, smile:smile, open:open, cheeks:cheeks, earsG:earsG, topG:topG, bow:bow, wings:wings, wingL:wingL, wingR:wingR, halo:halo, genes:gn };
+      slime = makePetBody(gn); bodyMat = slime.bodyMat; spinG.add(slime.g);
     }
     function buildEgg(gn){
       while(eggG.children.length) eggG.remove(eggG.children[0]);
@@ -3909,6 +4379,7 @@
       geo.computeVertexNormals();
       var em = new T.MeshPhysicalMaterial({ color:base, roughness:0.35, clearcoat:0.8, clearcoatRoughness:0.2, emissive:0xffb060, emissiveIntensity:0 });
       var shell = new T.Mesh(geo, em); shell.position.y = 1.2; eggG.add(shell);
+      var eout = new T.Mesh(geo, new T.MeshBasicMaterial({ color:hsl(gn.hue / 360, 0.5, 0.45), side:T.BackSide })); eout.scale.set(1.045, 1.045, 1.045); shell.add(eout);
       for(var s = 0; s < 9; s++){ var az = s * 2.4, el = -0.5 + (s % 4) * 0.45, r = 0.99; var nx = Math.sin(az) * Math.cos(el), ny = Math.sin(el), nz = Math.cos(az) * Math.cos(el);
         var d = new T.Mesh(new T.SphereGeometry(1, 12, 8), new T.MeshBasicMaterial({ color:s % 3 === 0 ? acc : spot })); d.scale.set(0.15 + (s % 3) * 0.04, 0.15 + (s % 3) * 0.04, 0.04);
         d.position.set(nx * r, 1.2 + ny * r * 1.2, nz * r); d.rotation.order = 'YXZ'; d.rotation.y = Math.atan2(nx, nz); d.rotation.x = -Math.asin(ny) * 0.8; eggG.add(d); }
@@ -3985,18 +4456,19 @@
       setTheme(cfg.theme || 'meadow'); setDeco(cfg.deco || []);
       var st = cfg.stage;
       if(slime){
-        slime.earsG.visible = st >= 2; slime.topG.visible = st >= 3; slime.bow.visible = st >= 4; slime.wings.visible = st >= 5; slime.halo.visible = st >= 5;
-        S.big = [0.5, 0.58, 0.72, 0.88, 1.0, 1.15][Math.min(5, Math.max(0, st))];
+        petStageApply(slime, st);
+        S.big = [1.0, 0.95, 1.15, 1.35, 1.58, 1.85][Math.min(5, Math.max(0, st))];
       }
     }
     function status2(sat, mood){ status.sat = sat; status.mood = mood; }
 
     // ---- 그리기 반복 ----
-    var running = false, clock = new T.Clock(), tt = 0, scaleNow = 0.5;
+    var running = false, clock = new T.Clock(), tt = 0, scaleNow = 0.95;
     function resize(){
       var w = canvas.clientWidth, h = canvas.clientHeight; if(!w || !h) return;
       renderer.setSize(w, h, false); camera.aspect = w / h;
-      camera.position.set(0, 3.3 + (w / h < 0.9 ? 0.4 : 0), w / h < 0.9 ? 11.2 : 9.6); camera.lookAt(0, 1.0, 0);
+      var dist = 9.4 * Math.max(1, 1.05 / Math.max(0.5, w / h));
+      camera.position.set(0, 2.5 + (dist - 9.4) * 0.25, dist); camera.lookAt(0, 1.5, 0);
       camera.updateProjectionMatrix();
     }
     var onWin = function(){ resize(); };
@@ -4010,11 +4482,9 @@
       requestAnimationFrame(frame);
       var dt = Math.min(clock.getDelta(), 0.05); tt += dt;
       var lowSat = status.sat < 20, joy = status.mood >= 70 ? 1 : (status.mood < 35 ? -1 : 0);
-      // 별/꽃잎/꾸미기 등장
-      if(skyStars.visible) skyStars.children.forEach(function(s){ if(s.userData.ph !== undefined) s.scale.setScalar(0.7 + Math.sin(tt * 2 + s.userData.ph) * 0.3); });
-      if(petals.visible) petals.children.forEach(function(p){ var u = p.userData; u.y -= u.sp * dt; if(u.y < 0) u.y = 6; p.position.set(u.x + Math.sin(tt * 0.8 + u.ph) * 0.6, u.y, u.z); p.rotation.set(tt + u.ph, tt * 0.7, 0); });
+      worldTick(dt, tt);
       decoRoot.children.forEach(function(g){ if(g.userData.pop < 1){ g.userData.pop = Math.min(1, g.userData.pop + dt * 2.2); var k = g.userData.pop, e = 1 + 1.7 * Math.pow(k - 1, 3) + 0.7 * Math.pow(k - 1, 2); g.scale.setScalar(Math.max(0.01, e)); } });
-      decoAnims.forEach(function(f){ f(tt); });
+      decoAnims.forEach(function(f){ f(tt, nightK); });
       // 알
       if(eggG.visible && eggG.userData.shell){
         var ud = eggG.userData, warm = status.warmth / 100;
@@ -4065,6 +4535,7 @@
         if(S.eat > 0){ S.eat -= dt; chew = Math.sin(tt * 16) * 0.07; if(S.eat <= 0.45 && apple){ scene.remove(apple); apple = null; } }
         var breath = Math.sin(tt * 2.2) * 0.025 + chew;
         var sq = S.sq + (S.air ? 0 : breath);
+        sq = Math.max(-0.45, Math.min(0.85, sq)); if(!isFinite(sq)){ sq = 0; S.sq = 0; S.sqV = 0; }
         spinG.rotation.y = S.yaw + S.lookY;
         rig.position.y = S.y;
         var sc = scaleNow * (0.2 + 0.8 * born + (born < 1 ? Math.sin(born * Math.PI) * 0.35 : 0));
@@ -4087,7 +4558,7 @@
         if(slime.halo.visible){ slime.halo.position.y = 1.95 + Math.sin(tt * 2) * 0.05; slime.halo.rotation.z = tt * 0.8; }
         if(slime.wings.visible && Math.random() < dt * 3) puff((Math.random() - 0.5) * 1.6, 0.6 + Math.random(), (Math.random() - 0.5) * 1.2, 0xfff3a0, 1, 0.3, -0.5, 1.0);
         // 그림자
-        shadowMesh.position.set(0, 0.015, 0); var sh = scaleNow * (1.05 - Math.min(0.5, S.y * 0.12)); shadowMesh.scale.set(sh, sh, sh); shadowMesh.material.opacity = 0.28 - Math.min(0.15, S.y * 0.04); shadowMesh.visible = true;
+        shadowMesh.position.set(0, 0.015, 0); var sh = scaleNow * (1.05 - Math.min(0.5, S.y * 0.12)); shadowMesh.scale.set(sh, sh, sh); shadowMesh.material.opacity = 0.38 - Math.min(0.2, S.y * 0.05); shadowMesh.visible = true;
         // 사과
         if(apple){ var p = Math.max(0, Math.min(1, 1 - (S.eat - 0.45) / 0.65)); apple.position.set(0, 2.6 - p * 1.6, 0.4 + p * 0.5); apple.scale.setScalar(Math.max(0.05, 1 - p * 0.8)); }
       }else if(eggG.visible){ shadowMesh.position.set(0, 0.015, 0); shadowMesh.scale.set(1.0, 1.0, 1.0); shadowMesh.material.opacity = 0.28; shadowMesh.visible = true; }
@@ -4098,13 +4569,13 @@
         if(s2.m.position.y < 0.05){ s2.m.position.y = 0.05; s2.vy = 0; s2.vx *= 0.8; s2.vz *= 0.8; } if(s2.t > 2.2){ scene.remove(s2.m); shards.splice(j, 1); } }
       renderer.render(scene, camera);
     }
-    var shadowMesh = new T.Mesh(new T.CircleGeometry(1.0, 28), new T.MeshBasicMaterial({ color:0x3a5a3a, transparent:true, opacity:0.28 }));
+    var shadowMesh = new T.Mesh(new T.CircleGeometry(1.0, 28), new T.MeshBasicMaterial({ color:0x1a2a14, transparent:true, opacity:0.38, depthWrite:false }));
     shadowMesh.rotation.x = -Math.PI / 2; scene.add(shadowMesh);
     function feedAnim(){ if(apple){ scene.remove(apple); } apple = new T.Group(); var a = new T.Mesh(new T.SphereGeometry(0.28, 14, 12), new T.MeshStandardMaterial({ color:0xff4f4f, roughness:0.3 })); apple.add(a); var lf = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshStandardMaterial({ color:0x58c458 })); lf.scale.set(1.6, 0.4, 0.8); lf.position.set(0.1, 0.3, 0); apple.add(lf); apple.position.set(0, 2.6, 0.4); scene.add(apple); act('eat'); }
     function start(){ if(running) return; running = true; clock.getDelta(); resize(); frame(); }
     function stop(){ running = false; }
     function dispose(){ running = false; window.removeEventListener('resize', onWin); try{ renderer.dispose(); }catch(e){} }
-    return { setPet:setPet, setStatus:status2, act:act, cuddle:cuddle, feed:feedAnim, hatch:hatch, start:start, stop:stop, resize:resize, dispose:dispose, burst:function(col, n){ puff(0, 1.2, 0, col || 0xffe066, n || 12, 2, 4, 0.9); } };
+    return { setPet:setPet, setStatus:status2, setTimeMode:function(m){ timeMode = m; lastLight = -1e9; lastSky = -1e9; }, act:act, cuddle:cuddle, feed:feedAnim, hatch:hatch, start:start, stop:stop, resize:resize, dispose:dispose, burst:function(col, n){ puff(0, 1.2, 0, col || 0xffe066, n || 12, 2, 4, 0.9); } };
   }
 
   // 도감용 썸네일 (한 번에 모두 그려서 사진으로 저장)
@@ -4132,7 +4603,7 @@
     return out;
   }
 
-    return { VARIANTS:VARIANTS, buildMascot:buildMascot, makeViewer:makeViewer, makeThumbs:makeThumbs, makeBattle:makeBattle, makeKingdom:makeKingdom, makePet:makePet };
+    return { VARIANTS:VARIANTS, buildMascot:buildMascot, makeViewer:makeViewer, makeThumbs:makeThumbs, makeBattle:makeBattle, makeKingdom:makeKingdom, makePet:makePet, TRAIT_INFO:TRAIT_INFO, CHAR_TRAIT:CHAR_TRAIT };
   }
   global.createMascotLib = createMascotLib;
 })(window);
@@ -4479,6 +4950,7 @@ async function updateGroupCount(){
     const hubInfo = (typeof btMyName === 'function' && btMyName())
       ? { name: btMyName(), lv: Math.max(1, charLevel(btMyName())), lvl: charLvl(btMyName()), kb: Math.round(kBuffPct() * 1000) / 1000, bs: (() => { const b = kBuffs(); return { a: Math.round(b.atk * 1000) / 1000, d: Math.round(b.def * 1000) / 1000, h: Math.round(b.hp * 1000) / 1000, s: Math.round(b.spd * 1000) / 1000 }; })() }
       : null;
+    if(hubInfo && pet && pet.hatched && pet.genes) hubInfo.pet = { g: pet.genes, s: petStage() };
     const payload = { email: currentUser.email, count: words.length, updatedAt: Date.now(), battle: deleteField(), hub: hubInfo };
     await Promise.all(groupCodes.map(c => setDoc(doc(db, 'groups', c, 'members', currentUser.uid), payload, { merge:true })));
   }catch(e){ /* 조용히 무시 */ }
@@ -5780,6 +6252,9 @@ const HUB_ROLE_W = {
   '마법':{atk:.40,def:.12,hp:.28,spd:.20}, '속도':{atk:.28,def:.14,hp:.24,spd:.34},
   '올라운드':{atk:.28,def:.24,hp:.28,spd:.20}
 };
+// 같은 등급끼리 공평하게 싸우도록 맞춘 보정값 (모의 대결 수십만 판으로 맞췄어요)
+const HUB_ROLE_BAL = { '공격':0.91, '방어':1.11, '마법':0.91, '속도':1.09, '올라운드':0.98 };
+const HUB_CHAR_BAL = {"서영준": 1, "마법사 병아리": 0.975, "사무라이 토끼": 1.005, "해적 고양이": 1.008, "번개 여우": 1.003, "로봇 용병": 1.037, "불꽃 정령": 0.991, "프린세스 슬라임": 0.982, "악마 버섯": 1.005, "서리 펭귄": 1.005, "용기사": 0.99, "해골 기사": 1.015, "대천사": 0.987, "왕곰": 0.998, "닌자곰": 0.989, "기사 슬라임": 1.023, "유령 등불지기": 0.949, "판다 파이터": 1.024, "젤리 슬라임": 1.016};
 const HUB_RATES = [[3, 0.669], [4, 0.28], [5, 0.05], [6, 0.001]];
 const PITY5 = 50, PITY6 = 1000;
 let charCollection = {};              // { 캐릭터이름: { n: 가진 개수 } }
@@ -5822,7 +6297,7 @@ function charStatsOf(name, lvOv, opt, lvlOv){
   const lv = lvOv || Math.max(1, charLevel(name));
   const L = opt ? Math.max(1, opt.lvl || 1) : (lvlOv || charLvl(name));
   const bs = opt ? (opt.bs || { atk:opt.kb || 0, def:opt.kb || 0, hp:opt.kb || 0, spd:0 }) : kBuffs();
-  const total = ({3:100, 4:150, 5:220, 6:400})[c.star] * (1 + 0.18 * (lv - 1)) * (1 + 0.04 * (L - 1));
+  const total = ({3:100, 4:150, 5:220, 6:400})[c.star] * (1 + 0.18 * (lv - 1)) * (1 + 0.04 * (L - 1)) * (HUB_ROLE_BAL[c.role] || 1) * (HUB_CHAR_BAL[name] || 1);
   const w = HUB_ROLE_W[c.role];
   return { atk:Math.round(total * w.atk * (1 + bs.atk)), def:Math.round(total * w.def * (1 + bs.def)), hp:Math.round(total * w.hp * 4 * (1 + bs.hp)), spd:Math.round(total * w.spd * (1 + bs.spd)) };
 }
@@ -5947,17 +6422,31 @@ const PET_DECO = [
   { id:'house',     name:'슬라임 집',  icon:'🏠', cost:600 }
 ];
 const PET_THEMES = [
-  { id:'meadow',  name:'푸른 초원', icon:'🌿', cost:0 },
-  { id:'sunset',  name:'노을',      icon:'🌇', cost:300 },
-  { id:'night',   name:'별밤',      icon:'🌙', cost:500 },
-  { id:'blossom', name:'벚꽃',      icon:'💮', cost:700 }
+  { id:'meadow',  name:'여름 초원', icon:'🌿', cost:0 },
+  { id:'autumn',  name:'가을 단풍', icon:'🍁', cost:500 },
+  { id:'snow',    name:'겨울 눈',   icon:'❄️', cost:600 },
+  { id:'blossom', name:'봄 벚꽃',   icon:'💮', cost:700 }
 ];
+let petTimeMode = 'auto';
 let petBusy = false;
+// 전투에 데려갈 내 펫 (태어난 슬라임만)
+function petBattleSpec(){
+  if(!pet || !pet.hatched || !pet.genes) return null;
+  return { genes: pet.genes, stage: Math.max(1, Math.min(5, petStage())) };
+}
+// 친구가 보내온 펫 모습 검사 (이상한 값이 와도 안전하게)
+function petSanitize(raw){
+  if(!raw || !raw.g || typeof raw.g !== 'object') return null;
+  const g = raw.g, n = (v, lo, hi, d) => (typeof v === 'number' && isFinite(v)) ? Math.max(lo, Math.min(hi, v)) : d;
+  return { stage: Math.max(1, Math.min(5, Math.round(n(raw.s, 1, 5, 1)))), genes: {
+    hue: n(g.hue, 0, 360, 200), sat: n(g.sat, 0.3, 1, 0.7), lit: n(g.lit, 0.4, 0.9, 0.7), acc: n(g.acc, 0, 360, 300), cheek: n(g.cheek, 0, 360, 340),
+    ears: Math.round(n(g.ears, 0, 4, 0)), top: Math.round(n(g.top, 0, 4, 0)), pat: Math.round(n(g.pat, 0, 4, 0)), eye: Math.round(n(g.eye, 0, 1, 0)), belly: !!g.belly } };
+}
 function petRand(a){ return a[Math.floor(Math.random() * a.length)]; }
 function petMakeGenes(){
   const hue = petRand([8, 28, 50, 96, 160, 200, 252, 300, 338, 186, 18, 74]) + Math.floor(Math.random() * 14 - 7);
   return {
-    hue: (hue + 360) % 360, sat: +(0.58 + Math.random() * 0.2).toFixed(2), lit: +(0.76 + Math.random() * 0.08).toFixed(2),
+    hue: (hue + 360) % 360, sat: +(0.66 + Math.random() * 0.2).toFixed(2), lit: +(0.66 + Math.random() * 0.07).toFixed(2),
     acc: (hue + 110 + Math.floor(Math.random() * 90)) % 360, cheek: petRand([340, 350, 14, 24]),
     ears: Math.floor(Math.random() * 5), top: Math.floor(Math.random() * 5), pat: Math.floor(Math.random() * 5),
     eye: Math.random() < 0.5 ? 0 : 1, belly: Math.random() < 0.6
@@ -5977,7 +6466,7 @@ function petInit(){
   if(!Array.isArray(pet.deco.owned)) pet.deco.owned = [];
   if(!Array.isArray(pet.deco.on)) pet.deco.on = [];
   if(!Array.isArray(pet.deco.themes)) pet.deco.themes = ['meadow'];
-  if(!pet.deco.theme) pet.deco.theme = 'meadow';
+  if(!pet.deco.theme || !PET_THEMES.some(t => t.id === pet.deco.theme)) pet.deco.theme = 'meadow';
   if(pet.hatched && !pet.name) pet.name = petRand(PET_NAMES);
   if(typeof pet.warmth !== 'number') pet.warmth = 0;
 }
@@ -6026,6 +6515,7 @@ function petFeed(){
     pet.claimed = st; tickets += tk;
   }
   saveCharacter(); updateHubTickets();
+  if(st > oldStage) hubSync();
   return { stageUp: st > oldStage, st, tk, notes };
 }
 // 알이 깨어날 조건: 먹이 5번 + 온기 100%
@@ -6042,7 +6532,7 @@ function petHatch(){
     for(let i = (pet.claimed || 0) + 1; i <= st; i++) tk += PET_STAGES[i].reward;
     pet.claimed = Math.max(pet.claimed || 0, st); tickets += tk;
     pet.name = pet.name || petRand(PET_NAMES);
-    saveCharacter(); updateHubTickets(); playFanfare();
+    saveCharacter(); updateHubTickets(); playFanfare(); hubSync();
     hubToast(`🎉 나만의 슬라임이 태어났어요!${tk ? ' 티켓 +' + tk : ''}`);
     if(petViewer){ petViewer.setPet(petCfg()); setTimeout(() => { if(petViewer) petViewer.act('twirl2'); }, 800); }
     setTimeout(() => {                                   // 태어나는 모습을 충분히 보여준 뒤 화면을 새로 그려요
@@ -6237,7 +6727,7 @@ function petShopHTML(){
   return `<div class="ps-head"><b>🛍️ 꾸미기 상점</b><span>코인 <b id="petShopCoin">${petCoins().toLocaleString()}</b></span></div>
     <div class="hub-sub" style="margin:2px 0 6px;">사면 바로 놓여요. 다시 누르면 넣어둘 수 있어요</div>
     <div class="ps-grid">${items}</div>
-    <div class="hub-sub" style="margin:10px 0 6px;">분위기 바꾸기</div>
+    <div class="hub-sub" style="margin:10px 0 6px;">계절 바꾸기 (낮과 밤은 지금 시간에 맞춰 저절로 바뀌어요)</div>
     <div class="ps-grid">${themes}</div>`;
 }
 function petWireShop(box){
@@ -6280,6 +6770,7 @@ function renderPetView(celebrate){
     <div class="pet-head"><b>${egg ? '나의 슬라임 알' : escapeHtml(pet.name || '내 슬라임')}</b>${egg ? '' : ` <button type="button" class="pet-edit" id="petRename" aria-label="이름 바꾸기">✏️</button>`}
       <div class="hub-sub" style="margin:2px 0 0;">${PET_STAGES[st].name}${pet.streak > 1 ? ` · 🔥 ${pet.streak}일 연속` : ''} · 코인 <b id="petCoin">${petCoins().toLocaleString()}</b></div></div>
     <div class="pet-stage" id="petStage"><canvas id="petCanvas"></canvas>
+      <button type="button" class="pet-time" id="petTimeBtn">${({ auto:'🕒 자동', day:'☀️ 낮', sunset:'🌇 노을', night:'🌙 밤' })[petTimeMode]}</button>
       <div class="pet-bubble"><span id="petFace">😊</span> <span id="petMsg"></span></div>
       ${celebrate ? `<div class="dt-flash">${st <= 1 ? 'HATCH!' : 'LEVEL UP!'}</div>` : ''}
     </div>
@@ -6312,6 +6803,12 @@ function renderPetView(celebrate){
     if(open){ box.innerHTML = petShopHTML(); petWireShop(box); box.classList.remove('hidden'); box.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
     else box.classList.add('hidden');
   });
+  document.getElementById('petTimeBtn').addEventListener('click', () => {
+    const order = ['auto', 'day', 'sunset', 'night'];
+    petTimeMode = order[(order.indexOf(petTimeMode) + 1) % order.length];
+    document.getElementById('petTimeBtn').textContent = ({ auto:'🕒 자동', day:'☀️ 낮', sunset:'🌇 노을', night:'🌙 밤' })[petTimeMode];
+    if(petViewer) petViewer.setTimeMode(petTimeMode);
+  });
   petTick();
   petTimer = setInterval(petTick, 1000);
   ensureHubLib().then(lib => {
@@ -6322,6 +6819,7 @@ function renderPetView(celebrate){
       onFlash: () => { const s = document.getElementById('petStage'); if(s){ s.classList.add('pet-flash'); setTimeout(() => s.classList.remove('pet-flash'), 900); } }
     });
     petViewer.setPet(petCfg());
+    petViewer.setTimeMode(petTimeMode);
     petViewer.start();
     if(celebrate && st >= 1) setTimeout(() => { if(petViewer) petViewer.act('twirl2'); }, 300);
   }).catch(e => hubToast(e.message));
@@ -6420,6 +6918,7 @@ async function openDetail(name, opts){
     <div class="rv-star">${hubStarText(c.star)}</div>
     <div class="rv-name r${c.star}">${escapeHtml(c.name)}</div>
     <div class="hub-sub" style="margin:2px 0 0;">${c.role}형 · 승급 ${'✦'.repeat(lv)}${'✧'.repeat(5 - lv)}${mainChar === name ? ' · 대표' : ''}</div>
+    ${(() => { const t = lib.TRAIT_INFO[lib.CHAR_TRAIT[name]]; return t ? `<div class="dt-trait"><b>${t.icon} 고유 특성 · ${t.name} <span style="opacity:.6;font-weight:600;">(${t.kind}형)</span></b><span>${t.desc}</span></div>` : ''; })()}
     <div class="dt-lv"><span class="dt-lv-badge${opts.flash ? ' pop' : ''}">Lv.${L}</span>
       <div class="dt-lv-meter"><div class="dt-lv-bar"><i style="width:${Math.round(L / cap * 100)}%"></i></div>
       <span class="dt-lv-sub">최대 Lv.${cap}${L >= cap ? ' · 승급 ✦를 올리면 더 늘어나요' : ''}</span></div></div>
@@ -6724,6 +7223,7 @@ function btStartVs(uid){
   const m = (latestMembers || []).find(x => x.uid === uid);
   if(!m || !m.hub || !HUB_BY_NAME[m.hub.name]){ hubToast('상대의 캐릭터를 찾지 못했어요'); return; }
   btOpp = { uid, nick: btMemberName(m), name: m.hub.name, lv: Math.max(1, Math.min(5, m.hub.lv || 1)), lvl: Math.max(1, Math.min(30, m.hub.lvl || 1)), kb: Math.max(0, Math.min(0.5, m.hub.kb || 0)),
+    pet: petSanitize(m.hub.pet),
     bs: m.hub.bs ? { atk: Math.max(0, Math.min(0.9, m.hub.bs.a || 0)), def: Math.max(0, Math.min(0.9, m.hub.bs.d || 0)), hp: Math.max(0, Math.min(0.9, m.hub.bs.h || 0)), spd: Math.max(0, Math.min(0.9, m.hub.bs.s || 0)) } : null };
   btStart();
 }
@@ -6739,15 +7239,17 @@ async function btStart(){
   document.getElementById('btResult').classList.add('hidden');
   document.getElementById('btPops').innerHTML = '';
   const sL = charStatsOf(me), sR = charStatsOf(btOpp.name, btOpp.lv, { lvl: btOpp.lvl, kb: btOpp.kb, bs: btOpp.bs || undefined });
-  document.getElementById('btNameL').textContent = `나 · ${me}`;
-  document.getElementById('btNameR').textContent = `${btOpp.nick} · ${btOpp.name}`;
+  const trOf = (n) => { const t = lib.TRAIT_INFO[lib.CHAR_TRAIT[n]]; return t ? ` · ${t.icon}${t.name}` : ''; };
+  document.getElementById('btNameL').textContent = `나 · ${me}${trOf(me)}`;
+  document.getElementById('btNameR').textContent = `${btOpp.nick} · ${btOpp.name}${trOf(btOpp.name)}`;
   const names = lib.VARIANTS.map(v => v.name);
   const hpEls = { 0:{ bar:document.querySelector('#btL .bt-bar i'), txt:document.querySelector('#btL .bt-hp') }, 1:{ bar:document.querySelector('#btR .bt-bar i'), txt:document.querySelector('#btR .bt-hp') } };
   const banner = document.getElementById('btBanner');
   btCtl = lib.makeBattle(document.getElementById('btCanvas'), {
     left: names.indexOf(me), right: names.indexOf(btOpp.name),
     leftStats: { name:me, atk:sL.atk, def:sL.def, hp:sL.hp, spd:sL.spd },
-    rightStats: { name:btOpp.name, atk:sR.atk, def:sR.def, hp:sR.hp, spd:sR.spd }
+    rightStats: { name:btOpp.name, atk:sR.atk, def:sR.def, hp:sR.hp, spd:sR.spd },
+    leftPet: petBattleSpec(), rightPet: btOpp.pet || null
   }, {
     onHp(e){ const h = hpEls[e.side]; h.bar.style.width = Math.max(0, e.hp / e.max * 100) + '%'; h.txt.textContent = `${e.hp} / ${e.max}`; },
     onHit(e){
@@ -6756,6 +7258,13 @@ async function btStart(){
       p.textContent = (e.crit ? '치명타 ' : '') + '-' + e.dmg;
       p.style.left = (e.x * 100) + '%'; p.style.top = (e.y * 100) + '%';
       document.getElementById('btPops').appendChild(p); setTimeout(() => p.remove(), 1000);
+    },
+    onAssist(e){
+      const p = document.createElement('div');
+      p.className = 'dmg-pop2 assist ' + e.kind;
+      p.textContent = e.text;
+      p.style.left = (e.x * 100) + '%'; p.style.top = (e.y * 100) + '%';
+      document.getElementById('btPops').appendChild(p); setTimeout(() => p.remove(), 1400);
     },
     onBanner(text){ banner.textContent = text; banner.classList.remove('show'); void banner.offsetWidth; banner.classList.add('show'); },
     onSound(k){
