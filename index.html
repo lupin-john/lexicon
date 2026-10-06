@@ -588,6 +588,7 @@
   .dmg-pop2.assist.heal{color:#ff9ad0;} .dmg-pop2.assist.shield{color:#7fe0ff;} .dmg-pop2.assist.power{color:#ffb040;}
   .pet-wrap{padding:4px 14px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;}
   .pet-head{text-align:center;} .pet-head b{font-size:22px;letter-spacing:1px;}
+  .pet-stage::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:18px;background:radial-gradient(ellipse at 50% 46%,rgba(0,0,0,0) 58%,rgba(10,12,30,.38) 100%);z-index:2;}
   .pet-time{position:absolute;right:8px;top:8px;z-index:4;border:none;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800;background:#000a;color:#fff;cursor:pointer;}
   .pet-stage{position:relative;width:100%;max-width:640px;height:min(48vh,430px);border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
   .pet-stage canvas{width:100%;height:100%;display:block;touch-action:none;}
@@ -3860,88 +3861,6 @@
   // =====================================================================
   //  슬라임 키우기: 사람마다 다른 모습으로 알에서 태어나는 말랑한 슬라임
   // =====================================================================
-  var PET_PALETTE = [0xffb3a7, 0xffd08a, 0xfff3a0, 0xbfe9a6, 0x9fe3d0, 0x9fd4ff, 0xc3b5ff, 0xf3b0ee, 0xffa6c4, 0xb7e3ff, 0xffc9b0, 0xd6f0a0];
-  var PET_DECO_BUILD = {
-    flowers: function(g, A){
-      [[-0.5, 0.2], [0.2, -0.3], [0.6, 0.4], [-0.1, 0.6], [0.5, -0.6]].forEach(function(p, i){
-        var f = new T.Group(); f.position.set(p[0], 0, p[1]);
-        var st = new T.Mesh(new T.CylinderGeometry(0.02, 0.025, 0.4, 6), new T.MeshStandardMaterial({ color:0x58a64e })); st.position.y = 0.2; f.add(st);
-        var col = [0xff8fb8, 0xffd24a, 0xffffff, 0xc3a6ff, 0xff9a7a][i % 5];
-        for(var k = 0; k < 5; k++){ var a = k / 5 * Math.PI * 2; var pt = new T.Mesh(new T.SphereGeometry(0.075, 10, 8), new T.MeshStandardMaterial({ color:col, roughness:0.5 })); pt.position.set(Math.cos(a) * 0.09, 0.42, Math.sin(a) * 0.09); pt.scale.set(1, 0.6, 1); f.add(pt); }
-        var c = new T.Mesh(new T.SphereGeometry(0.06, 10, 8), new T.MeshStandardMaterial({ color:0xffe066 })); c.position.y = 0.43; f.add(c);
-        g.add(f);
-        A.push(function(t){ f.rotation.z = Math.sin(t * 1.8 + i) * 0.1; });
-      });
-    },
-    tree: function(g){
-      var tr = new T.Mesh(new T.CylinderGeometry(0.13, 0.19, 0.9, 10), new T.MeshStandardMaterial({ color:0x9a6a46, roughness:0.9 })); tr.position.y = 0.45; g.add(tr);
-      [[0, 1.3, 0, 0.65], [-0.35, 1.0, 0.1, 0.45], [0.38, 1.05, -0.1, 0.45], [0.05, 1.7, 0.1, 0.45]].forEach(function(p, i){
-        var b = new T.Mesh(new T.SphereGeometry(p[3], 18, 14), new T.MeshStandardMaterial({ color:[0x6ec96a, 0x7ad674, 0x62bd5e, 0x86e07c][i], roughness:0.7 })); b.position.set(p[0], p[1], p[2]); g.add(b);
-      });
-      var ap = new T.Mesh(new T.SphereGeometry(0.09, 10, 8), new T.MeshStandardMaterial({ color:0xff5a5a })); ap.position.set(0.3, 1.2, 0.55); g.add(ap);
-    },
-    house: function(g, A){
-      var wall = new T.Mesh(new T.SphereGeometry(0.75, 20, 16), new T.MeshStandardMaterial({ color:0xfff1d6, roughness:0.8 })); wall.scale.set(1, 0.85, 1); wall.position.y = 0.6; g.add(wall);
-      var roof = new T.Mesh(new T.ConeGeometry(0.95, 0.8, 20), new T.MeshStandardMaterial({ color:0xff8f8a, roughness:0.6 })); roof.position.y = 1.5; g.add(roof);
-      var door = new T.Mesh(new T.SphereGeometry(0.2, 14, 10), new T.MeshStandardMaterial({ color:0x9a6a46 })); door.scale.set(1, 1.4, 0.4); door.position.set(0, 0.32, 0.72); g.add(door);
-      [-0.38, 0.38].forEach(function(x){ var w = new T.Mesh(new T.SphereGeometry(0.13, 12, 10), new T.MeshStandardMaterial({ color:0xfff0a0, emissive:0xffd86a, emissiveIntensity:0.6 })); w.scale.set(1, 1, 0.3); w.position.set(x, 0.75, 0.66); g.add(w); A.push(function(t, n){ w.material.emissiveIntensity = 0.25 + (n || 0) * 1.5; }); });
-      var ch = new T.Mesh(new T.CylinderGeometry(0.12, 0.14, 0.4, 10), new T.MeshStandardMaterial({ color:0xd9b49a })); ch.position.set(0.45, 1.55, -0.1); g.add(ch);
-    },
-    cushion: function(g){
-      var c = new T.Mesh(new T.SphereGeometry(0.6, 20, 14), new T.MeshStandardMaterial({ color:0xffb3d1, roughness:0.7 })); c.scale.set(1, 0.38, 1); c.position.y = 0.22; g.add(c);
-      var b = new T.Mesh(new T.SphereGeometry(0.1, 10, 8), new T.MeshStandardMaterial({ color:0xffe08a })); b.position.y = 0.45; g.add(b);
-    },
-    ball: function(g, A){
-      var b = new T.Group(); g.add(b);
-      var m = new T.Mesh(new T.SphereGeometry(0.32, 20, 16), new T.MeshStandardMaterial({ color:0xffffff, roughness:0.4 })); b.add(m);
-      [0xff6f8f, 0x6fb7ff, 0xffd24a].forEach(function(c, i){ var s = new T.Mesh(new T.SphereGeometry(0.325, 20, 16, i * 2.1, 1.0), new T.MeshStandardMaterial({ color:c, roughness:0.4 })); b.add(s); });
-      A.push(function(t){ var h = Math.abs(Math.sin(t * 2.4)); b.position.y = 0.32 + h * 0.5; b.rotation.y = t * 1.5; b.scale.set(1 + (1 - h) * 0.12, 1 - (1 - h) * 0.18, 1 + (1 - h) * 0.12); });
-    },
-    balloon: function(g, A){
-      var gp = new T.Group(); g.add(gp);
-      [[0xff7a9a, -0.2, 0], [0x7ac8ff, 0.2, 0.1], [0xffd24a, 0, -0.15]].forEach(function(b, i){
-        var bl = new T.Mesh(new T.SphereGeometry(0.28, 18, 14), new T.MeshStandardMaterial({ color:b[0], roughness:0.25, metalness:0.1 })); bl.scale.set(1, 1.2, 1); bl.position.set(b[1], 1.9 + i * 0.12, b[2]); gp.add(bl);
-        var ln = new T.Mesh(new T.CylinderGeometry(0.008, 0.008, 1.7, 4), new T.MeshBasicMaterial({ color:0xffffff })); ln.position.set(b[1] * 0.5, 0.95 + i * 0.05, b[2] * 0.5); gp.add(ln);
-      });
-      A.push(function(t){ gp.rotation.z = Math.sin(t * 1.3) * 0.07; gp.rotation.x = Math.cos(t * 1.1) * 0.05; });
-    },
-    rainbow: function(g){
-      [0xff7a7a, 0xffb36a, 0xffe36a, 0x8ae36a, 0x6ac8ff, 0xa88aff].forEach(function(c, i){
-        var r = new T.Mesh(new T.TorusGeometry(3.0 - i * 0.2, 0.11, 8, 48, Math.PI), new T.MeshBasicMaterial({ color:c })); r.position.y = 0.1; g.add(r);
-      });
-    },
-    mushrooms: function(g){
-      [[0, 0, 1, 0xff6f6f], [0.55, 0.2, 0.65, 0xffb36a], [-0.45, 0.3, 0.7, 0xc89aff]].forEach(function(p){
-        var s = new T.Mesh(new T.CylinderGeometry(0.1 * p[2], 0.13 * p[2], 0.34 * p[2], 10), new T.MeshStandardMaterial({ color:0xfff3df })); s.position.set(p[0], 0.17 * p[2], p[1]); g.add(s);
-        var c = new T.Mesh(new T.SphereGeometry(0.3 * p[2], 16, 12, 0, Math.PI * 2, 0, Math.PI / 2), new T.MeshStandardMaterial({ color:p[3], roughness:0.5 })); c.position.set(p[0], 0.33 * p[2], p[1]); g.add(c);
-        for(var k = 0; k < 4; k++){ var d = new T.Mesh(new T.SphereGeometry(0.04 * p[2], 8, 6), new T.MeshBasicMaterial({ color:0xffffff })); var a = k * 1.6; d.position.set(p[0] + Math.cos(a) * 0.17 * p[2], 0.33 * p[2] + 0.17 * p[2], p[1] + Math.sin(a) * 0.17 * p[2]); g.add(d); }
-      });
-    },
-    fence: function(g){
-      for(var i = -5; i <= 5; i++){
-        var p = new T.Mesh(new T.BoxGeometry(0.18, 0.7, 0.1), new T.MeshStandardMaterial({ color:0xfff3e0, roughness:0.8 })); p.position.set(i * 0.45, 0.35, 0); g.add(p);
-        var t = new T.Mesh(new T.ConeGeometry(0.1, 0.14, 4), new T.MeshStandardMaterial({ color:0xfff3e0 })); t.position.set(i * 0.45, 0.77, 0); t.rotation.y = Math.PI / 4; g.add(t);
-      }
-      [0.25, 0.5].forEach(function(y){ var r = new T.Mesh(new T.BoxGeometry(5, 0.08, 0.08), new T.MeshStandardMaterial({ color:0xf0dcc0 })); r.position.y = y; g.add(r); });
-    },
-    lantern: function(g, A){
-      var po = new T.Mesh(new T.CylinderGeometry(0.05, 0.07, 1.5, 8), new T.MeshStandardMaterial({ color:0x7a6a8a })); po.position.y = 0.75; g.add(po);
-      var l = new T.Mesh(new T.SphereGeometry(0.2, 14, 12), new T.MeshStandardMaterial({ color:0xfff0a0, emissive:0xffd060, emissiveIntensity:1.0 })); l.position.y = 1.6; g.add(l);
-      A.push(function(t, n){ l.material.emissiveIntensity = 0.4 + (n || 0) * 1.4 + Math.sin(t * 3) * 0.12; });
-    },
-    pond: function(g, A){
-      var w = new T.Mesh(new T.CylinderGeometry(0.85, 0.85, 0.08, 32), new T.MeshStandardMaterial({ color:0x7fd0ff, roughness:0.15, metalness:0.2 })); w.position.y = 0.02; g.add(w);
-      var rm = new T.Mesh(new T.TorusGeometry(0.85, 0.09, 8, 32), new T.MeshStandardMaterial({ color:0xd9d2c4, roughness:0.9 })); rm.rotation.x = Math.PI / 2; rm.position.y = 0.06; g.add(rm);
-      var lily = new T.Mesh(new T.CylinderGeometry(0.2, 0.2, 0.03, 16), new T.MeshStandardMaterial({ color:0x6ed06a })); lily.position.set(0.2, 0.08, 0.1); g.add(lily);
-      var lf = new T.Mesh(new T.SphereGeometry(0.07, 10, 8), new T.MeshStandardMaterial({ color:0xffa6c8 })); lf.position.set(0.2, 0.14, 0.1); g.add(lf);
-      A.push(function(t){ lily.position.y = 0.08 + Math.sin(t * 1.6) * 0.01; });
-    }
-  };
-  var PET_DECO_POS = {
-    flowers:[-2.5, 1.4], tree:[-3.2, -0.9], house:[2.9, -1.5], cushion:[1.5, 1.4], ball:[-1.4, 2.3], balloon:[3.3, 0.9],
-    rainbow:[0, -3.7], mushrooms:[-1.8, -2.5], fence:[0, -3.25], lantern:[-3.4, 0.9], pond:[2.5, 2.2]
-  };
-
   // ==TRAITS_BEGIN==
   // =====================================================================
   //  고유 특성: 캐릭터마다 하나씩, 이름에 어울리는 능력이 있어요 (너무 세지 않게 비슷한 크기로 맞췄어요)
@@ -4067,14 +3986,17 @@
     geo.computeVertexNormals();
     return (PET_BLOB_GEO = geo);
   }
-  function makePetBody(gn){
+  function makePetBody(gn, opts){
+    var hq = !!(opts && opts.hq), bgeo = (opts && opts.geo) || petBlob();
     var g = new T.Group();
     var sat = Math.max(0.68, gn.sat), lit = Math.min(0.72, gn.lit);
     var base = petHsl(gn.hue / 360, sat, lit), belly = petHsl(gn.hue / 360, sat * 0.7, Math.min(0.92, lit + 0.14)), acc = petHsl(gn.acc / 360, 0.75, 0.7), dark = petHsl(gn.hue / 360, Math.min(1, sat * 1.05), lit - 0.16);
-    var bodyMat = new T.MeshStandardMaterial({ color:base, roughness:0.42, emissive:base, emissiveIntensity:0.22 });
+    var bodyMat = hq ? new T.MeshPhysicalMaterial({ color:base, roughness:0.3, clearcoat:1, clearcoatRoughness:0.2, emissive:base, emissiveIntensity:0.15 }) : new T.MeshStandardMaterial({ color:base, roughness:0.42, emissive:base, emissiveIntensity:0.22 });
+    if(hq && opts.env){ bodyMat.envMap = opts.env; bodyMat.envMapIntensity = 0.55; }
     var bodyG = new T.Group(); bodyG.position.y = 0.62; g.add(bodyG);
-    var body = new T.Mesh(petBlob(), bodyMat); bodyG.add(body);
-    var bout = new T.Mesh(petBlob(), new T.MeshBasicMaterial({ color:petHsl(gn.hue / 360, Math.min(1, sat), 0.34), side:T.BackSide })); bout.scale.set(1.05, 1.05, 1.05); body.add(bout);
+    var body = new T.Mesh(bgeo, bodyMat); bodyG.add(body);
+    if(hq){ var jel = new T.Mesh(bgeo, new T.MeshPhysicalMaterial({ color:0xffffff, roughness:0.08, clearcoat:1, clearcoatRoughness:0.05, transparent:true, opacity:0.14, depthWrite:false })); jel.scale.set(1.025, 1.025, 1.025); body.add(jel); }
+    var bout = new T.Mesh(bgeo, new T.MeshBasicMaterial({ color:petHsl(gn.hue / 360, Math.min(1, sat), 0.34), side:T.BackSide })); bout.scale.set(1.05, 1.05, 1.05); body.add(bout);
     var bl = new T.Mesh(new T.SphereGeometry(0.62, 20, 16), petMat(belly, 0.5, { emissive:belly, emissiveIntensity:0.1 })); bl.scale.set(1, 0.85, 0.5); bl.position.set(0, -0.2, 0.62); if(gn.belly) bodyG.add(bl);
     var hl = new T.Mesh(new T.SphereGeometry(0.16, 12, 10), new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.75 })); hl.scale.set(1.5, 0.8, 0.5); hl.position.set(-0.45, 0.62, 0.62); hl.rotation.z = 0.7; bodyG.add(hl);
     // 얼굴
@@ -4136,32 +4058,284 @@
   }
 
 
+  // =====================================================================
+  //  슬라임 키우기 3판: 진짜 같은 풍경, 그림자, 말랑한 몸, 훨씬 예쁜 꾸미기 물건
+  // =====================================================================
+  var PM = {}, PG = {};
+  function pmat(c, rough, o){
+    var k = c + '|' + (rough == null ? 0.6 : rough) + '|' + (o ? JSON.stringify(o) : '');
+    return PM[k] || (PM[k] = new T.MeshStandardMaterial(Object.assign({ color:c, roughness:rough == null ? 0.6 : rough }, o || {})));
+  }
+  function gS(r, w, h){ var k = 's' + r + (w || 18) + (h || 14); return PG[k] || (PG[k] = new T.SphereGeometry(r, w || 18, h || 14)); }
+  function gC(rt, rb, h, seg){ var k = 'c' + rt + '_' + rb + '_' + h + '_' + (seg || 12); return PG[k] || (PG[k] = new T.CylinderGeometry(rt, rb, h, seg || 12)); }
+  function gB(w, h, d){ var k = 'b' + w + '_' + h + '_' + d; return PG[k] || (PG[k] = new T.BoxGeometry(w, h, d)); }
+  function gK(r, h, seg){ var k = 'k' + r + '_' + h + '_' + (seg || 12); return PG[k] || (PG[k] = new T.ConeGeometry(r, h, seg || 12)); }
+  function gT(R, r, seg, arc){ var k = 't' + R + '_' + r + '_' + (seg || 32) + '_' + (arc || 0); return PG[k] || (PG[k] = new T.TorusGeometry(R, r, 8, seg || 32, arc || Math.PI * 2)); }
+  function mesh(g, geo, mt, x, y, z, sx, sy, sz, rx, ry, rz){
+    var m = new T.Mesh(geo, mt); m.position.set(x || 0, y || 0, z || 0);
+    if(sx !== undefined) m.scale.set(sx, sy === undefined ? sx : sy, sz === undefined ? sx : sz);
+    if(rx || ry || rz) m.rotation.set(rx || 0, ry || 0, rz || 0);
+    m.castShadow = true; m.receiveShadow = true; g.add(m); return m;
+  }
+  function glowTex(){
+    if(glowTex.t) return glowTex.t;
+    var cv = document.createElement('canvas'); cv.width = 64; cv.height = 64; var c = cv.getContext('2d');
+    var g = c.createRadialGradient(32, 32, 1, 32, 32, 31); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.35)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g; c.fillRect(0, 0, 64, 64); return (glowTex.t = new T.CanvasTexture(cv));
+  }
+  function glowSprite(color, size, op){
+    var sp = new T.Sprite(new T.SpriteMaterial({ map:glowTex(), color:color, transparent:true, opacity:op, blending:T.AdditiveBlending, depthWrite:false }));
+    sp.scale.set(size, size, 1); return sp;
+  }
+  function blobShadow(g, r, op){
+    var m = new T.Mesh(new T.CircleGeometry(r, 24), new T.MeshBasicMaterial({ color:0x10200c, transparent:true, opacity:op == null ? 0.28 : op, depthWrite:false }));
+    m.rotation.x = -Math.PI / 2; m.position.y = 0.02; g.add(m); return m;
+  }
+
+  function swayA(A, o, k){ A.push(function(t){ o.rotation.z = Math.sin(t * 1.6 + k) * 0.09; o.rotation.x = Math.cos(t * 1.3 + k * 0.7) * 0.06; }); }
+  var PET_DECO_BUILD = {
+    // ---- 꽃밭: 돌 테두리 + 세 가지 꽃 + 꿀벌 ----
+    flowers: function(g, A){
+      blobShadow(g, 1.35, 0.18);
+      var soil = mesh(g, gC(1.12, 1.18, 0.12, 36), pmat(0x6a4a30, 1), 0, 0.05, 0); soil.castShadow = false;
+      for(var i = 0; i < 16; i++){ var a = i / 16 * Math.PI * 2, r = 1.18 + (i % 2) * 0.03; mesh(g, gS(0.17 + (i % 3) * 0.03, 10, 8), pmat(i % 2 ? 0xb5b0a6 : 0xa39e94, 0.95), Math.cos(a) * r, 0.1, Math.sin(a) * r, 1.2, 0.7, 1); }
+      var pcol = [0xff6f9a, 0xffd24a, 0xff8a5a, 0xc08aff, 0xffffff];
+      for(var k = 0; k < 18; k++){
+        var f = new T.Group(), ang = k * 2.4, rad = Math.sqrt((k + 0.5) / 18) * 0.95; f.position.set(Math.cos(ang) * rad, 0.08, Math.sin(ang) * rad);
+        var h = 0.35 + (k % 4) * 0.08, kind = k % 3;
+        mesh(f, gC(0.012, 0.016, h, 5), pmat(0x4f9a46, 0.8), 0, h / 2, 0).castShadow = false;
+        mesh(f, gS(0.06, 8, 6), pmat(0x5fb056, 0.8), 0.05, h * 0.35, 0, 1.6, 0.3, 0.6, 0, 0, 0.5).castShadow = false;
+        if(kind === 0){ [0, 1, 2].forEach(function(q){ var pa = q * 2.09; mesh(f, gS(0.075, 8, 6), pmat(pcol[k % 5], 0.45), Math.cos(pa) * 0.04, h + 0.04, Math.sin(pa) * 0.04, 0.7, 1.35, 0.7); }); }
+        else if(kind === 1){ for(var q = 0; q < 8; q++){ var pa2 = q / 8 * Math.PI * 2; mesh(f, gS(0.05, 8, 6), pmat(0xffffff, 0.5), Math.cos(pa2) * 0.075, h + 0.02, Math.sin(pa2) * 0.075, 1.3, 0.4, 0.6, 0, -pa2, 0); } mesh(f, gS(0.05, 8, 6), pmat(0xffd24a, 0.5), 0, h + 0.03, 0); }
+        else{ for(var q2 = 0; q2 < 4; q2++) mesh(f, gS(0.04, 8, 6), pmat(0xa77aff, 0.5), 0, h - q2 * 0.06 + 0.04, 0, 1, 1.3, 1); }
+        g.add(f);
+        swayA(A, f, k);
+      }
+      var bees = [];
+      for(var b = 0; b < 2; b++){
+        var bg = new T.Group(); mesh(bg, gS(0.05, 8, 6), pmat(0xffd24a, 0.5), 0, 0, 0, 1.3, 0.9, 0.9).castShadow = false; mesh(bg, gS(0.052, 8, 6), pmat(0x2a2a2a, 0.5), -0.03, 0, 0, 0.4, 0.95, 0.95).castShadow = false;
+        [-1, 1].forEach(function(s){ var w = mesh(bg, gS(0.045, 6, 5), pmat(0xffffff, 0.3, { transparent:true, opacity:0.7 }), 0, 0.04, s * 0.04, 1, 0.2, 1.2); w.userData.s = s; w.castShadow = false; });
+        g.add(bg); bees.push(bg);
+      }
+      A.push(function(t, n){ bees.forEach(function(bg, i){ bg.visible = n < 0.4; var u = t * 0.9 + i * 3; bg.position.set(Math.sin(u) * 1.0, 0.7 + Math.sin(u * 2.3) * 0.15, Math.sin(u * 2) * 0.8); bg.rotation.y = -u; bg.children.forEach(function(w){ if(w.userData.s) w.rotation.x = w.userData.s * Math.sin(t * 60) * 0.7; }); }); });
+    },
+    // ---- 버섯 마을: 버섯 집 세 채와 반짝이는 등 ----
+    mushrooms: function(g, A){
+      blobShadow(g, 1.6, 0.2);
+      var homes = [[0, 0, 1.0, 0xe85a5a], [0.95, 0.25, 0.7, 0xf0a04a], [-0.85, 0.35, 0.78, 0xb48aff]], lights = [];
+      homes.forEach(function(h, hi){
+        var s = h[2], hg = new T.Group(); hg.position.set(h[0], 0, h[1]); hg.rotation.y = hi * 0.8;
+        mesh(hg, gC(0.2 * s, 0.27 * s, 0.7 * s, 16), pmat(0xfff1da, 0.7), 0, 0.35 * s, 0);
+        mesh(hg, gS(0.12 * s, 12, 10), pmat(0x8a5a3a, 0.7), 0, 0.14 * s, 0.24 * s, 0.9, 1.5, 0.35);
+        var win = mesh(hg, gS(0.075 * s, 10, 8), pmat(0xfff0a0, 0.4, { emissive:0xffc860, emissiveIntensity:0.25 }), 0.0, 0.5 * s, 0.2 * s, 1, 1, 0.4);
+        var cap = mesh(hg, gS(0.5 * s, 22, 14), pmat(h[3], 0.45), 0, 0.72 * s, 0, 1, 0.62, 1); cap.geometry = cap.geometry;
+        for(var d = 0; d < 7; d++){ var da = d * 0.95 + hi, dr = (0.23 + (d % 3) * 0.08) * s; mesh(hg, gS(0.055 * s, 8, 6), pmat(0xffffff, 0.5), Math.cos(da) * dr * 1.4, 0.72 * s + 0.26 * s * (1 - dr / (0.5 * s)) + 0.03 * s, Math.sin(da) * dr * 1.4, 1, 0.5, 1).castShadow = false; }
+        mesh(hg, gS(0.5 * s, 22, 6), pmat(0xfff6e8, 0.6), 0, 0.64 * s, 0, 0.95, 0.08, 0.95).castShadow = false;
+        g.add(hg); lights.push(win);
+      });
+      for(var m = 0; m < 6; m++){ var ma = m * 1.1, mr = 1.2 + (m % 3) * 0.2; var ms = 0.12 + (m % 3) * 0.04;
+        mesh(g, gC(ms * 0.3, ms * 0.4, ms * 1.4, 8), pmat(0xfff6e8, 0.7), Math.cos(ma) * mr, ms * 0.7, Math.sin(ma) * mr);
+        mesh(g, gS(ms * 1.2, 12, 8), pmat(m % 2 ? 0xff7a6a : 0xffa04a, 0.5), Math.cos(ma) * mr, ms * 1.4, Math.sin(ma) * mr, 1, 0.6, 1); }
+      var bulbs = [];
+      for(var li = 0; li < 9; li++){ var lm = mesh(g, gS(0.045, 8, 6), pmat(0xffffff, 0.3, { emissive:[0xff9ac0, 0xfff0a0, 0x9ae0ff][li % 3], emissiveIntensity:0.6 }), -1.1 + li * 0.27, 1.2 + Math.sin(li * 0.9) * -0.18 + Math.abs(li - 4) * 0.04, 0.6); lm.castShadow = false; bulbs.push(lm); }
+      A.push(function(t, n){ lights.forEach(function(w, i){ w.material.emissiveIntensity = 0.25 + n * 1.3; }); bulbs.forEach(function(b, i){ b.material.emissiveIntensity = 0.35 + n * 1.0 + Math.sin(t * 3 + i) * 0.25; }); });
+    },
+    // ---- 통통 공: 줄무늬 비치볼 ----
+    ball: function(g, A){
+      var sh = blobShadow(g, 0.45, 0.3), b = new T.Group(); g.add(b); var cols = [0xff6f8f, 0xffffff, 0x6fb7ff, 0xffffff, 0xffd24a, 0xffffff];
+      for(var i = 0; i < 6; i++){ var seg = new T.Mesh(new T.SphereGeometry(0.34, 20, 16, i * Math.PI / 3, Math.PI / 3), pmat(cols[i], 0.25, { side:T.DoubleSide })); seg.castShadow = true; b.add(seg); }
+      mesh(b, gS(0.1, 10, 8), pmat(0xffd24a, 0.3), 0, 0.34, 0, 1, 0.4, 1); mesh(b, gS(0.1, 10, 8), pmat(0xff6f8f, 0.3), 0, -0.34, 0, 1, 0.4, 1);
+      A.push(function(t){ var h = Math.abs(Math.sin(t * 2.4)); b.position.y = 0.34 + h * 0.8; b.rotation.y = t * 1.6; b.rotation.z = Math.sin(t * 1.2) * 0.4; var sq = 1 - (1 - h) * (1 - h) * 0.22; b.scale.set(1 / Math.sqrt(sq), sq, 1 / Math.sqrt(sq)); sh.scale.setScalar(1 - h * 0.35); sh.material.opacity = 0.3 - h * 0.12; });
+    },
+    // ---- 폭신 방석: 단추 달린 벨벳 방석 + 작은 담요 ----
+    cushion: function(g){
+      blobShadow(g, 0.95, 0.22);
+      var vel = pmat(0xff9ec0, 0.95, { emissive:0x401020, emissiveIntensity:0.08 });
+      mesh(g, gS(0.7, 28, 18), vel, 0, 0.2, 0, 1, 0.34, 1);
+      mesh(g, gT(0.66, 0.045, 40), pmat(0xffd0e0, 0.8), 0, 0.2, 0, 1, 1, 1, Math.PI / 2, 0, 0);
+      for(var i = 0; i < 5; i++){ var a = i / 5 * Math.PI * 2; mesh(g, gS(0.07, 8, 6), pmat(0xe0749c, 0.9), Math.cos(a) * 0.3, 0.39, Math.sin(a) * 0.3, 1, 0.4, 1).castShadow = false; }
+      mesh(g, gS(0.085, 10, 8), pmat(0xffe08a, 0.3, { metalness:0.4 }), 0, 0.43, 0);
+      for(var t = 0; t < 4; t++){ var ta = t * Math.PI / 2 + Math.PI / 4; mesh(g, gS(0.045, 8, 6), pmat(0xffe08a, 0.5), Math.cos(ta) * 0.62, 0.16, Math.sin(ta) * 0.62); mesh(g, gK(0.04, 0.16, 6), pmat(0xffe08a, 0.5), Math.cos(ta) * 0.68, 0.08, Math.sin(ta) * 0.68, 1, 1, 1, 0, 0, 0); }
+      var bl = mesh(g, gB(0.8, 0.05, 0.55), pmat(0x9ad0ff, 0.9), 0.55, 0.06, 0.55, 1, 1, 1, 0, 0.5, 0); bl.castShadow = false;
+      [0.12, 0.26, 0.4].forEach(function(z){ mesh(g, gB(0.8, 0.052, 0.03), pmat(0xffffff, 0.9), 0.55 + Math.sin(0.5) * (z - 0.275), 0.065, 0.55 + Math.cos(0.5) * (z - 0.275) * 0, 1, 1, 1, 0, 0.5, 0).castShadow = false; });
+    },
+    // ---- 풍선: 반짝이는 풍선 5개와 선물 상자 ----
+    balloon: function(g, A){
+      blobShadow(g, 0.45, 0.22);
+      mesh(g, gB(0.4, 0.3, 0.4), pmat(0xfff0f6, 0.6), 0, 0.15, 0); mesh(g, gB(0.42, 0.06, 0.12), pmat(0xff6f8f, 0.5), 0, 0.17, 0); mesh(g, gB(0.12, 0.32, 0.42), pmat(0xff6f8f, 0.5), 0, 0.16, 0);
+      var gp = new T.Group(); gp.position.y = 0.3; g.add(gp); var cols = [0xff6f8f, 0x6fc4ff, 0xffd24a, 0xa58aff, 0x6fe0b0], pos = [[-0.3, 1.9, 0.05], [0.28, 2.1, -0.08], [0, 2.35, 0.1], [-0.12, 1.75, -0.2], [0.18, 1.85, 0.2]];
+      pos.forEach(function(p, i){
+        var bg = new T.Group(); bg.position.set(p[0], p[1], p[2]); gp.add(bg);
+        mesh(bg, gS(0.3, 22, 16), pmat(cols[i], 0.12, { metalness:0.15 }), 0, 0, 0, 1, 1.18, 1);
+        mesh(bg, gS(0.07, 8, 6), pmat(0xffffff, 0.2, { transparent:true, opacity:0.8 }), -0.1, 0.16, 0.2, 1.4, 0.8, 0.5).castShadow = false;
+        mesh(bg, gK(0.04, 0.07, 8), pmat(cols[i], 0.3), 0, -0.37, 0, 1, 1, 1, Math.PI, 0, 0);
+        var len = Math.max(0.2, p[1] - 0.35), ln = mesh(gp, gC(0.006, 0.006, len, 4), pmat(0xffffff, 0.5), p[0] * 0.5, len / 2 - 0.0, p[2] * 0.5); ln.rotation.z = Math.atan2(p[0], len) * -0.9; ln.rotation.x = Math.atan2(p[2], len) * 0.9; ln.position.y = len / 2; ln.castShadow = false;
+      });
+      A.push(function(t){ gp.rotation.z = Math.sin(t * 1.2) * 0.05; gp.rotation.x = Math.cos(t * 1.0) * 0.04; gp.children.forEach(function(c, i){ if(c.children && c.children.length > 1) c.position.y += Math.sin(t * 1.5 + i) * 0.0008; }); });
+    },
+    // ---- 사과나무: 그네와 빨간 사과 ----
+    tree: function(g, A){
+      blobShadow(g, 1.4, 0.3);
+      var bark = pmat(0x8d6a47, 1);
+      mesh(g, gC(0.17, 0.3, 1.2, 12), bark, 0, 0.6, 0);
+      [[0.4, 1.05, 0.25, 0.5], [-0.38, 1.15, -0.1, -0.55], [0.05, 1.25, -0.4, 0.2]].forEach(function(br){ mesh(g, gC(0.06, 0.09, 0.7, 8), bark, br[0], br[1], br[2], 1, 1, 1, br[2] * 0.6, 0, -br[3]); });
+      [[0, 2.15, 0, 0.95], [-0.8, 1.8, 0.25, 0.65], [0.85, 1.85, -0.1, 0.7], [0.15, 2.8, 0.1, 0.62], [-0.45, 2.45, -0.5, 0.58], [0.55, 2.45, 0.5, 0.58], [-0.1, 1.75, 0.8, 0.5], [0.3, 1.7, -0.75, 0.5]].forEach(function(b, i){
+        mesh(g, gS(b[3], 18, 14), pmat([0x5db35a, 0x6cc468, 0x4ea44f, 0x76cf70][i % 4], 0.85), b[0], b[1], b[2]);
+      });
+      [[0.5, 2.25, 0.8], [-0.9, 1.9, 0.5], [0.95, 1.7, 0.2], [-0.2, 2.8, 0.55], [0.3, 2.0, -0.85], [-0.6, 2.55, -0.65], [0.7, 2.6, 0.2]].forEach(function(p){
+        mesh(g, gS(0.09, 10, 8), pmat(0xe8423f, 0.25), p[0], p[1], p[2]); mesh(g, gC(0.006, 0.006, 0.06, 4), pmat(0x5a3a22, 0.8), p[0], p[1] + 0.1, p[2]).castShadow = false;
+      });
+      var sw = new T.Group(); sw.position.set(0.0, 1.55, 0.2); g.add(sw);
+      [-0.26, 0.26].forEach(function(x){ mesh(sw, gC(0.008, 0.008, 1.1, 4), pmat(0xd8c09a, 0.9), x, -0.55, 0).castShadow = false; });
+      mesh(sw, gB(0.7, 0.05, 0.22), pmat(0xc89a62, 0.8), 0, -1.12, 0);
+      A.push(function(t){ sw.rotation.z = Math.sin(t * 1.15) * 0.12; });
+      for(var a = 0; a < 3; a++) mesh(g, gS(0.08, 8, 6), pmat(0xe8423f, 0.3), 0.9 + a * 0.25, 0.07, 0.6 - a * 0.3).castShadow = false;
+    },
+    // ---- 하얀 울타리: 장미 덩굴과 작은 대문 ----
+    fence: function(g, A){
+      var wood = pmat(0xfff6e8, 0.75);
+      for(var i = -6; i <= 6; i++){
+        if(Math.abs(i) <= 1) continue;
+        var h = 0.72 + (Math.abs(i) % 2) * 0.05, x = i * 0.42, z = -Math.abs(i) * Math.abs(i) * 0.012;
+        mesh(g, gB(0.17, h, 0.07), wood, x, h / 2, z); mesh(g, gS(0.085, 10, 8), wood, x, h + 0.01, z, 1, 0.9, 0.5);
+      }
+      mesh(g, gB(5.4, 0.07, 0.07), wood, 0, 0.55, -0.08).rotation.y = 0; mesh(g, gB(5.4, 0.07, 0.07), wood, 0, 0.28, -0.08);
+      [-0.55, 0.55].forEach(function(x){ mesh(g, gB(0.14, 0.95, 0.14), pmat(0xf0e2cc, 0.8), x, 0.47, 0); mesh(g, gK(0.13, 0.18, 4), pmat(0xe85a5a, 0.6), x, 1.04, 0, 1, 1, 1, 0, Math.PI / 4, 0); });
+      var gate = new T.Group(); gate.position.set(-0.5, 0, 0); gate.rotation.y = -0.5; g.add(gate);
+      [0.1, 0.24, 0.38, 0.52, 0.66, 0.8].forEach(function(x){ mesh(gate, gB(0.1, 0.62 + Math.abs(x - 0.45) * -0.1, 0.05), wood, x, 0.34, 0); });
+      mesh(gate, gB(0.9, 0.05, 0.05), wood, 0.45, 0.2, 0); mesh(gate, gB(0.9, 0.05, 0.05), wood, 0.45, 0.5, 0);
+      A.push(function(t){ gate.rotation.y = -0.5 + Math.sin(t * 0.7) * 0.05; });
+      for(var v = 0; v < 22; v++){ var vx = -2.4 + v * 0.22 + (v % 2) * 0.03; if(Math.abs(vx) < 0.7) continue;
+        mesh(g, gS(0.07, 8, 6), pmat(0x4f9a46, 0.8), vx, 0.5 + Math.sin(v * 1.3) * 0.18, -0.1, 1.2, 0.8, 0.8).castShadow = false;
+        if(v % 3 === 0){ mesh(g, gS(0.075, 10, 8), pmat(v % 2 ? 0xff7aa8 : 0xff5a7a, 0.4), vx + 0.03, 0.55 + Math.sin(v * 1.3) * 0.18, -0.05).castShadow = false; mesh(g, gS(0.045, 8, 6), pmat(v % 2 ? 0xffa8c4 : 0xff8aa0, 0.4), vx + 0.03, 0.58 + Math.sin(v * 1.3) * 0.18, -0.03).castShadow = false; } }
+    },
+    // ---- 별빛 가로등: 따뜻한 불빛과 바닥에 번지는 빛 ----
+    lantern: function(g, A){
+      blobShadow(g, 0.55, 0.22);
+      var iron = pmat(0x3a3548, 0.45, { metalness:0.6 });
+      mesh(g, gC(0.2, 0.26, 0.12, 14), iron, 0, 0.06, 0); mesh(g, gC(0.14, 0.2, 0.14, 14), iron, 0, 0.19, 0);
+      mesh(g, gC(0.045, 0.06, 1.55, 10), iron, 0, 0.95, 0);
+      [0.5, 1.0].forEach(function(y){ mesh(g, gT(0.07, 0.018, 16), iron, 0, y, 0, 1, 1, 1, Math.PI / 2, 0, 0); });
+      mesh(g, gC(0.17, 0.1, 0.1, 12), iron, 0, 1.78, 0);
+      var glass = mesh(g, gS(0.19, 18, 14), pmat(0xfff2b0, 0.15, { emissive:0xffc860, emissiveIntensity:0.5, transparent:true, opacity:0.92 }), 0, 1.98, 0, 1, 1.15, 1); glass.castShadow = false;
+      var flame = mesh(g, gK(0.06, 0.16, 8), pmat(0xffd060, 0.2, { emissive:0xffa030, emissiveIntensity:1 }), 0, 1.97, 0); flame.castShadow = false;
+      for(var i = 0; i < 4; i++){ var a = i * Math.PI / 2 + Math.PI / 4; mesh(g, gC(0.012, 0.012, 0.42, 5), iron, Math.cos(a) * 0.16, 1.98, Math.sin(a) * 0.16).castShadow = false; }
+      mesh(g, gK(0.2, 0.16, 12), iron, 0, 2.28, 0); var star = mesh(g, new T.OctahedronGeometry(0.08, 0), pmat(0xffd24a, 0.25, { metalness:0.8, emissive:0xffb020, emissiveIntensity:0.4 }), 0, 2.46, 0);
+      var halo = glowSprite(0xffd88a, 1.6, 0.0); halo.position.set(0, 1.98, 0); g.add(halo);
+      var pool = new T.Mesh(new T.CircleGeometry(1.3, 28), new T.MeshBasicMaterial({ map:glowTex(), color:0xffd88a, transparent:true, opacity:0, blending:T.AdditiveBlending, depthWrite:false })); pool.rotation.x = -Math.PI / 2; pool.position.y = 0.03; g.add(pool);
+      A.push(function(t, n){ glass.material.emissiveIntensity = 0.3 + n * 1.2 + Math.sin(t * 3) * 0.1; flame.material.emissiveIntensity = 0.6 + n * 1.2; star.rotation.y = t * 1.2; halo.material.opacity = Math.min(0.85, n * 0.95) * (0.9 + Math.sin(t * 4) * 0.08); pool.material.opacity = Math.min(0.55, n * 0.6); });
+    },
+    // ---- 작은 연못: 잉어, 연꽃, 갈대, 잔물결 ----
+    pond: function(g, A){
+      var water = mesh(g, gC(1.05, 1.05, 0.08, 40), pmat(0x66c8ec, 0.1, { metalness:0.3, transparent:true, opacity:0.82 }), 0, 0.04, 0); water.castShadow = false;
+      mesh(g, gC(0.96, 0.96, 0.02, 36), pmat(0x2a7aa0, 0.8), 0, 0.012, 0).castShadow = false;
+      for(var i = 0; i < 18; i++){ var a = i / 18 * Math.PI * 2, r = 1.06 + (i % 3) * 0.04, s = 0.16 + (i % 4) * 0.035; mesh(g, gS(s, 10, 8), pmat(i % 3 === 0 ? 0x8fa690 : 0xb5b0a6, 0.95), Math.cos(a) * r, 0.1, Math.sin(a) * r, 1.15, 0.75, 1); }
+      var rip = [];
+      for(var q = 0; q < 3; q++){ var rg = mesh(g, gT(0.3, 0.012, 32), pmat(0xffffff, 0.3, { transparent:true, opacity:0.4 }), 0.1, 0.09, 0.05, 1, 1, 1, Math.PI / 2, 0, 0); rg.castShadow = false; rip.push(rg); }
+      [[0.25, -0.3], [-0.4, 0.25], [0.55, 0.4]].forEach(function(p, i){
+        mesh(g, gC(0.2, 0.2, 0.025, 20), pmat(0x5ec468, 0.6), p[0], 0.1, p[1]).castShadow = false;
+        if(i < 2){ for(var k = 0; k < 8; k++){ var pa = k / 8 * Math.PI * 2; mesh(g, gS(0.07, 8, 6), pmat(i ? 0xffffff : 0xffa8c8, 0.4), p[0] + Math.cos(pa) * 0.06, 0.16, p[1] + Math.sin(pa) * 0.06, 0.8, 1.5, 0.8, Math.sin(pa) * 0.5, 0, -Math.cos(pa) * 0.5).castShadow = false; } mesh(g, gS(0.04, 8, 6), pmat(0xffe066, 0.5), p[0], 0.15, p[1]).castShadow = false; }
+      });
+      for(var r2 = 0; r2 < 6; r2++){ var ra = r2 * 1.05 + 0.4, rr = 1.0; var rd = new T.Group(); rd.position.set(Math.cos(ra) * rr, 0, Math.sin(ra) * rr);
+        mesh(rd, gC(0.01, 0.014, 0.8 + (r2 % 3) * 0.12, 5), pmat(0x6aa850, 0.8), 0, 0.42, 0).castShadow = false; mesh(rd, gC(0.03, 0.03, 0.18, 8), pmat(0x7a4a2a, 0.9), 0, 0.86 + (r2 % 3) * 0.12, 0).castShadow = false;
+        g.add(rd); swayA(A, rd, r2); }
+      var koi = [];
+      for(var f = 0; f < 2; f++){ var fish = new T.Group(); mesh(fish, gS(0.11, 12, 10), pmat(f ? 0xffffff : 0xff8a3a, 0.4), 0, 0, 0, 1.9, 0.7, 0.8).castShadow = false; mesh(fish, gS(0.05, 8, 6), pmat(f ? 0xff6a3a : 0xffffff, 0.4), 0.05, 0.05, 0, 1.4, 0.5, 0.7).castShadow = false;
+        var tail = new T.Group(); tail.position.x = -0.2; fish.add(tail); mesh(tail, gK(0.07, 0.17, 6), pmat(f ? 0xffffff : 0xff8a3a, 0.4), -0.05, 0, 0, 1, 1, 0.35, 0, 0, Math.PI / 2).castShadow = false; fish.userData.tail = tail; fish.position.y = 0.045; g.add(fish); koi.push(fish); }
+      A.push(function(t){
+        koi.forEach(function(fi, i){ var u = t * (0.5 + i * 0.18) + i * 3; fi.position.x = Math.cos(u) * (0.55 + i * 0.12); fi.position.z = Math.sin(u) * (0.5 + i * 0.1); fi.rotation.y = -u - Math.PI / 2; fi.userData.tail.rotation.y = Math.sin(t * 9 + i) * 0.5; });
+        rip.forEach(function(rg, i){ var p = ((t * 0.35) + i / 3) % 1; rg.scale.setScalar(0.3 + p * 1.8); rg.material.opacity = 0.45 * (1 - p); });
+      });
+    },
+    // ---- 무지개: 부드럽게 빛나는 일곱 빛깔 ----
+    rainbow: function(g, A){
+      var cols = [0xff6a6a, 0xff9a5a, 0xffdc5a, 0x7ee06a, 0x5ac8ff, 0x6a7aff, 0xb06aff], bands = [];
+      cols.forEach(function(c, i){ var b = mesh(g, gT(3.15 - i * 0.17, 0.085, 64, Math.PI), new T.MeshBasicMaterial({ color:c, transparent:true, opacity:0.78 }), 0, 0.05, 0); b.castShadow = false; b.receiveShadow = false; bands.push(b); });
+      var glow = mesh(g, gT(2.6, 0.7, 48, Math.PI), new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.08, blending:T.AdditiveBlending, depthWrite:false }), 0, 0.05, 0); glow.castShadow = false;
+      [-1, 1].forEach(function(s){ [[0, 0.1, 0.5], [0.45, 0.14, 0.38], [-0.4, 0.12, 0.36], [0.1, 0.4, 0.34]].forEach(function(c){ mesh(g, gS(c[2], 14, 10), new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.9 }), s * 3.0 + c[0], c[1] + 0.1, 0.1).castShadow = false; }); });
+      var stars = [];
+      for(var i = 0; i < 10; i++){ var a = Math.random() * Math.PI, rr = 2.4 + Math.random() * 0.8; var st = glowSprite(0xffffff, 0.22, 0.8); st.position.set(Math.cos(a) * rr, Math.sin(a) * rr, 0.1); st.userData.ph = Math.random() * 6; g.add(st); stars.push(st); }
+      A.push(function(t, n){ bands.forEach(function(b, i){ b.material.opacity = (0.62 + Math.sin(t * 1.4 - i * 0.5) * 0.14) * (1 - n * 0.55); }); glow.material.opacity = 0.08 * (1 - n * 0.5); stars.forEach(function(s){ s.material.opacity = 0.5 + Math.sin(t * 3 + s.userData.ph) * 0.4; s.scale.setScalar(0.18 + Math.sin(t * 3 + s.userData.ph) * 0.07); }); });
+    },
+    // ---- 슬라임 집: 굴뚝, 창문 화분, 둥근 문, 밤에는 창이 환해져요 ----
+    house: function(g, A){
+      blobShadow(g, 1.7, 0.3);
+      var stone = pmat(0xb9b2a4, 0.95), wall = pmat(0xfff0d6, 0.85), wood = pmat(0x7a5232, 0.8), roofM = pmat(0xe0624a, 0.55), roof2 = pmat(0xc9503a, 0.55);
+      for(var i = 0; i < 16; i++){ var a = i / 16 * Math.PI * 2; mesh(g, gS(0.22, 10, 8), stone, Math.cos(a) * 0.93, 0.12, Math.sin(a) * 0.93, 1, 0.65, 1); }
+      mesh(g, gC(0.92, 0.98, 0.2, 24), stone, 0, 0.1, 0);
+      mesh(g, gS(0.95, 26, 18), wall, 0, 0.82, 0, 1, 0.82, 1);
+      for(var b = 0; b < 4; b++){ var ba = b * Math.PI / 2 + Math.PI / 4; mesh(g, gC(0.045, 0.045, 1.0, 6), wood, Math.cos(ba) * 0.82, 0.78, Math.sin(ba) * 0.82); }
+      mesh(g, gT(0.9, 0.04, 40), wood, 0, 0.62, 0, 1, 1, 1, Math.PI / 2, 0, 0);
+      var roof = mesh(g, gK(1.25, 1.05, 28), roofM, 0, 1.78, 0);
+      mesh(g, gT(1.15, 0.07, 36), roof2, 0, 1.38, 0, 1, 1, 1, Math.PI / 2, 0, 0); mesh(g, gT(0.92, 0.065, 36), roof2, 0, 1.68, 0, 1, 1, 1, Math.PI / 2, 0, 0); mesh(g, gT(0.62, 0.06, 36), roof2, 0, 2.0, 0, 1, 1, 1, Math.PI / 2, 0, 0);
+      for(var s = 0; s < 22; s++){ var sa = s / 22 * Math.PI * 2; mesh(g, gS(0.12, 8, 6), roof2, Math.cos(sa) * 1.2, 1.3, Math.sin(sa) * 1.2, 1, 0.55, 1); }
+      mesh(g, gS(0.1, 10, 8), pmat(0xffd24a, 0.3, { metalness:0.6 }), 0, 2.38, 0);
+      var ch = mesh(g, gC(0.15, 0.17, 0.62, 12), pmat(0xc9b9a4, 0.95), 0.52, 2.02, -0.28); mesh(g, gC(0.19, 0.19, 0.07, 12), stone, 0.52, 2.35, -0.28);
+      var smoke = [];
+      for(var p = 0; p < 4; p++){ var sm = new T.Mesh(gS(0.1, 8, 6), new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.5, depthWrite:false })); sm.userData.ph = p / 4; g.add(sm); smoke.push(sm); }
+      mesh(g, gS(0.27, 18, 14), pmat(0x8a5a3a, 0.7), 0, 0.5, 0.88, 0.85, 1.28, 0.35); mesh(g, gT(0.27, 0.025, 20), pmat(0x4a3220, 0.7), 0, 0.5, 0.9, 0.85, 1.28, 1); mesh(g, gS(0.035, 8, 6), pmat(0xffd24a, 0.3, { metalness:0.7 }), 0.1, 0.5, 0.95);
+      var wins = [];
+      [-1, 1].forEach(function(sx){
+        var wx = sx * 0.58, wz = 0.76;
+        mesh(g, gT(0.17, 0.035, 20), wood, wx, 0.95, wz, 1, 1, 1, 0, sx * 0.55, 0);
+        var wg = mesh(g, gS(0.15, 14, 10), pmat(0xfff0a0, 0.3, { emissive:0xffc860, emissiveIntensity:0.25 }), wx, 0.95, wz - 0.01, 1, 1, 0.35); wg.rotation.y = sx * 0.55; wins.push(wg);
+        mesh(g, gB(0.06, 0.34, 0.03), wood, wx, 0.95, wz + 0.02).rotation.y = sx * 0.55; mesh(g, gB(0.34, 0.06, 0.03), wood, wx, 0.95, wz + 0.02).rotation.y = sx * 0.55;
+        mesh(g, gB(0.4, 0.09, 0.14), pmat(0x6a8a4a, 0.8), wx + sx * 0.02, 0.68, wz + 0.1, 1, 1, 1, 0, sx * 0.55, 0);
+        [0xff7aa8, 0xffd24a, 0xff9a6a].forEach(function(c, k){ mesh(g, gS(0.05, 8, 6), pmat(c, 0.5), wx + sx * 0.02 + (k - 1) * 0.1 * Math.cos(sx * 0.55), 0.76, wz + 0.1 - (k - 1) * 0.1 * sx * Math.sin(0.55) * 0.5).castShadow = false; });
+        mesh(g, gC(0.015, 0.015, 0.1, 5), pmat(0x4a8a3a, 0.8), wx + sx * 0.3, 1.0, wz).castShadow = false;
+      });
+      mesh(g, gB(0.7, 0.05, 0.4), stone, 0, 0.04, 1.15, 1, 1, 1, 0, 0, 0); mesh(g, gB(0.5, 0.04, 0.3), stone, 0, 0.02, 1.4);
+      var lamp = mesh(g, gS(0.05, 8, 6), pmat(0xfff2b0, 0.2, { emissive:0xffc860, emissiveIntensity:0.5 }), 0.4, 1.0, 0.95); lamp.castShadow = false;
+      mesh(g, gC(0.01, 0.01, 0.1, 4), wood, 0.4, 1.08, 0.95).castShadow = false;
+      var wl = glowSprite(0xffd88a, 1.4, 0); wl.position.set(0, 0.9, 1.1); g.add(wl);
+      A.push(function(t, n){
+        wins.forEach(function(w){ w.material.emissiveIntensity = 0.2 + n * 1.5; }); lamp.material.emissiveIntensity = 0.3 + n * 1.2; wl.material.opacity = Math.min(0.5, n * 0.55);
+        smoke.forEach(function(sm){ var u = (t * 0.22 + sm.userData.ph) % 1; sm.position.set(0.52 + Math.sin(u * 5) * 0.12 * u, 2.45 + u * 1.2, -0.28); sm.scale.setScalar(0.5 + u * 1.7); sm.material.opacity = 0.5 * (1 - u); });
+      });
+    }
+  };
+  var PET_DECO_POS = {
+    flowers:[-2.55, 1.5], tree:[-3.3, -1.0], house:[3.0, -1.6], cushion:[1.6, 1.5], ball:[-1.3, 2.5], balloon:[3.5, 1.0],
+    rainbow:[0, -4.2], mushrooms:[-2.0, -2.6], fence:[0, -3.3], lantern:[-3.5, 1.0], pond:[2.6, 2.4]
+  };
+
   function makePet(canvas, hooks){
     hooks = hooks || {};
     var renderer = new T.WebGLRenderer({ canvas:canvas, antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    if(renderer.shadowMap){ renderer.shadowMap.enabled = true; if(T.PCFSoftShadowMap) renderer.shadowMap.type = T.PCFSoftShadowMap; }
     var scene = new T.Scene();
     var camera = new T.PerspectiveCamera(40, 1, 0.1, 400);
     camera.position.set(0, 2.5, 9.4); camera.lookAt(0, 1.5, 0);
     var hemi = new T.HemisphereLight(0xffffff, 0x8fa870, 0.62); scene.add(hemi);
-    var sun = new T.DirectionalLight(0xfff1d8, 0.8); sun.position.set(3, 7, 6); scene.add(sun);
-    var env = null;   // 반사 환경은 쓰지 않아요 (말랑한 몸이 안 보이는 문제를 막기 위해 단순한 재질을 써요)
+    var sun = new T.DirectionalLight(0xfff1d8, 0.9); sun.position.set(4, 8, 6); scene.add(sun);
+    if(sun.shadow){ sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); var sc = sun.shadow.camera; sc.left = -9; sc.right = 9; sc.top = 9; sc.bottom = -9; sc.near = 1; sc.far = 40; sun.shadow.bias = -0.0008; if(sun.target) scene.add(sun.target); }
+    var rimLight = new T.DirectionalLight(0xbcd4ff, 0.35); rimLight.position.set(-5, 4, -6); scene.add(rimLight);
+    var env = null; try{ env = makeEnv(renderer); }catch(e){}
 
-    // ---- 풍경: 진짜 시간에 따라 낮 / 노을 / 밤이 바뀌어요 ----
-    var world = new T.Group(); scene.add(world);
     function mkc(h){ return new T.Color(h); }
     function rnd(a, b){ return a + Math.random() * (b - a); }
-    var TOD = [   // 시각별 하늘과 조명
-      { h:0,    top:0x0b1233, bot:0x1f2c5a, hs:0x7f90d8, hg:0x1e2a3a, hi:0.34, sc:0x9fb4ff, si:0.42, n:1 },
-      { h:5,    top:0x101a42, bot:0x2a3a72, hs:0x7f90d8, hg:0x1e2a3a, hi:0.34, sc:0x9fb4ff, si:0.4,  n:1 },
-      { h:6.4,  top:0x5a6fb5, bot:0xffb59a, hs:0xffd0c0, hg:0x7a7060, hi:0.5,  sc:0xffb080, si:0.55, n:0.35 },
-      { h:8.5,  top:0x5fb4f5, bot:0xcfeeff, hs:0xffffff, hg:0x8fa870, hi:0.62, sc:0xfff1d8, si:0.8,  n:0 },
-      { h:16,   top:0x5fb4f5, bot:0xcfeeff, hs:0xffffff, hg:0x8fa870, hi:0.62, sc:0xfff1d8, si:0.8,  n:0 },
-      { h:18.3, top:0x3b4a9a, bot:0xff9a62, hs:0xffd2b0, hg:0x7a6a5a, hi:0.5,  sc:0xff9a60, si:0.6,  n:0.3 },
-      { h:20.2, top:0x141c48, bot:0x2c3a78, hs:0x7f90d8, hg:0x1e2a3a, hi:0.36, sc:0x9fb4ff, si:0.4,  n:0.95 },
-      { h:24,   top:0x0b1233, bot:0x1f2c5a, hs:0x7f90d8, hg:0x1e2a3a, hi:0.34, sc:0x9fb4ff, si:0.42, n:1 }
+    function hex(c){ return '#' + c.getHexString(); }
+
+    // ---- 시각별 하늘/조명 ----
+    var TOD = [
+      { h:0,    top:0x0b1233, bot:0x1f2c5a, hs:0x7f90d8, hg:0x1e2a3a, hi:0.36, sc:0x9fb4ff, si:0.45, n:1 },
+      { h:5,    top:0x101a42, bot:0x2a3a72, hs:0x7f90d8, hg:0x1e2a3a, hi:0.36, sc:0x9fb4ff, si:0.42, n:1 },
+      { h:6.4,  top:0x5a6fb5, bot:0xffb59a, hs:0xffd0c0, hg:0x7a7060, hi:0.52, sc:0xffb080, si:0.6,  n:0.35 },
+      { h:8.5,  top:0x4aa6f0, bot:0xcfeeff, hs:0xffffff, hg:0x8fa870, hi:0.64, sc:0xfff1d8, si:0.95, n:0 },
+      { h:16,   top:0x4aa6f0, bot:0xcfeeff, hs:0xffffff, hg:0x8fa870, hi:0.64, sc:0xfff1d8, si:0.95, n:0 },
+      { h:18.3, top:0x3b4a9a, bot:0xff9a62, hs:0xffd2b0, hg:0x7a6a5a, hi:0.52, sc:0xff9a60, si:0.7,  n:0.3 },
+      { h:20.2, top:0x141c48, bot:0x2c3a78, hs:0x7f90d8, hg:0x1e2a3a, hi:0.38, sc:0x9fb4ff, si:0.42, n:0.95 },
+      { h:24,   top:0x0b1233, bot:0x1f2c5a, hs:0x7f90d8, hg:0x1e2a3a, hi:0.36, sc:0x9fb4ff, si:0.45, n:1 }
     ];
-    var timeMode = 'auto', nightK = 0, lastSky = -1e9, lastLight = -1e9, hourNow = 12;
+    // ---- 계절: 하늘 색, 땅, 나무, 소품, 날씨가 확실히 달라요 ----
+    var SEASONS = {
+      meadow: { tex:'grass', tint:0xffffff, leaves:[0x4fb04c, 0x62c45e, 0x3f9a45], bush:0x4aa046, grass:[0x5fb050, 0x74c25e, 0x4a9a46], sky:0x7ac8ff, skyK:0.0, fog:1.0, hemiK:1.0, bare:false, snow:false, fl:[0xffffff, 0xffd24a, 0xff8fb8, 0xc3a6ff, 0xff9a7a], part:'pollen', props:'summer', cloud:0xffffff },
+      autumn: { tex:'dry',   tint:0xffe6c0, leaves:[0xe2761f, 0xd9a02a, 0xb8421f], bush:0xb0702a, grass:[0xb8a040, 0xc8a84a, 0x9a8a38], sky:0xffa860, skyK:0.34, fog:0.9, hemiK:0.95, bare:false, snow:false, fl:[0xd98a2a, 0xb8421f, 0xe0b040, 0x9a5a2a, 0xe87a3a], part:'leaf', props:'autumn', cloud:0xffd8b0 },
+      snow:   { tex:'snow',  tint:0xffffff, leaves:[0x2c7a4c, 0x37875a, 0x266b42], bush:0x36774a, grass:[0xe6f0fa, 0xd6e6f4, 0xc8dcee], sky:0xb4cce6, skyK:0.5, fog:0.5, hemiK:1.1, bare:true, snow:true, fl:[0xffffff], part:'snow', props:'winter', cloud:0xdfe8f2 },
+      blossom:{ tex:'grass2',tint:0xf6ffec, leaves:[0xffb2ce, 0xff98c0, 0xffcadf], bush:0x70c068, grass:[0x86d078, 0x9ad88a, 0x72c066], sky:0xffc2de, skyK:0.34, fog:0.95, hemiK:1.05, bare:false, snow:false, fl:[0xffb2ce, 0xffffff, 0xffd0e4, 0xc8a6ff, 0xffe0a0], part:'petal', props:'spring', cloud:0xfff0f6 }
+    };
+    var SKEYS = ['meadow', 'blossom', 'autumn', 'snow'], season = 'meadow', timeMode = 'auto', nightK = 0, lastSky = -1e9, lastLight = -1e9, hourNow = 12;
     function curHour(){
       if(timeMode === 'day') return 12.5; if(timeMode === 'sunset') return 18.2; if(timeMode === 'night') return 23;
       var d = new Date(); return d.getHours() + d.getMinutes() / 60;
@@ -4173,213 +4347,268 @@
       var L = function(k){ return mkc(a[k]).lerp(mkc(b[k]), t); };
       return { top:L('top'), bot:L('bot'), hs:L('hs'), hg:L('hg'), sc:L('sc'), hi:a.hi + (b.hi - a.hi) * t, si:a.si + (b.si - a.si) * t, n:a.n + (b.n - a.n) * t };
     }
-    function hex(c){ return '#' + c.getHexString(); }
 
-    // 땅
-    function grassTex(){
+    // ---- 땅 (계절마다 질감이 달라요) ----
+    var TEXC = {};
+    function groundTex(kind){
+      if(TEXC[kind]) return TEXC[kind];
       var cv = document.createElement('canvas'); cv.width = 256; cv.height = 256; var c = cv.getContext('2d');
-      c.fillStyle = '#6fae58'; c.fillRect(0, 0, 256, 256);
-      for(var i = 0; i < 1100; i++){ c.fillStyle = 'hsla(' + (86 + Math.random() * 34) + ',' + (34 + Math.random() * 26) + '%,' + (30 + Math.random() * 24) + '%,0.5)'; c.beginPath(); c.arc(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 5, 0, 6.3); c.fill(); }
-      var t = new T.CanvasTexture(cv); if(T.RepeatWrapping){ t.wrapS = t.wrapT = T.RepeatWrapping; } t.repeat.set(14, 14); return t;
+      var base = { grass:'#5fa84c', grass2:'#7cc26a', dry:'#a8913c', snow:'#eef5fc' }[kind] || '#5fa84c';
+      c.fillStyle = base; c.fillRect(0, 0, 256, 256);
+      var hues = { grass:[84, 118, 36, 22], grass2:[88, 120, 34, 26], dry:[38, 60, 40, 20], snow:[205, 220, 25, 80] }[kind] || [84, 118, 36, 22];
+      for(var i = 0; i < 1500; i++){
+        var l = kind === 'snow' ? 82 + Math.random() * 16 : hues[3] + Math.random() * 26;
+        c.fillStyle = 'hsla(' + (hues[0] + Math.random() * (hues[1] - hues[0])) + ',' + (kind === 'snow' ? 30 : 34 + Math.random() * 26) + '%,' + l + '%,0.5)';
+        c.beginPath(); c.arc(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 5, 0, 6.3); c.fill();
+      }
+      if(kind !== 'snow'){ c.lineWidth = 1; for(var j = 0; j < 500; j++){ c.strokeStyle = 'hsla(' + (hues[0] + Math.random() * 30) + ',50%,' + (22 + Math.random() * 28) + '%,0.5)'; var x = Math.random() * 256, y = Math.random() * 256; c.beginPath(); c.moveTo(x, y); c.lineTo(x + (Math.random() - 0.5) * 4, y - 3 - Math.random() * 6); c.stroke(); } }
+      else{ for(var q = 0; q < 120; q++){ c.fillStyle = 'rgba(255,255,255,0.95)'; c.fillRect(Math.random() * 256, Math.random() * 256, 1.5, 1.5); } }
+      var t = new T.CanvasTexture(cv); if(T.RepeatWrapping){ t.wrapS = t.wrapT = T.RepeatWrapping; } t.repeat.set(16, 16); return (TEXC[kind] = t);
     }
-    var groundMat = new T.MeshStandardMaterial({ color:0xffffff, map:grassTex(), roughness:1 });
-    var ground = new T.Mesh(new T.CircleGeometry(70, 64), groundMat); ground.rotation.x = -Math.PI / 2; world.add(ground);
+    var groundMat = new T.MeshStandardMaterial({ color:0xffffff, map:groundTex('grass'), roughness:1 });
+    var ground = new T.Mesh(new T.CircleGeometry(80, 64), groundMat); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
     function lawnTex(){
-      var cv = document.createElement('canvas'); cv.width = 128; cv.height = 128; var c = cv.getContext('2d');
-      var g = c.createRadialGradient(64, 64, 6, 64, 64, 64); g.addColorStop(0, 'rgba(190,235,150,0.95)'); g.addColorStop(0.7, 'rgba(170,222,130,0.7)'); g.addColorStop(1, 'rgba(160,215,120,0)');
-      c.fillStyle = g; c.fillRect(0, 0, 128, 128); return new T.CanvasTexture(cv);
+      var cv = document.createElement('canvas'); cv.width = 256; cv.height = 256; var c = cv.getContext('2d');
+      var g = c.createRadialGradient(128, 128, 10, 128, 128, 128); g.addColorStop(0, 'rgba(160,225,120,0.95)'); g.addColorStop(0.65, 'rgba(140,210,105,0.7)'); g.addColorStop(1, 'rgba(120,200,90,0)');
+      c.fillStyle = g; c.fillRect(0, 0, 256, 256);
+      c.globalCompositeOperation = 'source-atop'; for(var i = 0; i < 10; i++){ c.fillStyle = i % 2 ? 'rgba(255,255,255,0.05)' : 'rgba(0,60,0,0.05)'; c.fillRect(0, i * 26, 256, 26); }
+      return new T.CanvasTexture(cv);
     }
-    var lawn = new T.Mesh(new T.CircleGeometry(4.6, 48), new T.MeshStandardMaterial({ map:lawnTex(), transparent:true, roughness:1, depthWrite:false }));
-    lawn.rotation.x = -Math.PI / 2; lawn.position.y = 0.015; world.add(lawn);
-    var snowPatch = new T.Mesh(new T.CircleGeometry(70, 48), new T.MeshStandardMaterial({ color:0xf2f8ff, roughness:1, transparent:true, opacity:0.0 }));
-    snowPatch.rotation.x = -Math.PI / 2; snowPatch.position.y = 0.02; world.add(snowPatch);
+    var lawnMat = new T.MeshStandardMaterial({ map:lawnTex(), transparent:true, roughness:1, depthWrite:false });
+    var lawn = new T.Mesh(new T.CircleGeometry(5.0, 48), lawnMat); lawn.rotation.x = -Math.PI / 2; lawn.position.y = 0.012; lawn.receiveShadow = true; scene.add(lawn);
 
-    // 멀리 있는 언덕과 산
+    // ---- 먼 풍경: 호수, 언덕, 산 ----
+    var lakeMat = new T.MeshBasicMaterial({ color:0xbfe6ff }); lakeMat.fog = false;
+    var lake = new T.Mesh(new T.CircleGeometry(1, 40), lakeMat); lake.rotation.x = -Math.PI / 2; lake.scale.set(26, 9, 1); lake.position.set(-18, 0.03, -36); scene.add(lake);
     var hillMats = [];
-    [[-26, -26, 14, 3.2, 9, 0x78b868], [20, -30, 18, 4.2, 10, 0x6aa85c], [-4, -34, 22, 3.6, 10, 0x86c070], [42, -22, 12, 3, 8, 0x74b064], [-46, -20, 13, 3.4, 8, 0x6eac60]].forEach(function(h){
-      var m = new T.MeshStandardMaterial({ color:h[5], roughness:1 }); hillMats.push(m);
-      var s = new T.Mesh(new T.SphereGeometry(1, 28, 14), m); s.scale.set(h[2], h[3], h[4]); s.position.set(h[0], -0.4, h[1]); world.add(s);
+    [[-26, -26, 14, 3.2, 9, 0x6cb25e], [20, -30, 18, 4.2, 10, 0x5da050], [-4, -36, 24, 3.6, 10, 0x7ac068], [44, -22, 12, 3, 8, 0x66aa58], [-48, -20, 13, 3.4, 8, 0x62a656]].forEach(function(h){
+      var m = new T.MeshStandardMaterial({ color:h[5], roughness:1 }); m.userData = { base:h[5] }; hillMats.push(m);
+      var s2 = new T.Mesh(new T.SphereGeometry(1, 28, 14), m); s2.scale.set(h[2], h[3], h[4]); s2.position.set(h[0], -0.4, h[1]); scene.add(s2);
     });
-    [[-34, -62, 13, 16], [-8, -70, 16, 20], [24, -66, 14, 17], [50, -58, 12, 14], [-58, -52, 12, 13]].forEach(function(m){
-      var mt = new T.Mesh(new T.ConeGeometry(m[2], m[3], 8), new T.MeshStandardMaterial({ color:0x7d8fb3, roughness:1, flatShading:true })); mt.position.set(m[0], m[3] / 2 - 1, m[1]); world.add(mt);
-      var cap = new T.Mesh(new T.ConeGeometry(m[2] * 0.42, m[3] * 0.34, 8), new T.MeshStandardMaterial({ color:0xf4f8ff, roughness:0.9, flatShading:true })); cap.position.set(m[0], m[3] - m[3] * 0.17 - 1, m[1]); world.add(cap);
+    var mtnMats = [], capMats = [];
+    [[-34, -64, 13, 17], [-8, -72, 17, 22], [24, -68, 14, 18], [50, -60, 12, 15], [-58, -54, 12, 14]].forEach(function(m){
+      var mm = new T.MeshStandardMaterial({ color:0x7d8fb3, roughness:1, flatShading:true }); mtnMats.push(mm);
+      var mt = new T.Mesh(new T.ConeGeometry(m[2], m[3], 9), mm); mt.position.set(m[0], m[3] / 2 - 1, m[1]); scene.add(mt);
+      var cm = new T.MeshStandardMaterial({ color:0xf4f8ff, roughness:0.9, flatShading:true }); capMats.push(cm);
+      var cap = new T.Mesh(new T.ConeGeometry(m[2] * 0.44, m[3] * 0.36, 9), cm); cap.position.set(m[0], m[3] - m[3] * 0.18 - 1, m[1]); scene.add(cap);
     });
 
-    // 나무 (계절마다 잎 색이 바뀌어요)
-    var leafMats = [new T.MeshStandardMaterial({ color:0x5db35a, roughness:0.9 }), new T.MeshStandardMaterial({ color:0x6cc468, roughness:0.9 }), new T.MeshStandardMaterial({ color:0x4ea44f, roughness:0.9 })];
-    var trunkMat = new T.MeshStandardMaterial({ color:0x8a6240, roughness:1 });
-    var snowCaps = [];
+    // ---- 나무 (활엽수는 겨울에 앙상해지고, 침엽수는 눈을 이고 있어요) ----
+    var leafMats = [0, 1, 2].map(function(i){ return new T.MeshStandardMaterial({ color:SEASONS.meadow.leaves[i], roughness:0.85 }); });
+    var trunkMat = new T.MeshStandardMaterial({ color:0x7e5a3c, roughness:1 });
+    var trees = [], snowWhite = new T.MeshStandardMaterial({ color:0xffffff, roughness:1 });
     function makeTree(x, z, s, kind){
-      var g = new T.Group(); g.position.set(x, 0, z); g.scale.setScalar(s);
-      var tr = new T.Mesh(new T.CylinderGeometry(0.14, 0.22, 1.6, 8), trunkMat); tr.position.y = 0.8; g.add(tr);
+      var g = new T.Group(); g.position.set(x, 0, z); g.scale.setScalar(s); g.rotation.y = rnd(0, 6);
+      var rec = { g:g, kind:kind, leaves:new T.Group(), snow:new T.Group() };
+      var m1 = mesh(g, gC(0.15, 0.3, 1.8, 10), trunkMat, 0, 0.9, 0); m1.castShadow = true;
       if(kind === 1){
-        [[1.0, 1.5, 1.9], [0.78, 1.3, 2.7], [0.55, 1.1, 3.4]].forEach(function(c, i){ var cn = new T.Mesh(new T.ConeGeometry(c[0], c[1], 9), leafMats[i % 3]); cn.position.y = c[2]; g.add(cn); var sc = new T.Mesh(new T.ConeGeometry(c[0] * 0.8, c[1] * 0.35, 9), new T.MeshStandardMaterial({ color:0xffffff, roughness:1 })); sc.position.y = c[2] + c[1] * 0.3; sc.visible = false; g.add(sc); snowCaps.push(sc); });
+        [[1.15, 1.5, 1.9], [0.9, 1.35, 2.7], [0.65, 1.15, 3.45], [0.4, 0.9, 4.1]].forEach(function(c, i){ mesh(rec.leaves, gK(c[0], c[1], 10), leafMats[i % 3], 0, c[2], 0); var sc3 = mesh(rec.snow, gK(c[0] * 0.78, c[1] * 0.42, 10), snowWhite, 0, c[2] + c[1] * 0.28, 0); sc3.castShadow = false; });
       }else{
-        [[0, 2.3, 0, 1.15], [-0.7, 1.8, 0.2, 0.8], [0.75, 1.9, -0.2, 0.85], [0.1, 2.9, 0.1, 0.8]].forEach(function(b, i){
-          var f = new T.Mesh(new T.SphereGeometry(b[3], 16, 12), leafMats[i % 3]); f.position.set(b[0], b[1], b[2]); g.add(f);
-          if(i === 0 || i === 3){ var sc2 = new T.Mesh(new T.SphereGeometry(b[3] * 0.82, 12, 8, 0, Math.PI * 2, 0, 0.9), new T.MeshStandardMaterial({ color:0xffffff, roughness:1 })); sc2.position.set(b[0], b[1] + b[3] * 0.22, b[2]); sc2.visible = false; g.add(sc2); snowCaps.push(sc2); }
+        [[0.5, 1.7, 0.2, 0.7], [-0.45, 1.9, -0.2, -0.6], [0.05, 2.1, -0.45, 0.2]].forEach(function(b){ mesh(g, gC(0.05, 0.1, 0.9, 6), trunkMat, b[0], b[1], b[2], 1, 1, 1, b[2] * 0.7, 0, -b[3]).castShadow = false; });
+        [[0, 2.45, 0, 1.2], [-0.85, 1.95, 0.2, 0.85], [0.9, 2.0, -0.2, 0.9], [0.1, 3.2, 0.15, 0.8], [-0.5, 2.8, -0.55, 0.72], [0.65, 2.8, 0.55, 0.7], [-0.2, 2.0, 0.85, 0.65]].forEach(function(b, i){
+          mesh(rec.leaves, gS(b[3], 16, 12), leafMats[i % 3], b[0], b[1], b[2]);
+          if(i === 0 || i === 3 || i === 1){ var sc4 = mesh(rec.snow, new T.SphereGeometry(b[3] * 0.82, 12, 8, 0, Math.PI * 2, 0, 0.9), snowWhite, b[0], b[1] + b[3] * 0.2, b[2]); sc4.castShadow = false; }
         });
       }
-      world.add(g); return g;
+      rec.snow.visible = false; g.add(rec.leaves); g.add(rec.snow); scene.add(g); trees.push(rec); return rec;
     }
-    var treeSpots = [[-7, -3], [-9, -9], [-12, -14], [-5.5, -12], [8, -4], [10.5, -10], [6, -13], [13, -16], [-16, -6], [17, -8], [-3, -17], [3, -19], [-20, -18], [21, -17], [-8.5, 2.5], [9.5, 2], [0, -26], [-14, -24], [15, -25]];
-    treeSpots.forEach(function(p, i){ makeTree(p[0] + rnd(-0.6, 0.6), p[1] + rnd(-0.6, 0.6), rnd(0.9, 1.6), i % 4 === 1 ? 1 : 0); });
-    var bushMat = new T.MeshStandardMaterial({ color:0x58a652, roughness:1 });
-    for(var bi = 0; bi < 14; bi++){ var bx = rnd(-14, 14), bz = rnd(-14, 1); if(Math.hypot(bx, bz) < 5.5) continue; var bs = new T.Mesh(new T.SphereGeometry(rnd(0.4, 0.7), 12, 9), bushMat); bs.scale.y = 0.75; bs.position.set(bx, 0.3, bz); world.add(bs); }
+    [[-7, -3], [-9, -9], [-12, -14], [-5.5, -12], [8, -4], [10.5, -10], [6, -13], [13, -16], [-16, -6], [17, -8], [-3, -17], [3, -19], [-20, -18], [21, -17], [-8.5, 2.5], [9.5, 2], [0, -26], [-14, -24], [15, -25], [-24, -8], [25, -4], [-6, -24], [6, -29], [-11, -30]].forEach(function(p, i){ makeTree(p[0] + rnd(-0.6, 0.6), p[1] + rnd(-0.6, 0.6), rnd(0.95, 1.7), i % 4 === 1 ? 1 : 0); });
+    var bushMat = new T.MeshStandardMaterial({ color:0x4aa046, roughness:1 }), bushSnow = [];
+    for(var bi = 0; bi < 16; bi++){ var bx = rnd(-14, 14), bz = rnd(-14, 1); if(Math.hypot(bx, bz) < 5.8) continue; var bsz = rnd(0.4, 0.75), bsh = mesh(scene, gS(bsz, 12, 9), bushMat, bx, bsz * 0.6, bz, 1, 0.8, 1); var bsn = mesh(scene, new T.SphereGeometry(bsz * 0.8, 10, 6, 0, Math.PI * 2, 0, 1.0), snowWhite, bx, bsz * 0.75, bz, 1, 0.8, 1); bsn.visible = false; bsn.castShadow = false; bushSnow.push(bsn); }
     var rockMat = new T.MeshStandardMaterial({ color:0x9a9aa4, roughness:1, flatShading:true });
-    for(var ri = 0; ri < 8; ri++){ var rx = rnd(-12, 12), rz = rnd(-10, 0); if(Math.hypot(rx, rz) < 5.8) continue; var rk = new T.Mesh(new T.DodecahedronGeometry(rnd(0.25, 0.6), 0), rockMat); rk.position.set(rx, 0.15, rz); rk.rotation.set(rnd(0, 3), rnd(0, 3), 0); rk.scale.y = 0.7; world.add(rk); }
+    for(var ri = 0; ri < 9; ri++){ var rx = rnd(-12, 12), rz = rnd(-10, 0); if(Math.hypot(rx, rz) < 6) continue; var rk = mesh(scene, new T.DodecahedronGeometry(rnd(0.25, 0.65), 0), rockMat, rx, 0.15, rz, 1, 0.7, 1, rnd(0, 3), rnd(0, 3), 0); }
 
-    // 풀과 꽃 (한 번에 그려서 가벼워요)
-    var grassMat = new T.MeshStandardMaterial({ color:0x6ab85a, roughness:1 });
-    var GN = 520, grassI = new T.InstancedMesh(new T.ConeGeometry(0.05, 0.38, 4), grassMat, GN), dm = new T.Object3D();
-    for(var gi = 0; gi < GN; gi++){ var ga = Math.random() * 6.283, gr = 2.2 + Math.sqrt(Math.random()) * 17; dm.position.set(Math.cos(ga) * gr, 0.17, Math.sin(ga) * gr - 2); dm.rotation.set(rnd(-0.2, 0.2), rnd(0, 6), rnd(-0.25, 0.25)); dm.scale.setScalar(rnd(0.7, 1.7)); dm.updateMatrix(); grassI.setMatrixAt(gi, dm.matrix); }
-    world.add(grassI);
-    var FN = 150, flowerI = new T.InstancedMesh(new T.SphereGeometry(0.075, 7, 6), new T.MeshStandardMaterial({ color:0xffffff, roughness:0.6 }), FN), fcols = [0xffffff, 0xffd24a, 0xff8fb8, 0xc3a6ff, 0xff9a7a];
-    for(var fi = 0; fi < FN; fi++){ var fa = Math.random() * 6.283, fr = 3 + Math.sqrt(Math.random()) * 15; dm.position.set(Math.cos(fa) * fr, 0.3, Math.sin(fa) * fr - 2); dm.rotation.set(0, 0, 0); dm.scale.setScalar(rnd(0.8, 1.5)); dm.updateMatrix(); flowerI.setMatrixAt(fi, dm.matrix); if(flowerI.setColorAt) flowerI.setColorAt(fi, mkc(fcols[fi % 5])); }
-    world.add(flowerI);
+    // ---- 풀, 꽃 (계절마다 색이 바뀌어요) ----
+    var grassMat = new T.MeshStandardMaterial({ color:0xffffff, roughness:1 });
+    var GN = 1500, grassI = new T.InstancedMesh(new T.ConeGeometry(0.05, 0.42, 4), grassMat, GN), dm = new T.Object3D();
+    for(var gi = 0; gi < GN; gi++){ var ga = Math.random() * 6.283, gr = 1.8 + Math.pow(Math.random(), 0.7) * 19; dm.position.set(Math.cos(ga) * gr, 0.19, Math.sin(ga) * gr - 2); dm.rotation.set(rnd(-0.2, 0.2), rnd(0, 6), rnd(-0.28, 0.28)); dm.scale.setScalar(rnd(0.7, 1.8)); dm.updateMatrix(); grassI.setMatrixAt(gi, dm.matrix); }
+    scene.add(grassI);
+    var FN = 260, flowerI = new T.InstancedMesh(new T.SphereGeometry(0.08, 7, 6), new T.MeshStandardMaterial({ color:0xffffff, roughness:0.6 }), FN);
+    for(var fi = 0; fi < FN; fi++){ var fa = Math.random() * 6.283, fr = 3.2 + Math.sqrt(Math.random()) * 16; dm.position.set(Math.cos(fa) * fr, 0.3, Math.sin(fa) * fr - 2); dm.rotation.set(0, 0, 0); dm.scale.setScalar(rnd(0.8, 1.6)); dm.updateMatrix(); flowerI.setMatrixAt(fi, dm.matrix); }
+    scene.add(flowerI);
 
-    // 하늘: 해, 달, 별, 구름
+    // ---- 계절 소품 ----
+    function addProp(group, fn){ fn(group); group.visible = false; scene.add(group); return group; }
+    var props = {};
+    props.summer = addProp(new T.Group(), function(g){
+      [[-5.5, 0.6], [5.8, 0.2], [-7, -4], [7.2, -3], [4.5, 4], [-4.8, 3.6], [9, 1.5]].forEach(function(p, i){
+        var sf = new T.Group(); sf.position.set(p[0], 0, p[1]); var h = 1.5 + (i % 3) * 0.25;
+        mesh(sf, gC(0.03, 0.04, h, 6), pmat(0x4f9a46, 0.8), 0, h / 2, 0); mesh(sf, gS(0.14, 8, 6), pmat(0x5fb056, 0.8), 0.14, h * 0.5, 0, 2, 0.3, 1, 0, 0, 0.4);
+        var hd = new T.Group(); hd.position.set(0, h, 0.04); hd.rotation.x = -0.3; sf.add(hd);
+        for(var k = 0; k < 14; k++){ var a = k / 14 * Math.PI * 2; mesh(hd, gS(0.07, 8, 6), pmat(0xffcc22, 0.5), Math.cos(a) * 0.17, Math.sin(a) * 0.17, 0, 0.5, 1.5, 0.4, 0, 0, a - Math.PI / 2).castShadow = false; }
+        mesh(hd, gS(0.13, 10, 8), pmat(0x6a4a22, 0.9), 0, 0, 0.02, 1, 1, 0.5); g.add(sf); sf.userData.ph = i;
+      });
+    });
+    props.autumn = addProp(new T.Group(), function(g){
+      [[-5.2, 1.0], [5.4, 0.6], [-6.4, -2.6], [6.8, -2.4], [4.3, 3.6], [-4.5, 3.9], [7.8, 2]].forEach(function(p, i){
+        var pk = new T.Group(); pk.position.set(p[0], 0, p[1]); var s3 = 0.35 + (i % 3) * 0.08;
+        for(var r = 0; r < 5; r++) mesh(pk, gS(s3, 14, 10), pmat(i % 2 ? 0xff8a2a : 0xf07a1a, 0.55), Math.sin(r * 1.26) * s3 * 0.55, s3 * 0.75, Math.cos(r * 1.26) * s3 * 0.55, 0.55, 0.8, 0.55);
+        mesh(pk, gC(0.04, 0.05, 0.16, 6), pmat(0x4a6a2a, 0.8), 0, s3 * 1.5, 0); g.add(pk);
+      });
+      [[-7.5, -1], [7.8, -5], [3.2, 5]].forEach(function(p){ var hb = mesh(g, gC(0.5, 0.5, 0.7, 14), pmat(0xd8b84a, 0.95), p[0], 0.35, p[1], 1, 1, 1, 0, 0.4, Math.PI / 2); mesh(g, gT(0.5, 0.02, 14), pmat(0x9a7a30, 0.9), p[0], 0.35, p[1], 1, 1, 1, 0, 0.4, 0); });
+      for(var l = 0; l < 40; l++){ var lc = [0xe2761f, 0xd9a02a, 0xb8421f, 0xc8641f][l % 4]; var ml = mesh(g, gS(0.14, 8, 6), pmat(lc, 0.9), rnd(-8, 8), 0.03, rnd(-5, 5), 1, 0.12, 0.7, 0, rnd(0, 6), 0); ml.castShadow = false; }
+    });
+    props.winter = addProp(new T.Group(), function(g){
+      var sm = new T.Group(); sm.position.set(5.6, 0, 1.4); sm.rotation.y = -0.6; g.add(sm);
+      mesh(sm, gS(0.55, 18, 14), pmat(0xffffff, 0.9), 0, 0.5, 0); mesh(sm, gS(0.4, 18, 14), pmat(0xffffff, 0.9), 0, 1.25, 0); mesh(sm, gS(0.28, 16, 12), pmat(0xffffff, 0.9), 0, 1.8, 0);
+      [-1, 1].forEach(function(s){ mesh(sm, gS(0.035, 8, 6), pmat(0x1a1a22, 0.4), s * 0.1, 1.86, 0.25); mesh(sm, gC(0.012, 0.012, 0.55, 4), pmat(0x6a4a2a, 0.9), s * 0.55, 1.3, 0, 1, 1, 1, 0, 0, s * 1.0); });
+      mesh(sm, gK(0.05, 0.28, 8), pmat(0xff7a2a, 0.5), 0, 1.78, 0.32, 1, 1, 1, Math.PI / 2, 0, 0);
+      mesh(sm, gT(0.3, 0.07, 18), pmat(0xe84a5a, 0.8), 0, 1.58, 0, 1, 1, 1, Math.PI / 2, 0, 0); mesh(sm, gC(0.2, 0.2, 0.28, 12), pmat(0x2a2a3a, 0.7), 0, 2.15, 0); mesh(sm, gC(0.3, 0.3, 0.03, 14), pmat(0x2a2a3a, 0.7), 0, 2.02, 0);
+      for(var i = 0; i < 3; i++) mesh(sm, gS(0.04, 8, 6), pmat(0x1a1a22, 0.4), 0, 1.1 - i * 0.18, 0.38);
+      [[-4.2, 1.8], [4.1, 2.9], [-6.5, 0], [6.8, -1.8], [-3.2, 4.2], [8, 2.5], [-8, -3.5], [3.2, 5.5]].forEach(function(p, i){ mesh(g, gS(0.55 + (i % 3) * 0.12, 14, 10), pmat(0xffffff, 0.95), p[0], 0.08, p[1], 1.3, 0.28, 1).castShadow = false; });
+    });
+    props.spring = addProp(new T.Group(), function(g){
+      for(var i = 0; i < 90; i++){ var pm = mesh(g, gS(0.07, 8, 6), pmat([0xffb2ce, 0xffc8dc, 0xff98c0][i % 3], 0.8), rnd(-9, 9), 0.02, rnd(-6, 6), 1, 0.15, 0.8, 0, rnd(0, 6), 0); pm.castShadow = false; }
+      [[-4.8, 1.2], [5.0, 0.8], [-6, -2.5], [6.4, -2.2], [4.2, 3.4], [-4.2, 3.6]].forEach(function(p, i){
+        for(var k = 0; k < 4; k++){ var tx = p[0] + (k - 1.5) * 0.3, tz = p[1] + (k % 2) * 0.2; mesh(g, gC(0.012, 0.016, 0.45, 5), pmat(0x4f9a46, 0.8), tx, 0.22, tz).castShadow = false; [0, 1, 2].forEach(function(q){ var pa = q * 2.09; mesh(g, gS(0.07, 8, 6), pmat([0xff7aa8, 0xffffff, 0xffa8c4, 0xc8a6ff][(k + i) % 4], 0.45), tx + Math.cos(pa) * 0.035, 0.5, tz + Math.sin(pa) * 0.035, 0.7, 1.35, 0.7).castShadow = false; }); }
+      });
+    });
+
+    // ---- 하늘: 해, 달, 별, 구름 ----
     var sunMesh = new T.Mesh(new T.SphereGeometry(2.2, 20, 16), new T.MeshBasicMaterial({ color:0xfff4c8 })); sunMesh.material.fog = false; scene.add(sunMesh);
-    var sunGlow = new T.Mesh(new T.SphereGeometry(4.6, 20, 16), new T.MeshBasicMaterial({ color:0xffe9a0, transparent:true, opacity:0.22, depthWrite:false })); sunGlow.material.fog = false; scene.add(sunGlow);
+    var sunGlow = new T.Mesh(new T.SphereGeometry(5, 20, 16), new T.MeshBasicMaterial({ color:0xffe9a0, transparent:true, opacity:0.2, depthWrite:false })); sunGlow.material.fog = false; scene.add(sunGlow);
     var moonMesh = new T.Mesh(new T.SphereGeometry(1.7, 20, 16), new T.MeshBasicMaterial({ color:0xf6f1d6 })); moonMesh.material.fog = false; scene.add(moonMesh);
     [[-0.5, 0.4, 0.45], [0.55, -0.3, 0.35], [0.1, -0.7, 0.28]].forEach(function(c){ var cr = new T.Mesh(new T.SphereGeometry(0.3, 10, 8), new T.MeshBasicMaterial({ color:0xd9d3b4 })); cr.material.fog = false; cr.scale.z = 0.3; cr.position.set(c[0] * 1.2, c[1] * 1.2, 1.55); moonMesh.add(cr); });
-    var moonGlow = new T.Mesh(new T.SphereGeometry(3.4, 20, 16), new T.MeshBasicMaterial({ color:0xcfd8ff, transparent:true, opacity:0.18, depthWrite:false })); moonGlow.material.fog = false; scene.add(moonGlow);
+    var moonGlow = new T.Mesh(new T.SphereGeometry(3.6, 20, 16), new T.MeshBasicMaterial({ color:0xcfd8ff, transparent:true, opacity:0.18, depthWrite:false })); moonGlow.material.fog = false; scene.add(moonGlow);
     var starPts = null;
     try{
-      var sp = [], sc3 = [];
-      for(var si = 0; si < 260; si++){ var u = Math.random() * 6.283, v = 0.06 + Math.random() * 0.9, rr = 120; sp.push(Math.cos(u) * Math.sqrt(1 - v * v) * rr, v * rr * 0.75 + 4, Math.sin(u) * Math.sqrt(1 - v * v) * rr * -0.6 - 20); }
+      var sp = [];
+      for(var si = 0; si < 320; si++){ var u = Math.random() * 6.283, v = 0.06 + Math.random() * 0.9, rr = 120; sp.push(Math.cos(u) * Math.sqrt(1 - v * v) * rr, v * rr * 0.75 + 4, Math.sin(u) * Math.sqrt(1 - v * v) * rr * -0.6 - 20); }
       var sg = new T.BufferGeometry(); sg.setAttribute('position', new T.Float32BufferAttribute(sp, 3));
-      starPts = new T.Points(sg, new T.PointsMaterial({ color:0xffffff, size:2.4, sizeAttenuation:false, transparent:true, opacity:0, depthWrite:false })); starPts.material.fog = false; scene.add(starPts);
+      starPts = new T.Points(sg, new T.PointsMaterial({ color:0xffffff, size:2.6, sizeAttenuation:false, transparent:true, opacity:0, depthWrite:false })); starPts.material.fog = false; scene.add(starPts);
     }catch(e){ starPts = null; }
-    var cloudG = new T.Group(); scene.add(cloudG); var cloudMats = [];
-    for(var ci = 0; ci < 9; ci++){
-      var cg = new T.Group(), cm = new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.92 }); cm.fog = false; cloudMats.push(cm);
-      for(var cj = 0; cj < 5; cj++){ var cb = new T.Mesh(new T.SphereGeometry(rnd(1.6, 2.8), 12, 9), cm); cb.position.set(cj * 2.1 - 4 + rnd(-0.5, 0.5), rnd(-0.4, 0.8), rnd(-0.8, 0.8)); cb.scale.y = 0.6; cg.add(cb); }
-      cg.position.set(rnd(-70, 70), rnd(15, 26), rnd(-60, -38)); cg.userData.sp = rnd(0.25, 0.7); cloudG.add(cg);
+    var shoot = new T.Mesh(new T.SphereGeometry(0.25, 6, 6), new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0 })); shoot.material.fog = false; scene.add(shoot); var shootT = -1;
+    var cloudG = new T.Group(); scene.add(cloudG); var cloudLight = [], cloudShade = [];
+    for(var ci = 0; ci < 11; ci++){
+      var cg = new T.Group(), cm1 = new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.95 }), cm2 = new T.MeshBasicMaterial({ color:0xdfe8f4, transparent:true, opacity:0.95 }); cm1.fog = false; cm2.fog = false; cloudLight.push(cm1); cloudShade.push(cm2);
+      for(var cj = 0; cj < 7; cj++){ var cb = new T.Mesh(new T.SphereGeometry(rnd(1.5, 2.8), 12, 9), cj % 2 ? cm1 : cm2); cb.position.set(cj * 1.6 - 5 + rnd(-0.5, 0.5), (cj % 2) * 0.7 + rnd(-0.2, 0.5), rnd(-0.8, 0.8)); cb.scale.y = 0.6; cg.add(cb); }
+      cg.position.set(rnd(-80, 80), rnd(15, 28), rnd(-64, -38)); cg.userData.sp = rnd(0.25, 0.7); cloudG.add(cg);
     }
-    // 반딧불 (밤), 나비 (낮)
+    // ---- 반딧불, 나비, 날리는 것 ----
     var flies = new T.Group(); scene.add(flies);
-    for(var ff = 0; ff < 24; ff++){ var fm = new T.Mesh(new T.SphereGeometry(0.06, 8, 6), new T.MeshBasicMaterial({ color:0xe6ff8a, transparent:true, opacity:0 })); fm.userData = { cx:rnd(-7, 7), cy:rnd(0.6, 2.2), cz:rnd(-6, 3), ph:rnd(0, 6), sp:rnd(0.4, 0.9) }; flies.add(fm); }
+    for(var ff = 0; ff < 28; ff++){ var fm = new T.Mesh(new T.SphereGeometry(0.06, 8, 6), new T.MeshBasicMaterial({ color:0xe6ff8a, transparent:true, opacity:0 })); fm.userData = { cx:rnd(-8, 8), cy:rnd(0.6, 2.4), cz:rnd(-6, 3), ph:rnd(0, 6), sp:rnd(0.4, 0.9) }; flies.add(fm); }
     var bfs = new T.Group(); scene.add(bfs);
-    for(var bf = 0; bf < 5; bf++){
-      var bg = new T.Group(), bcol = [0xffd24a, 0xff8fb8, 0x9fd4ff, 0xffffff, 0xc3a6ff][bf];
-      [-1, 1].forEach(function(s){ var w = new T.Mesh(new T.SphereGeometry(0.13, 8, 6), new T.MeshBasicMaterial({ color:bcol })); w.scale.set(1.2, 0.12, 0.9); w.position.x = s * 0.1; w.userData.s = s; bg.add(w); });
-      bg.userData = { cx:rnd(-6, 6), cz:rnd(-5, 2), ph:rnd(0, 6), r:rnd(1.2, 3), sp:rnd(0.3, 0.6) }; bfs.add(bg);
+    for(var bf = 0; bf < 6; bf++){
+      var bg2 = new T.Group(), bcol = [0xffd24a, 0xff8fb8, 0x9fd4ff, 0xffffff, 0xc3a6ff, 0xff9a5a][bf];
+      [-1, 1].forEach(function(s){ var w = new T.Mesh(new T.SphereGeometry(0.14, 8, 6), new T.MeshBasicMaterial({ color:bcol })); w.scale.set(1.2, 0.12, 0.95); w.position.x = s * 0.1; w.userData.s = s; bg2.add(w); });
+      bg2.userData = { cx:rnd(-6, 6), cz:rnd(-5, 2), ph:rnd(0, 6), r:rnd(1.2, 3), sp:rnd(0.3, 0.6) }; bfs.add(bg2);
     }
-    // 계절마다 날리는 것 (꽃잎, 단풍잎, 눈)
-    var fallMat = new T.MeshBasicMaterial({ color:0xffb6d0 }), fallG = new T.Group(); scene.add(fallG); fallG.visible = false;
-    for(var fl = 0; fl < 60; fl++){ var fp = new T.Mesh(new T.SphereGeometry(0.09, 8, 6), fallMat); fp.scale.set(1, 0.4, 0.8); fp.userData = { x:rnd(-10, 10), y:rnd(0, 9), z:rnd(-8, 5), sp:rnd(0.4, 1.0), ph:rnd(0, 6) }; fallG.add(fp); }
-    var fallKind = 'none';
+    var fallMat = new T.MeshBasicMaterial({ color:0xffb6d0 }), fallG = new T.Group(); scene.add(fallG); fallG.visible = false; var fallKind = 'none';
+    for(var fl = 0; fl < 90; fl++){ var fp = new T.Mesh(new T.SphereGeometry(0.09, 8, 6), fallMat); fp.scale.set(1, 0.4, 0.8); fp.userData = { x:rnd(-11, 11), y:rnd(0, 10), z:rnd(-9, 5), sp:rnd(0.4, 1.0), ph:rnd(0, 6) }; fallG.add(fp); }
     var lampLight = new T.PointLight(0xffd080, 0, 9); lampLight.visible = false; scene.add(lampLight);
     scene.fog = new T.Fog(0xcfeeff, 26, 105);
 
-    var themeName = 'meadow';
     function setTheme(name){
-      themeName = THEMES_OK.indexOf(name) >= 0 ? name : 'meadow';
-      var L = leafMats;
-      if(themeName === 'autumn'){ L[0].color.setHex(0xe0842f); L[1].color.setHex(0xd9a22e); L[2].color.setHex(0xc4552a); bushMat.color.setHex(0xb8742a); grassMat.color.setHex(0xb59a3a); groundMat.color.setHex(0xffe6bd); }
-      else if(themeName === 'blossom'){ L[0].color.setHex(0xffb6d0); L[1].color.setHex(0xffa0c4); L[2].color.setHex(0xffd0e0); bushMat.color.setHex(0x6fb865); grassMat.color.setHex(0x78c468); groundMat.color.setHex(0xffffff); }
-      else if(themeName === 'snow'){ L[0].color.setHex(0x3f8f55); L[1].color.setHex(0x4a9a60); L[2].color.setHex(0x357a4a); bushMat.color.setHex(0x3a7a4a); grassMat.color.setHex(0x9fb8a0); groundMat.color.setHex(0xdfeaff); }
-      else{ L[0].color.setHex(0x5db35a); L[1].color.setHex(0x6cc468); L[2].color.setHex(0x4ea44f); bushMat.color.setHex(0x58a652); grassMat.color.setHex(0x6ab85a); groundMat.color.setHex(0xffffff); }
-      snowCaps.forEach(function(s){ s.visible = themeName === 'snow'; });
-      snowPatch.material.opacity = themeName === 'snow' ? 0.82 : 0;
-      flowerI.visible = themeName !== 'snow';
-      fallKind = themeName === 'blossom' ? 'petal' : (themeName === 'autumn' ? 'leaf' : (themeName === 'snow' ? 'snow' : 'none'));
-      fallG.visible = fallKind !== 'none';
+      season = SEASONS[name] ? name : 'meadow'; var S = SEASONS[season];
+      groundMat.map = groundTex(S.tex); groundMat.color.setHex(S.tint); groundMat.needsUpdate = true;
+      leafMats.forEach(function(m, i){ m.color.setHex(S.leaves[i]); }); bushMat.color.setHex(S.bush);
+      trees.forEach(function(t){ t.leaves.visible = !(S.bare && t.kind === 0); t.snow.visible = S.snow; });
+      bushSnow.forEach(function(b){ b.visible = S.snow; });
+      var gc = new T.Color();
+      for(var i = 0; i < GN; i++){ gc.setHex(S.grass[i % 3]); gc.offsetHSL(0, 0, rnd(-0.05, 0.06)); if(grassI.setColorAt) grassI.setColorAt(i, gc); } if(grassI.instanceColor) grassI.instanceColor.needsUpdate = true;
+      for(var j = 0; j < FN; j++){ if(flowerI.setColorAt) flowerI.setColorAt(j, gc.setHex(S.fl[j % S.fl.length])); } if(flowerI.instanceColor) flowerI.instanceColor.needsUpdate = true;
+      flowerI.visible = season !== 'snow'; grassI.visible = true;
+      Object.keys(props).forEach(function(k){ props[k].visible = (k === S.props); });
+      fallKind = S.part === 'petal' ? 'petal' : (S.part === 'leaf' ? 'leaf' : (S.part === 'snow' ? 'snow' : 'none')); fallG.visible = fallKind !== 'none';
       fallMat.color.setHex(fallKind === 'petal' ? 0xffb6d0 : (fallKind === 'leaf' ? 0xe58a30 : 0xffffff));
       fallG.children.forEach(function(p){ if(fallKind === 'snow') p.scale.set(0.9, 0.9, 0.9); else p.scale.set(1, 0.4, 0.8); });
-      lastSky = -1e9;
+      var mt = S.snow ? 0xdce6f4 : 0x7d8fb3; mtnMats.forEach(function(m){ m.color.setHex(mt); });
+      hillMats.forEach(function(m){ var b = new T.Color(m.userData.base); if(season === 'autumn') b.lerp(mkc(0xb89a3a), 0.5); else if(season === 'snow') b.lerp(mkc(0xf2f8ff), 0.85); else if(season === 'blossom') b.lerp(mkc(0xb4e0a4), 0.35); m.color.copy(b); });
+      lastSky = -1e9; lastLight = -1e9;
     }
-    var THEMES_OK = ['meadow', 'blossom', 'autumn', 'snow'];
-
     function applySky(){
-      var T0 = todAt(hourNow);
+      var T0 = todAt(hourNow), S = SEASONS[season];
+      var top = T0.top.clone().lerp(mkc(S.sky), S.skyK * (1 - T0.n)), bot = T0.bot.clone().lerp(mkc(S.sky), S.skyK * (1 - T0.n * 0.8));
       var cv = document.createElement('canvas'); cv.width = 4; cv.height = 256;
-      var cx = cv.getContext('2d'), gr = cx.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, hex(T0.top)); gr.addColorStop(0.62, hex(T0.top.clone().lerp(T0.bot, 0.65))); gr.addColorStop(1, hex(T0.bot)); cx.fillStyle = gr; cx.fillRect(0, 0, 4, 256);
+      var cx = cv.getContext('2d'), gr = cx.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, hex(top)); gr.addColorStop(0.62, hex(top.clone().lerp(bot, 0.65))); gr.addColorStop(1, hex(bot)); cx.fillStyle = gr; cx.fillRect(0, 0, 4, 256);
       var old = scene.background; scene.background = new T.CanvasTexture(cv); if(old && old.dispose) old.dispose();
-      scene.fog.color.copy(T0.bot); scene.fog.near = 28 - T0.n * 8; scene.fog.far = 110 - T0.n * 30;
+      scene.fog.color.copy(bot); scene.fog.near = (28 - T0.n * 8) * S.fog; scene.fog.far = (110 - T0.n * 30) * (0.5 + S.fog * 0.5);
+      lakeMat.color.copy(bot).lerp(mkc(0x4a90c0), 0.35);
     }
     function applyLight(){
-      var T0 = todAt(hourNow); nightK = T0.n;
-      hemi.color.copy(T0.hs); hemi.groundColor.copy(T0.hg); hemi.intensity = T0.hi;
+      var T0 = todAt(hourNow), S = SEASONS[season]; nightK = T0.n;
+      hemi.color.copy(T0.hs); hemi.groundColor.copy(T0.hg); hemi.intensity = T0.hi * S.hemiK;
       sun.color.copy(T0.sc); sun.intensity = T0.si;
       var h = hourNow, ang = Math.PI * (h - 6) / 12, sunUp = Math.sin(ang);
       var hm = h < 6 ? h + 24 : h, angM = Math.PI * (hm - 18) / 12, moonUp = Math.sin(angM);
       sunMesh.position.set(-Math.cos(ang) * 40, Math.max(-6, sunUp * 28), -48); sunGlow.position.copy(sunMesh.position);
       moonMesh.position.set(-Math.cos(angM) * 38, Math.max(-6, moonUp * 26), -50); moonGlow.position.copy(moonMesh.position);
-      var warm = Math.max(0, 1 - Math.abs(sunUp) * 3);   // 해가 낮을수록 붉게
+      var warm = Math.max(0, 1 - Math.abs(sunUp) * 3);
       sunMesh.material.color.setHex(0xfff4c8).lerp(mkc(0xff8a4a), warm); sunGlow.material.color.setHex(0xffe9a0).lerp(mkc(0xff7a3a), warm);
       sunMesh.visible = sunUp > -0.08; sunGlow.visible = sunMesh.visible; moonMesh.visible = moonUp > -0.08 && T0.n > 0.25; moonGlow.visible = moonMesh.visible;
       var from = sunUp > -0.02 ? sunMesh.position : moonMesh.position;
-      sun.position.set(from.x * 0.2 + 2, Math.max(7, from.y * 0.5 + 6), 8);
+      sun.position.set(from.x * 0.25 + 3, Math.max(6, from.y * 0.45 + 5), 7); rimLight.intensity = 0.25 + T0.n * 0.3;
       if(starPts) starPts.material.opacity = Math.max(0, Math.min(1, (T0.n - 0.3) * 1.6));
-      cloudMats.forEach(function(m){ m.color.setHex(0xffffff).lerp(mkc(0xffb48a), warm * 0.8).lerp(mkc(0x4a5688), Math.min(1, T0.n * 1.05)); });
+      cloudLight.forEach(function(m){ m.color.copy(mkc(S.cloud)).lerp(mkc(0xffb48a), warm * 0.7).lerp(mkc(0x4a5688), Math.min(1, T0.n * 1.05)); });
+      cloudShade.forEach(function(m){ m.color.copy(mkc(S.cloud)).multiplyScalar(0.86).lerp(mkc(0xffa070), warm * 0.6).lerp(mkc(0x333c6a), Math.min(1, T0.n * 1.05)); });
       lampLight.intensity = T0.n * 1.5;
     }
     function worldTick(dt, tt){
       if(tt - lastLight > 1.0){ lastLight = tt; hourNow = curHour(); applyLight(); }
       if(tt - lastSky > 20){ lastSky = tt; applySky(); }
-      cloudG.children.forEach(function(c){ c.position.x += c.userData.sp * dt; if(c.position.x > 80) c.position.x = -80; });
+      cloudG.children.forEach(function(c){ c.position.x += c.userData.sp * dt; if(c.position.x > 90) c.position.x = -90; });
       if(starPts && starPts.material.opacity > 0.05) starPts.material.opacity = Math.max(0, Math.min(1, (nightK - 0.3) * 1.6)) * (0.8 + Math.sin(tt * 2.2) * 0.15);
+      if(nightK > 0.6){ if(shootT < 0 && Math.random() < dt * 0.06){ shootT = 0; shoot.userData.x = rnd(-30, 20); shoot.userData.y = rnd(20, 34); } }
+      if(shootT >= 0){ shootT += dt; var q = shootT / 1.1; shoot.position.set(shoot.userData.x + q * 40, shoot.userData.y - q * 16, -46); shoot.material.opacity = Math.sin(Math.min(1, q) * Math.PI) * 0.9; if(q >= 1){ shootT = -1; shoot.material.opacity = 0; } }
       var fv = nightK > 0.5; flies.visible = fv;
       if(fv) flies.children.forEach(function(f){ var u = f.userData; f.position.set(u.cx + Math.sin(tt * u.sp + u.ph) * 1.4, u.cy + Math.sin(tt * u.sp * 1.7 + u.ph) * 0.4, u.cz + Math.cos(tt * u.sp * 0.8 + u.ph) * 1.4); f.material.opacity = (0.35 + Math.abs(Math.sin(tt * 2.2 + u.ph)) * 0.65) * Math.min(1, (nightK - 0.5) * 3); });
-      var bv = nightK < 0.4 && themeName !== 'snow'; bfs.visible = bv;
+      var bv = nightK < 0.4 && season !== 'snow'; bfs.visible = bv;
       if(bv) bfs.children.forEach(function(b){ var u = b.userData; b.position.set(u.cx + Math.cos(tt * u.sp + u.ph) * u.r, 1.0 + Math.sin(tt * 1.3 + u.ph) * 0.4, u.cz + Math.sin(tt * u.sp + u.ph) * u.r); b.rotation.y = -(tt * u.sp + u.ph); b.children.forEach(function(w){ w.rotation.z = w.userData.s * (0.2 + Math.abs(Math.sin(tt * 14 + u.ph)) * 0.9); }); });
-      if(fallG.visible) fallG.children.forEach(function(p){ var u = p.userData; u.y -= u.sp * dt * (fallKind === 'snow' ? 0.8 : 1); if(u.y < 0) u.y = 9; p.position.set(u.x + Math.sin(tt * 0.9 + u.ph) * (fallKind === 'snow' ? 0.4 : 0.9), u.y, u.z); if(fallKind !== 'snow') p.rotation.set(tt + u.ph, tt * 0.8, 0); });
+      if(fallG.visible) fallG.children.forEach(function(p){ var u = p.userData; u.y -= u.sp * dt * (fallKind === 'snow' ? 0.8 : 1); if(u.y < 0) u.y = 10; p.position.set(u.x + Math.sin(tt * 0.9 + u.ph) * (fallKind === 'snow' ? 0.4 : 0.9), u.y, u.z); if(fallKind !== 'snow') p.rotation.set(tt + u.ph, tt * 0.8, 0); });
+      var pr = props[SEASONS[season].props]; if(pr && season === 'meadow') pr.children.forEach(function(sf){ if(sf.userData.ph !== undefined) sf.rotation.z = Math.sin(tt * 1.2 + sf.userData.ph) * 0.04; });
     }
-    setTheme('meadow'); hourNow = curHour(); applyLight(); applySky();
+    var THEMES_OK = SKEYS;
 
-    // ---- 꾸미기 ----
-    var decoRoot = new T.Group(); scene.add(decoRoot); var decoAnims = [], decoKey = '';
+    // ---- 꾸미기: 새로 산 것만 '뿅' 하고 나타나고, 나머지는 그대로 있어요 ----
+    var decoRoot = new T.Group(); scene.add(decoRoot); var decoAnims = [], decoMap = {};
     function setDeco(list){
-      var key = (list || []).join(',');
-      if(key === decoKey) return;
-      decoKey = key;
-      while(decoRoot.children.length) decoRoot.remove(decoRoot.children[0]);
-      decoAnims = [];
-      var lp = (list || []).indexOf('lantern') >= 0; lampLight.visible = lp; if(lp) lampLight.position.set(PET_DECO_POS.lantern[0], 1.7, PET_DECO_POS.lantern[1] + 0.3);
-      (list || []).forEach(function(id){
+      list = list || [];
+      Object.keys(decoMap).forEach(function(id){ if(list.indexOf(id) < 0){ decoRoot.remove(decoMap[id].g); delete decoMap[id]; } });
+      decoAnims = []; Object.keys(decoMap).forEach(function(id){ decoMap[id].anims.forEach(function(f){ decoAnims.push(f); }); });
+      list.forEach(function(id){
+        if(decoMap[id]) return;
         var b = PET_DECO_BUILD[id], pos = PET_DECO_POS[id]; if(!b || !pos) return;
-        var g = new T.Group(); g.position.set(pos[0], 0, pos[1]);
+        var g = new T.Group(), an = []; g.position.set(pos[0], 0, pos[1]);
         if(id === 'house' || id === 'tree') g.rotation.y = pos[0] > 0 ? -0.5 : 0.5;
-        b(g, decoAnims); decoRoot.add(g); g.scale.setScalar(0.01); g.userData.pop = 0;
+        b(g, an); decoRoot.add(g); g.scale.setScalar(0.01); g.userData.pop = 0; decoMap[id] = { g:g, anims:an };
+        an.forEach(function(f){ decoAnims.push(f); });
       });
+      var lp = list.indexOf('lantern') >= 0; lampLight.visible = lp; if(lp) lampLight.position.set(PET_DECO_POS.lantern[0], 1.9, PET_DECO_POS.lantern[1] + 0.3);
     }
 
-    // ---- 슬라임 몸 ----
-    function hsl(h, s, l){ return new T.Color().setHSL(h, s, l); }
-    function blobGeo(){
-      var geo = new T.SphereGeometry(1, 40, 28), p = geo.attributes.position;
-      for(var i = 0; i < p.count; i++){
-        var x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-        if(y < 0){ var k = 1 + (-y) * 0.2; x *= k; z *= k; y *= 0.62; } else { y *= 0.92; }
-        p.setXYZ(i, x, y, z);
-      }
-      geo.computeVertexNormals();
-      return geo;
-    }
-    var BLOB = blobGeo();
-    var rig = new T.Group(); scene.add(rig);          // 땅 위에서 늘어나고 찌그러지는 기준
-    var spinG = new T.Group(); rig.add(spinG);        // 빙글빙글 도는 부분
+    // ---- 슬라임 몸 (말랑하게 출렁여요) ----
+    var rig = new T.Group(); scene.add(rig);
+    var spinG = new T.Group(); rig.add(spinG);
     var slime = null, curGenes = '', eggG = new T.Group(); scene.add(eggG);
-    var bodyMat = null, S = { y:0, vy:0, air:false, sq:0, sqV:0, pre:0, spin:0, spinSpd:0, spinRem:0, yaw:0, blink:0, nextBlink:2, eat:0, happy:0, act:'', next:1.5, chain:0, hatched:true, big:0 };
+    var S = { y:0, vy:0, air:false, sq:0, sqV:0, pre:0, spin:0, spinSpd:0, spinRem:0, yaw:0, blinkT:2, blinkOn:0, eat:0, happy:0, act:'', next:1.5, chain:0, hatched:true, big:1, wob:0 };
     var status = { sat:60, mood:60, stage:1, warmth:0, ready:false }, bornT = 0;
-    var fxList = [], dust = new T.Group(); scene.add(dust);
-
-    function mat(c, rough, extra){ var m = new T.MeshStandardMaterial(Object.assign({ color:c, roughness:rough == null ? 0.5 : rough }, extra || {})); return m; }
+    var wobGeo = null, wobOrg = null, wobNrm = null;
     function buildSlime(gn){
       if(slime) spinG.remove(slime.g);
-      slime = makePetBody(gn); bodyMat = slime.bodyMat; spinG.add(slime.g);
+      wobGeo = petBlob().clone(); wobOrg = wobGeo.attributes.position.array.slice(); wobNrm = wobGeo.attributes.normal.array.slice();
+      slime = makePetBody(gn, { hq:true, env:env, geo:wobGeo }); spinG.add(slime.g);
+      slime.g.traverse(function(o){ if(o.isMesh){ o.castShadow = true; } });
+    }
+    function wobble(t){
+      if(!wobGeo || S.wob < 0.002) return;
+      var p = wobGeo.attributes.position, n = p.count, amp = S.wob;
+      for(var i = 0; i < n; i++){
+        var ox = wobOrg[i * 3], oy = wobOrg[i * 3 + 1], oz = wobOrg[i * 3 + 2];
+        var w = Math.sin(t * 19 + oy * 6.5 + ox * 3.2) * amp * (0.35 + Math.max(0, oy));
+        p.array[i * 3] = ox + wobNrm[i * 3] * w; p.array[i * 3 + 1] = oy + wobNrm[i * 3 + 1] * w; p.array[i * 3 + 2] = oz + wobNrm[i * 3 + 2] * w;
+      }
+      p.needsUpdate = true;
     }
     function buildEgg(gn){
       while(eggG.children.length) eggG.remove(eggG.children[0]);
-      var base = hsl(gn.hue / 360, 0.5, 0.9), spot = hsl(gn.hue / 360, 0.65, 0.74), acc = hsl(gn.acc / 360, 0.7, 0.75);
+      var base = petHsl(gn.hue / 360, 0.5, 0.9), spot = petHsl(gn.hue / 360, 0.65, 0.74), acc = petHsl(gn.acc / 360, 0.7, 0.75);
       var geo = new T.SphereGeometry(1, 36, 28), p = geo.attributes.position;
       for(var i = 0; i < p.count; i++){ var x = p.getX(i), y = p.getY(i), z = p.getZ(i); var k = 1 - Math.max(0, y) * 0.22; x *= k; z *= k; p.setXYZ(i, x, y * 1.25, z); }
       geo.computeVertexNormals();
       var em = new T.MeshPhysicalMaterial({ color:base, roughness:0.35, clearcoat:0.8, clearcoatRoughness:0.2, emissive:0xffb060, emissiveIntensity:0 });
-      var shell = new T.Mesh(geo, em); shell.position.y = 1.2; eggG.add(shell);
-      var eout = new T.Mesh(geo, new T.MeshBasicMaterial({ color:hsl(gn.hue / 360, 0.5, 0.45), side:T.BackSide })); eout.scale.set(1.045, 1.045, 1.045); shell.add(eout);
+      if(env){ em.envMap = env; em.envMapIntensity = 0.5; }
+      var shell = new T.Mesh(geo, em); shell.position.y = 1.2; shell.castShadow = true; eggG.add(shell);
+      var eout = new T.Mesh(geo, new T.MeshBasicMaterial({ color:petHsl(gn.hue / 360, 0.5, 0.45), side:T.BackSide })); eout.scale.set(1.045, 1.045, 1.045); shell.add(eout);
       for(var s = 0; s < 9; s++){ var az = s * 2.4, el = -0.5 + (s % 4) * 0.45, r = 0.99; var nx = Math.sin(az) * Math.cos(el), ny = Math.sin(el), nz = Math.cos(az) * Math.cos(el);
         var d = new T.Mesh(new T.SphereGeometry(1, 12, 8), new T.MeshBasicMaterial({ color:s % 3 === 0 ? acc : spot })); d.scale.set(0.15 + (s % 3) * 0.04, 0.15 + (s % 3) * 0.04, 0.04);
         d.position.set(nx * r, 1.2 + ny * r * 1.2, nz * r); d.rotation.order = 'YXZ'; d.rotation.y = Math.atan2(nx, nz); d.rotation.x = -Math.asin(ny) * 0.8; eggG.add(d); }
@@ -4390,7 +4619,7 @@
     }
 
     // ---- 효과 (먼지, 반짝이, 조각) ----
-    var sparkGeo = new T.SphereGeometry(0.06, 6, 6);
+    var fxList = [], shards = [], sparkGeo = new T.SphereGeometry(0.06, 6, 6);
     function puff(x, y, z, col, n, spd, grav, life){
       for(var i = 0; i < n; i++){
         var m = new T.Mesh(sparkGeo, new T.MeshBasicMaterial({ color:col, transparent:true, opacity:0.95 })); m.position.set(x, y, z);
@@ -4398,40 +4627,20 @@
         fxList.push({ m:m, vx:Math.cos(a) * s, vy:(0.6 + Math.random() * 1.4) * spd, vz:Math.sin(a) * s, g:grav, t:0, life:life || 0.7 });
       }
     }
-    var shards = [];
-
-    // ---- 동작 ----
     var apple = null;
-    function jump(power, turns){
-      if(S.air || S.pre > 0 || !slime) return;
-      S.pre = 0.16; S.pend = { p:power || 7, turns:turns || 0 };
-    }
-    function launch(){
-      var p = S.pend; S.vy = p.p; S.air = true; S.pre = 0;
-      var air = 2 * p.p / 18; S.spinRem = p.turns * Math.PI * 2; S.spinSpd = p.turns ? S.spinRem / air : 0;
-    }
-    function land(){
-      S.air = false; S.y = 0; S.vy = 0; S.sq = 0.55; S.sqV = 0; S.spinRem = 0;
-      puff(0, 0.1, 0, 0xffffff, 6, 1.2, 4, 0.5);
-      if(S.chain > 0){ S.chain--; S.pre = 0; jump(5.2 - (3 - S.chain) * 0.8, 0); }
-    }
+    function jump(power, turns){ if(S.air || S.pre > 0 || !slime) return; S.pre = 0.16; S.pend = { p:power || 7, turns:turns || 0 }; }
+    function launch(){ var p = S.pend || { p:5, turns:0 }; S.vy = p.p; S.air = true; S.pre = 0; var air = 2 * p.p / 18; S.spinRem = p.turns * Math.PI * 2; S.spinSpd = p.turns ? S.spinRem / air : 0; S.wob = Math.max(S.wob, 0.05); }
+    function land(){ S.air = false; S.y = 0; S.vy = 0; S.sq = 0.55; S.sqV = 0; S.spinRem = 0; S.wob = 0.09; puff(0, 0.1, 0, 0xffffff, 6, 1.2, 4, 0.5); if(S.chain > 0){ S.chain--; S.pre = 0; jump(5.2 - (3 - S.chain) * 0.8, 0); } }
     function act(name){
       if(!slime || !S.hatched) return;
-      if(name === 'hop') jump(4.6, 0);
-      else if(name === 'jump') jump(7.4, 0);
-      else if(name === 'twirl') jump(7.6, 1);
-      else if(name === 'twirl2') jump(9.2, 2);
+      if(name === 'hop') jump(4.6, 0); else if(name === 'jump') jump(7.4, 0); else if(name === 'twirl') jump(7.6, 1); else if(name === 'twirl2') jump(9.2, 2);
       else if(name === 'chain'){ S.chain = 2; jump(5.4, 0); }
-      else if(name === 'wiggle'){ S.act = 'wiggle'; S.actT = 0.9; }
+      else if(name === 'wiggle'){ S.act = 'wiggle'; S.actT = 0.9; S.wob = 0.07; }
       else if(name === 'look'){ S.act = 'look'; S.actT = 1.8; }
       else if(name === 'cheer'){ S.happy = 1.6; jump(8.2, 1); }
-      else if(name === 'eat'){ S.eat = 1.1; S.happy = 0.8; }
+      else if(name === 'eat'){ S.eat = 1.1; S.happy = 0.8; S.wob = 0.06; }
     }
-    function cuddle(){ act('cheer'); }
-    function hatch(done){
-      if(!eggG.visible) return;
-      S.hatching = { t:0, done:done, shaken:false };
-    }
+    function hatch(done){ if(!eggG.visible) return; S.hatching = { t:0, done:done }; }
     function finishHatch(){
       var ud = eggG.userData;
       puff(0, 1.4, 0, 0xffe066, 18, 2.2, 5, 1.0); puff(0, 1.4, 0, 0xffffff, 14, 1.8, 5, 1.0);
@@ -4440,12 +4649,9 @@
         sh.position.set(Math.cos(a) * 0.3, 1.1, Math.sin(a) * 0.3); sh.rotation.set(Math.random() * 3, Math.random() * 3, 0); scene.add(sh);
         shards.push({ m:sh, vx:Math.cos(a) * 2.2, vy:3 + Math.random() * 2, vz:Math.sin(a) * 2.2, t:0, r:(Math.random() - 0.5) * 8 });
       }
-      eggG.visible = false; rig.visible = true; S.hatched = true; bornT = 0.001; S.sq = -0.2;
+      eggG.visible = false; rig.visible = true; S.hatched = true; bornT = 0.001; S.sq = -0.2; S.wob = 0.1;
       if(hooks.onFlash) hooks.onFlash();
     }
-
-    // ---- 상태 반영 ----
-    var lastKey = '';
     function setPet(cfg){
       var gn = cfg.genes; if(!gn) return;
       var gk = JSON.stringify(gn);
@@ -4455,14 +4661,10 @@
       if(!S.hatching){ eggG.visible = !hatched; rig.visible = hatched; S.hatched = hatched; }
       setTheme(cfg.theme || 'meadow'); setDeco(cfg.deco || []);
       var st = cfg.stage;
-      if(slime){
-        petStageApply(slime, st);
-        S.big = [1.0, 0.95, 1.15, 1.35, 1.58, 1.85][Math.min(5, Math.max(0, st))];
-      }
+      if(slime){ petStageApply(slime, st); S.big = [1.0, 0.95, 1.15, 1.35, 1.58, 1.85][Math.min(5, Math.max(0, st))]; }
     }
     function status2(sat, mood){ status.sat = sat; status.mood = mood; }
 
-    // ---- 그리기 반복 ----
     var running = false, clock = new T.Clock(), tt = 0, scaleNow = 0.95;
     function resize(){
       var w = canvas.clientWidth, h = canvas.clientHeight; if(!w || !h) return;
@@ -4476,7 +4678,8 @@
     var downX = 0, downY = 0;
     canvas.addEventListener('pointerdown', function(e){ downX = e.clientX; downY = e.clientY; });
     canvas.addEventListener('pointerup', function(e){ if(Math.hypot(e.clientX - downX, e.clientY - downY) < 14){ if(hooks.onTap) hooks.onTap(S.hatched ? 'slime' : 'egg'); if(!S.hatched) S.eggShake = 0.8; } });
-    var AI = 0;
+    var shadowMesh = new T.Mesh(new T.CircleGeometry(1.0, 28), new T.MeshBasicMaterial({ color:0x10200c, transparent:true, opacity:0.38, depthWrite:false }));
+    shadowMesh.rotation.x = -Math.PI / 2; scene.add(shadowMesh);
     function frame(){
       if(!running) return;
       requestAnimationFrame(frame);
@@ -4485,7 +4688,6 @@
       worldTick(dt, tt);
       decoRoot.children.forEach(function(g){ if(g.userData.pop < 1){ g.userData.pop = Math.min(1, g.userData.pop + dt * 2.2); var k = g.userData.pop, e = 1 + 1.7 * Math.pow(k - 1, 3) + 0.7 * Math.pow(k - 1, 2); g.scale.setScalar(Math.max(0.01, e)); } });
       decoAnims.forEach(function(f){ f(tt, nightK); });
-      // 알
       if(eggG.visible && eggG.userData.shell){
         var ud = eggG.userData, warm = status.warmth / 100;
         var rock = Math.sin(tt * (status.ready ? 9 : 2.4)) * (status.ready ? 0.14 : 0.07) + (S.eggShake > 0 ? Math.sin(tt * 40) * 0.2 * S.eggShake : 0);
@@ -4503,48 +4705,37 @@
           if(H.t > 1.9){ S.hatching = null; finishHatch(); if(H.done) H.done(); }
         }
       }
-      // 슬라임
       if(slime && rig.visible){
         var born = bornT > 0 ? Math.min(1, bornT / 0.6) : 1; if(bornT > 0) bornT += dt; if(bornT > 0.6) bornT = 0;
         scaleNow += (S.big - scaleNow) * Math.min(1, dt * 4);
-        // 자동 행동
+        S.wob *= Math.pow(0.04, dt); wobble(tt);
         S.next -= dt;
         if(S.next <= 0 && !S.air && S.pre <= 0 && !S.act && S.eat <= 0){
           var r = Math.random(), mood = lowSat ? 0 : joy;
           if(lowSat){ S.act = r < 0.7 ? 'look' : 'wiggle'; S.actT = 1.6; S.next = 3 + Math.random() * 2; }
-          else{
-            S.next = (mood > 0 ? 1.4 : 2.4) + Math.random() * 2.2;
-            if(r < 0.3) act('hop'); else if(r < 0.5) act('wiggle'); else if(r < 0.7) act('twirl'); else if(r < 0.82) act('look'); else if(r < 0.92) act('chain'); else act('twirl2');
-          }
+          else{ S.next = (mood > 0 ? 1.4 : 2.4) + Math.random() * 2.2; if(r < 0.3) act('hop'); else if(r < 0.5) act('wiggle'); else if(r < 0.7) act('twirl'); else if(r < 0.82) act('look'); else if(r < 0.92) act('chain'); else act('twirl2'); }
         }
-        // 점프 물리
         if(S.pre > 0){ S.pre -= dt; S.sq += (0.62 - S.sq) * Math.min(1, dt * 18); if(S.pre <= 0) launch(); }
         else if(S.air){
           S.vy -= 18 * dt; S.y += S.vy * dt;
           S.sq = -0.28 * Math.max(0, Math.min(1, Math.abs(S.vy) / 7)) + (S.vy < 0 ? 0.06 : 0);
           if(S.spinRem > 0){ var d = Math.min(S.spinRem, S.spinSpd * dt); S.yaw += d; S.spinRem -= d; }
           if(S.y <= 0 && S.vy < 0){ land(); }
-        }else{
-          S.sqV += (-110 * S.sq - 10 * S.sqV) * dt; S.sq += S.sqV * dt;
-        }
+        }else{ S.sqV += (-110 * S.sq - 10 * S.sqV) * dt; S.sq += S.sqV * dt; }
         if(S.act === 'wiggle'){ S.actT -= dt; slime.g.rotation.z = Math.sin(tt * 22) * 0.16 * Math.min(1, S.actT * 2); if(S.actT <= 0){ S.act = ''; slime.g.rotation.z = 0; } }
         else if(S.act === 'look'){ S.actT -= dt; S.lookY = Math.sin((1.8 - S.actT) * 3.2) * 0.5; if(S.actT <= 0){ S.act = ''; S.lookY = 0; } }
         if(!S.act) slime.g.rotation.z += (Math.sin(tt * 1.4) * 0.03 - slime.g.rotation.z) * Math.min(1, dt * 6);
-        // 먹기
         var chew = 0;
         if(S.eat > 0){ S.eat -= dt; chew = Math.sin(tt * 16) * 0.07; if(S.eat <= 0.45 && apple){ scene.remove(apple); apple = null; } }
         var breath = Math.sin(tt * 2.2) * 0.025 + chew;
         var sq = S.sq + (S.air ? 0 : breath);
         sq = Math.max(-0.45, Math.min(0.85, sq)); if(!isFinite(sq)){ sq = 0; S.sq = 0; S.sqV = 0; }
-        spinG.rotation.y = S.yaw + S.lookY;
-        rig.position.y = S.y;
-        var sc = scaleNow * (0.2 + 0.8 * born + (born < 1 ? Math.sin(born * Math.PI) * 0.35 : 0));
-        rig.scale.set(sc * (1 + sq * 0.4), sc * (1 - sq * 0.55), sc * (1 + sq * 0.4));
-        // 표정
-        S.blinkT = (S.blinkT === undefined ? 2 : S.blinkT) - dt; if(S.blinkT <= 0){ S.blinkOn = 0.14; S.blinkT = 2 + Math.random() * 2.5; }
+        spinG.rotation.y = S.yaw + (S.lookY || 0); rig.position.y = S.y;
+        var sc2 = scaleNow * (0.2 + 0.8 * born + (born < 1 ? Math.sin(born * Math.PI) * 0.35 : 0));
+        rig.scale.set(sc2 * (1 + sq * 0.4), sc2 * (1 - sq * 0.55), sc2 * (1 + sq * 0.4));
+        S.blinkT -= dt; if(S.blinkT <= 0){ S.blinkOn = 0.14; S.blinkT = 2 + Math.random() * 2.5; }
         var bl = 1; if(S.blinkOn > 0){ S.blinkOn -= dt; bl = 0.1; }
-        var droop = lowSat ? 0.55 : 1, hp = S.happy > 0;
-        if(S.happy > 0) S.happy -= dt;
+        var droop = lowSat ? 0.55 : 1, hp = S.happy > 0; if(S.happy > 0) S.happy -= dt;
         slime.eyes.forEach(function(e){ e.scale.set(1, Math.max(0.1, bl * droop), 1); e.visible = !hp; });
         slime.happyEyes.visible = hp;
         slime.smile.rotation.z = lowSat ? 0 : Math.PI; slime.smile.position.y = lowSat ? -0.05 : 0;
@@ -4557,25 +4748,18 @@
         if(slime.wings.visible && slime.wingL){ var fl = Math.sin(tt * (S.air ? 14 : 3)) * (S.air ? 0.5 : 0.18); slime.wingL.rotation.y = -0.4 + fl; slime.wingR.rotation.y = 0.4 - fl; }
         if(slime.halo.visible){ slime.halo.position.y = 1.95 + Math.sin(tt * 2) * 0.05; slime.halo.rotation.z = tt * 0.8; }
         if(slime.wings.visible && Math.random() < dt * 3) puff((Math.random() - 0.5) * 1.6, 0.6 + Math.random(), (Math.random() - 0.5) * 1.2, 0xfff3a0, 1, 0.3, -0.5, 1.0);
-        // 그림자
-        shadowMesh.position.set(0, 0.015, 0); var sh = scaleNow * (1.05 - Math.min(0.5, S.y * 0.12)); shadowMesh.scale.set(sh, sh, sh); shadowMesh.material.opacity = 0.38 - Math.min(0.2, S.y * 0.05); shadowMesh.visible = true;
-        // 사과
-        if(apple){ var p = Math.max(0, Math.min(1, 1 - (S.eat - 0.45) / 0.65)); apple.position.set(0, 2.6 - p * 1.6, 0.4 + p * 0.5); apple.scale.setScalar(Math.max(0.05, 1 - p * 0.8)); }
-      }else if(eggG.visible){ shadowMesh.position.set(0, 0.015, 0); shadowMesh.scale.set(1.0, 1.0, 1.0); shadowMesh.material.opacity = 0.28; shadowMesh.visible = true; }
-      // 효과
-      for(var i = fxList.length - 1; i >= 0; i--){ var f = fxList[i]; f.t += dt; f.vy -= f.g * dt; f.m.position.x += f.vx * dt; f.m.position.y += f.vy * dt; f.m.position.z += f.vz * dt; f.m.material.opacity = Math.max(0, 1 - f.t / f.life); f.m.scale.setScalar(Math.max(0.1, 1 - f.t / f.life * 0.6));
-        if(f.t >= f.life){ scene.remove(f.m); fxList.splice(i, 1); } }
-      for(var j = shards.length - 1; j >= 0; j--){ var s2 = shards[j]; s2.t += dt; s2.vy -= 9 * dt; s2.m.position.x += s2.vx * dt; s2.m.position.y += s2.vy * dt; s2.m.position.z += s2.vz * dt; s2.m.rotation.x += s2.r * dt; s2.m.rotation.z += s2.r * dt;
-        if(s2.m.position.y < 0.05){ s2.m.position.y = 0.05; s2.vy = 0; s2.vx *= 0.8; s2.vz *= 0.8; } if(s2.t > 2.2){ scene.remove(s2.m); shards.splice(j, 1); } }
+        shadowMesh.position.set(0, 0.016, 0); var sh = scaleNow * (1.05 - Math.min(0.5, S.y * 0.12)); shadowMesh.scale.set(sh, sh, sh); shadowMesh.material.opacity = 0.34 - Math.min(0.2, S.y * 0.05); shadowMesh.visible = true;
+        if(apple){ var pp = Math.max(0, Math.min(1, 1 - (S.eat - 0.45) / 0.65)); apple.position.set(0, 2.6 - pp * 1.6, 0.4 + pp * 0.5); apple.scale.setScalar(Math.max(0.05, 1 - pp * 0.8)); }
+      }else if(eggG.visible){ shadowMesh.position.set(0, 0.016, 0); shadowMesh.scale.set(1.0, 1.0, 1.0); shadowMesh.material.opacity = 0.34; shadowMesh.visible = true; }
+      for(var i = fxList.length - 1; i >= 0; i--){ var f = fxList[i]; f.t += dt; f.vy -= f.g * dt; f.m.position.x += f.vx * dt; f.m.position.y += f.vy * dt; f.m.position.z += f.vz * dt; f.m.material.opacity = Math.max(0, 1 - f.t / f.life); f.m.scale.setScalar(Math.max(0.1, 1 - f.t / f.life * 0.6)); if(f.t >= f.life){ scene.remove(f.m); fxList.splice(i, 1); } }
+      for(var j = shards.length - 1; j >= 0; j--){ var s2 = shards[j]; s2.t += dt; s2.vy -= 9 * dt; s2.m.position.x += s2.vx * dt; s2.m.position.y += s2.vy * dt; s2.m.position.z += s2.vz * dt; s2.m.rotation.x += s2.r * dt; s2.m.rotation.z += s2.r * dt; if(s2.m.position.y < 0.05){ s2.m.position.y = 0.05; s2.vy = 0; s2.vx *= 0.8; s2.vz *= 0.8; } if(s2.t > 2.2){ scene.remove(s2.m); shards.splice(j, 1); } }
       renderer.render(scene, camera);
     }
-    var shadowMesh = new T.Mesh(new T.CircleGeometry(1.0, 28), new T.MeshBasicMaterial({ color:0x1a2a14, transparent:true, opacity:0.38, depthWrite:false }));
-    shadowMesh.rotation.x = -Math.PI / 2; scene.add(shadowMesh);
     function feedAnim(){ if(apple){ scene.remove(apple); } apple = new T.Group(); var a = new T.Mesh(new T.SphereGeometry(0.28, 14, 12), new T.MeshStandardMaterial({ color:0xff4f4f, roughness:0.3 })); apple.add(a); var lf = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshStandardMaterial({ color:0x58c458 })); lf.scale.set(1.6, 0.4, 0.8); lf.position.set(0.1, 0.3, 0); apple.add(lf); apple.position.set(0, 2.6, 0.4); scene.add(apple); act('eat'); }
     function start(){ if(running) return; running = true; clock.getDelta(); resize(); frame(); }
     function stop(){ running = false; }
     function dispose(){ running = false; window.removeEventListener('resize', onWin); try{ renderer.dispose(); }catch(e){} }
-    return { setPet:setPet, setStatus:status2, setTimeMode:function(m){ timeMode = m; lastLight = -1e9; lastSky = -1e9; }, act:act, cuddle:cuddle, feed:feedAnim, hatch:hatch, start:start, stop:stop, resize:resize, dispose:dispose, burst:function(col, n){ puff(0, 1.2, 0, col || 0xffe066, n || 12, 2, 4, 0.9); } };
+    return { setPet:setPet, setStatus:status2, setTimeMode:function(m){ timeMode = m; lastLight = -1e9; lastSky = -1e9; }, act:act, cuddle:function(){ act('cheer'); }, feed:feedAnim, hatch:hatch, start:start, stop:stop, resize:resize, dispose:dispose, burst:function(col, n){ puff(0, 1.2, 0, col || 0xffe066, n || 12, 2, 4, 0.9); } };
   }
 
   // 도감용 썸네일 (한 번에 모두 그려서 사진으로 저장)
@@ -6390,7 +6574,10 @@ function updateHubTickets(){
 function hubOnData(){
   if(!document.getElementById('hubOverlay').classList.contains('hidden')){
     updateHubTickets(); renderCollection(); if(hubTab === 'gacha') renderGachaView();
-    if(hubTab === 'pet' && !petQuiz && !petBusy) renderPetView();
+    if(hubTab === 'pet' && !petQuiz && !petBusy){
+      if(!petViewer || petSig() !== petRenderedSig) renderPetView();       // 저장 신호가 올 때마다 새로 그리면 슬라임이 깜빡 사라져요
+      else{ petTick(); petRefreshCoin(); }
+    }
   }
 }
 
@@ -6428,7 +6615,9 @@ const PET_THEMES = [
   { id:'blossom', name:'봄 벚꽃',   icon:'💮', cost:700 }
 ];
 let petTimeMode = 'auto';
-let petBusy = false;
+let petBusy = false, petRenderedSig = '';
+// 화면을 새로 그려야 하는 변화인지 확인하는 표시 (꾸미기/코인/기분 같은 건 다시 그리지 않아요)
+function petSig(){ petInit(); return [pet.hatched ? 1 : 0, petStage(), JSON.stringify(pet.genes), pet.name || ''].join('|'); }
 // 전투에 데려갈 내 펫 (태어난 슬라임만)
 function petBattleSpec(){
   if(!pet || !pet.hatched || !pet.genes) return null;
@@ -6809,6 +6998,7 @@ function renderPetView(celebrate){
     document.getElementById('petTimeBtn').textContent = ({ auto:'🕒 자동', day:'☀️ 낮', sunset:'🌇 노을', night:'🌙 밤' })[petTimeMode];
     if(petViewer) petViewer.setTimeMode(petTimeMode);
   });
+  petRenderedSig = petSig();
   petTick();
   petTimer = setInterval(petTick, 1000);
   ensureHubLib().then(lib => {
