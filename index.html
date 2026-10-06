@@ -209,7 +209,30 @@
     border-left:2px solid var(--yellow);
     box-shadow:none;
   }
-  .word-card .en{font-family:'Playfair Display','Noto Serif KR',serif;font-size:17px;color:var(--ink);}
+  #coinToast{position:fixed;left:50%;top:84px;transform:translate(-50%,-14px);z-index:90;background:var(--ink);color:#ffe28a;border-radius:999px;padding:9px 18px;font-size:14px;font-weight:700;font-family:'Noto Serif KR',serif;box-shadow:0 8px 22px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;white-space:nowrap;}
+#coinToast.show{opacity:1;transform:translate(-50%,0);}
+.word-card{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+.word-card .sel-check{display:none;width:22px;height:22px;border-radius:50%;border:1.5px solid #CFC9BD;flex-shrink:0;align-items:center;justify-content:center;font-size:13px;color:#fff;background:#fff;}
+#wordListArea.sel-mode{padding-bottom:150px;}
+#wordListArea.sel-mode .word-card .del{display:none;}
+#wordListArea.sel-mode .word-card .sel-check{display:flex;}
+#wordListArea.sel-mode .day-label{cursor:pointer;}
+.word-card.selected{background:#FBF6EC;border-color:var(--pink);border-left:3px solid var(--pink-dark);}
+.word-card.selected .sel-check{background:var(--pink-dark);border-color:var(--pink-dark);}
+.word-card.selected .sel-check::after{content:'✓';}
+.choice-btn.sel{background:#FBF6EC;border-color:var(--pink-dark);}
+#selBar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(92vw,560px);z-index:70;background:var(--ink);color:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:10px;}
+#selBar.hidden{display:none;}
+#selBar .sel-row{display:flex;align-items:center;gap:8px;}
+#selBar .sel-sp{flex:1;}
+#selCount{font-family:'Noto Serif KR',serif;font-size:14px;font-weight:600;}
+.sel-link{border:none;background:transparent;color:#E8DCC4;font-size:12px;cursor:pointer;padding:4px 6px;text-decoration:underline;font-family:'Noto Serif KR',serif;}
+.sel-modes{display:flex;gap:6px;flex:1;}
+.sel-mode-chip{flex:1;border:1px solid #6b655c;background:transparent;color:#cfc9bd;border-radius:6px;padding:9px 4px;font-size:12px;cursor:pointer;font-family:'Noto Serif KR',serif;}
+.sel-mode-chip.active{background:#fff;color:var(--ink);border-color:#fff;font-weight:700;}
+.sel-start{border:none;background:var(--pink);color:#fff;border-radius:6px;padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Serif KR',serif;}
+.sel-start:disabled{opacity:.4;cursor:not-allowed;}
+.word-card .en{font-family:'Playfair Display','Noto Serif KR',serif;font-size:17px;color:var(--ink);}
   .word-card .ko{font-size:13px;color:#9A9488;margin-top:3px;font-family:'Noto Serif KR',serif;}
   .word-card .del{
     border:1px solid #EAE7E0;background:transparent;color:var(--lavender);
@@ -586,10 +609,18 @@
   .dt-trait b{color:#ffd24a;font-size:14px;} .dt-trait span{opacity:.88;}
   .dmg-pop2.assist{font-size:17px;font-weight:900;color:#fff;text-shadow:0 2px 0 #0008,0 0 10px currentColor;}
   .dmg-pop2.assist.heal{color:#ff9ad0;} .dmg-pop2.assist.shield{color:#7fe0ff;} .dmg-pop2.assist.power{color:#ffb040;}
-  .pet-wrap{padding:4px 14px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .pet-wrap{padding:4px 14px 36px;display:flex;flex-direction:column;align-items:center;gap:10px;}
   .pet-head{text-align:center;} .pet-head b{font-size:22px;letter-spacing:1px;}
   .pet-stage::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:18px;background:radial-gradient(ellipse at 50% 46%,rgba(0,0,0,0) 58%,rgba(10,12,30,.38) 100%);z-index:2;}
-  .pet-time{position:absolute;right:8px;top:8px;z-index:4;border:none;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800;background:#000a;color:#fff;cursor:pointer;}
+  .pet-row2{display:flex;gap:8px;width:100%;max-width:640px;} .pet-row2 .hub-btn{flex:1;padding:10px 4px;font-size:13px;}
+  .pet-play{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px;width:100%;max-width:640px;}
+  .pp-btn{padding:12px 6px;border-radius:14px;border:2px solid #3a4a8a;background:#1a2146;color:#f1ecff;font-size:14px;font-weight:800;cursor:pointer;}
+  .pp-btn:active{transform:translateY(2px);background:#26306a;}
+  .pet-emote{position:absolute;transform:translate(-50%,-50%);font-size:28px;pointer-events:none;z-index:5;animation:emoteUp 1.4s ease-out forwards;text-shadow:0 2px 6px #0006;}
+  @keyframes emoteUp{0%{opacity:0;transform:translate(-50%,-20%) scale(.5);}20%{opacity:1;transform:translate(-50%,-60%) scale(1.15);}100%{opacity:0;transform:translate(-50%,-170%) scale(1);}}
+  .pf-list{display:grid;gap:8px;} .pf-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;border:2px solid #33406a;background:#161b3a;color:#f1ecff;cursor:pointer;text-align:left;}
+  .pf-dot{width:34px;height:34px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 -4px 0 #0003;} .pf-info{display:flex;flex-direction:column;flex:1;min-width:0;} .pf-info b{font-size:14px;} .pf-info span{font-size:12px;opacity:.8;} .pf-hr{font-size:12px;color:#ffd24a;font-weight:800;white-space:nowrap;}
+  .pet-time{position:absolute;right:8px;bottom:8px;z-index:4;border:none;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800;background:#000a;color:#fff;cursor:pointer;}
   .pet-stage{position:relative;width:100%;max-width:640px;height:min(48vh,430px);border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
   .pet-stage canvas{width:100%;height:100%;display:block;touch-action:none;}
   .pet-egg{font-size:140px;cursor:pointer;animation:eggWob 1.6s ease-in-out infinite;filter:drop-shadow(0 10px 14px #0007);user-select:none;}
@@ -1082,6 +1113,10 @@
           <span class="mc-title">마스터피스</span>
           <span class="mc-sub">레벨(스탯)과 장비를 원하는 대로 설정</span>
         </button>
+        <button type="button" id="menuResetBtn" class="menu-choice-btn" style="border-color:#C9A0A0;">
+          <span class="mc-title" style="color:#8B3A3A;">🗑️ 처음부터 다시 시작</span>
+          <span class="mc-sub">단어와 게임 기록을 모두 지워요 (되돌릴 수 없어요)</span>
+        </button>
       </div>
     </div>
   </div>
@@ -1401,6 +1436,7 @@
     <div class="add-row" style="margin-bottom:14px;">
       <input id="searchInput" type="text" placeholder="단어 검색 (영어 또는 한글)" autocapitalize="off" autocorrect="off" spellcheck="false">
     </div>
+    <p class="hint" id="selHint" style="margin:-4px 0 12px;">단어를 꾹 누르면 골라서 시험을 볼 수 있어요</p>
 
     <div id="wordListArea"></div>
   </section>
@@ -1423,6 +1459,10 @@
         <button class="choice-btn all" id="quizAllBtn">
           <span class="big">전체 단어로</span>
           <span class="small" id="allCountLabel">0개 단어</span>
+        </button>
+        <button class="choice-btn sel hidden" id="quizSelBtn">
+          <span class="big">내가 고른 단어로</span>
+          <span class="small" id="selCountLabel">0개 단어</span>
         </button>
       </div>
     </div>
@@ -4576,26 +4616,50 @@
       var lp = list.indexOf('lantern') >= 0; lampLight.visible = lp; if(lp) lampLight.position.set(PET_DECO_POS.lantern[0], 1.9, PET_DECO_POS.lantern[1] + 0.3);
     }
 
-    // ---- 슬라임 몸 (말랑하게 출렁여요) ----
-    var rig = new T.Group(); scene.add(rig);
-    var spinG = new T.Group(); rig.add(spinG);
-    var slime = null, curGenes = '', eggG = new T.Group(); scene.add(eggG);
-    var S = { y:0, vy:0, air:false, sq:0, sqV:0, pre:0, spin:0, spinSpd:0, spinRem:0, yaw:0, blinkT:2, blinkOn:0, eat:0, happy:0, act:'', next:1.5, chain:0, hatched:true, big:1, wob:0 };
-    var status = { sat:60, mood:60, stage:1, warmth:0, ready:false }, bornT = 0;
-    var wobGeo = null, wobOrg = null, wobNrm = null;
-    function buildSlime(gn){
-      if(slime) spinG.remove(slime.g);
-      wobGeo = petBlob().clone(); wobOrg = wobGeo.attributes.position.array.slice(); wobNrm = wobGeo.attributes.normal.array.slice();
-      slime = makePetBody(gn, { hq:true, env:env, geo:wobGeo }); spinG.add(slime.g);
-      slime.g.traverse(function(o){ if(o.isMesh){ o.castShadow = true; } });
+    // ---- 슬라임들 (말랑하게 출렁여요): 내 펫 P0, 놀러간 집의 친구 펫 P1 ----
+    var eggG = new T.Group(); scene.add(eggG);
+    var status = { sat:60, mood:60, stage:1, warmth:0, ready:false }, bornT = 0, hatchedFlag = true;
+    var BOUND = { x:3.3, zmin:-1.6, zmax:1.9 }, deco = [];
+    var KEEP = { house:[3.0, -1.6, 1.6], tree:[-3.3, -1.0, 1.1], pond:[2.6, 2.4, 1.4], flowers:[-2.55, 1.5, 1.25], mushrooms:[-2.0, -2.6, 1.5], balloon:[3.5, 1.0, 0.7], lantern:[-3.5, 1.0, 0.55], ball:[-1.3, 2.5, 0.55], cushion:[1.6, 1.5, 0.45] };
+    function clampB(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+    function inKeep(x, z, allow){
+      for(var i = 0; i < deco.length; i++){ var k = KEEP[deco[i]]; if(!k || deco[i] === allow) continue; if(Math.hypot(x - k[0], z - k[1]) < k[2]) return true; }
+      return false;
     }
-    function wobble(t){
-      if(!wobGeo || S.wob < 0.002) return;
-      var p = wobGeo.attributes.position, n = p.count, amp = S.wob;
+    function freeSpot(A, other){
+      for(var i = 0; i < 14; i++){
+        var x = rnd(-BOUND.x, BOUND.x), z = rnd(BOUND.zmin, BOUND.zmax);
+        if(inKeep(x, z)) continue; if(other && Math.hypot(x - other.x, z - other.z) < 1.3) continue;
+        if(Math.hypot(x - A.x, z - A.z) < 0.8) continue;
+        return { x:x, z:z };
+      }
+      return { x:rnd(-1.5, 1.5), z:rnd(-0.5, 1.0) };
+    }
+    function toScreen(x, y, z){ var v = new T.Vector3(x, y, z); v.project(camera); return { x:v.x * 0.5 + 0.5, y:-v.y * 0.5 + 0.5 }; }
+    function emote(A, text){ if(!hooks.onEmote) return; var p = toScreen(A.x, 2.9 * Math.max(0.7, A.scaleNow) + A.S.y, A.z); try{ hooks.onEmote({ x:p.x, y:p.y, text:text }); }catch(e){} }
+
+    function makeActor(){
+      var A = { rig:new T.Group(), spinG:new T.Group(), slime:null, key:'', x:0, z:0, heading:0, faceTo:0, big:1, scaleNow:0.95, born:1, free:false,
+        S:{ y:0, vy:0, vx:0, vz:0, air:false, sq:0, sqV:0, pre:0, spinRem:0, spinSpd:0, yaw:0, blinkT:2, blinkOn:0, eat:0, happy:0, wob:0, lookY:0, pend:null },
+        mode:'idle', modeT:0, next:1.2, target:null, follow:null, script:false, restY:0, sleepy:false, hungry:false, beat:0, tick:0, onLand:null, stage:1, lean:0 };
+      A.rig.add(A.spinG); A.rig.visible = false; scene.add(A.rig);
+      A.shadow = new T.Mesh(new T.CircleGeometry(1.0, 28), new T.MeshBasicMaterial({ color:0x10200c, transparent:true, opacity:0.34, depthWrite:false })); A.shadow.rotation.x = -Math.PI / 2; A.shadow.visible = false; scene.add(A.shadow);
+      return A;
+    }
+    var P0 = makeActor(), P1 = makeActor();
+    function actorBuild(A, gn){
+      var key = JSON.stringify(gn); if(key === A.key && A.slime) return; A.key = key;
+      if(A.slime) A.spinG.remove(A.slime.g);
+      var bg = petBlob().clone(); A.wobGeo = bg; A.wobOrg = bg.attributes.position.array.slice(); A.wobNrm = bg.attributes.normal.array.slice();
+      A.slime = makePetBody(gn, { hq:true, env:env, geo:bg }); A.spinG.add(A.slime.g);
+      A.slime.g.traverse(function(o){ if(o.isMesh) o.castShadow = true; });
+    }
+    function actorWobble(A, t){
+      if(!A.wobGeo || A.S.wob < 0.002) return;
+      var p = A.wobGeo.attributes.position, n = p.count, amp = A.S.wob, org = A.wobOrg, nrm = A.wobNrm;
       for(var i = 0; i < n; i++){
-        var ox = wobOrg[i * 3], oy = wobOrg[i * 3 + 1], oz = wobOrg[i * 3 + 2];
-        var w = Math.sin(t * 19 + oy * 6.5 + ox * 3.2) * amp * (0.35 + Math.max(0, oy));
-        p.array[i * 3] = ox + wobNrm[i * 3] * w; p.array[i * 3 + 1] = oy + wobNrm[i * 3 + 1] * w; p.array[i * 3 + 2] = oz + wobNrm[i * 3 + 2] * w;
+        var ox = org[i * 3], oy = org[i * 3 + 1], oz = org[i * 3 + 2], w = Math.sin(t * 19 + oy * 6.5 + ox * 3.2) * amp * (0.35 + Math.max(0, oy));
+        p.array[i * 3] = ox + nrm[i * 3] * w; p.array[i * 3 + 1] = oy + nrm[i * 3 + 1] * w; p.array[i * 3 + 2] = oz + nrm[i * 3 + 2] * w;
       }
       p.needsUpdate = true;
     }
@@ -4617,8 +4681,9 @@
       eggG.userData = { shell:shell, em:em, cracks:cracks };
       var glow = new T.Mesh(new T.SphereGeometry(1.5, 20, 16), new T.MeshBasicMaterial({ color:0xffc070, transparent:true, opacity:0 })); glow.position.y = 1.2; glow.scale.set(1, 1.15, 1); eggG.add(glow); eggG.userData.glow = glow;
     }
+    var eggShadow = new T.Mesh(new T.CircleGeometry(1.0, 28), new T.MeshBasicMaterial({ color:0x10200c, transparent:true, opacity:0.34, depthWrite:false })); eggShadow.rotation.x = -Math.PI / 2; eggShadow.position.y = 0.016; scene.add(eggShadow);
 
-    // ---- 효과 (먼지, 반짝이, 조각) ----
+    // ---- 효과 (먼지, 반짝이, 조각, 거품) ----
     var fxList = [], shards = [], sparkGeo = new T.SphereGeometry(0.06, 6, 6);
     function puff(x, y, z, col, n, spd, grav, life){
       for(var i = 0; i < n; i++){
@@ -4627,19 +4692,290 @@
         fxList.push({ m:m, vx:Math.cos(a) * s, vy:(0.6 + Math.random() * 1.4) * spd, vz:Math.sin(a) * s, g:grav, t:0, life:life || 0.7 });
       }
     }
-    var apple = null;
-    function jump(power, turns){ if(S.air || S.pre > 0 || !slime) return; S.pre = 0.16; S.pend = { p:power || 7, turns:turns || 0 }; }
-    function launch(){ var p = S.pend || { p:5, turns:0 }; S.vy = p.p; S.air = true; S.pre = 0; var air = 2 * p.p / 18; S.spinRem = p.turns * Math.PI * 2; S.spinSpd = p.turns ? S.spinRem / air : 0; S.wob = Math.max(S.wob, 0.05); }
-    function land(){ S.air = false; S.y = 0; S.vy = 0; S.sq = 0.55; S.sqV = 0; S.spinRem = 0; S.wob = 0.09; puff(0, 0.1, 0, 0xffffff, 6, 1.2, 4, 0.5); if(S.chain > 0){ S.chain--; S.pre = 0; jump(5.2 - (3 - S.chain) * 0.8, 0); } }
-    function act(name){
-      if(!slime || !S.hatched) return;
-      if(name === 'hop') jump(4.6, 0); else if(name === 'jump') jump(7.4, 0); else if(name === 'twirl') jump(7.6, 1); else if(name === 'twirl2') jump(9.2, 2);
-      else if(name === 'chain'){ S.chain = 2; jump(5.4, 0); }
-      else if(name === 'wiggle'){ S.act = 'wiggle'; S.actT = 0.9; S.wob = 0.07; }
-      else if(name === 'look'){ S.act = 'look'; S.actT = 1.8; }
-      else if(name === 'cheer'){ S.happy = 1.6; jump(8.2, 1); }
-      else if(name === 'eat'){ S.eat = 1.1; S.happy = 0.8; S.wob = 0.06; }
+    var bubbleGeo = new T.SphereGeometry(0.12, 12, 10);
+    function bubbleAt(x, y, z){
+      var m = new T.Mesh(bubbleGeo, new T.MeshPhysicalMaterial({ color:0xcfeaff, roughness:0.05, clearcoat:1, transparent:true, opacity:0.55, depthWrite:false })); m.position.set(x, y, z); m.scale.setScalar(0.5 + Math.random() * 0.9); scene.add(m);
+      fxList.push({ m:m, vx:(Math.random() - 0.5) * 0.3, vy:0.7 + Math.random() * 0.5, vz:(Math.random() - 0.5) * 0.3, g:-0.15, t:0, life:2.2, pop:true });
     }
+    var tweens = [];
+    function tween(dur, fn, done){ tweens.push({ t0:tt, dur:dur, fn:fn, done:done }); }
+    var tasks = [];
+    function afterT(sec, fn, tok){ tasks.push({ t:tt + sec, fn:fn, tok:tok }); }
+
+    // ---- 점프, 착지 ----
+    function aJump(A, power, turns, tx, tz){
+      if(!A.slime || A.S.air || A.S.pre > 0) return false;
+      A.S.pre = 0.16; A.S.pend = { p:power || 5, turns:turns || 0, tx:tx, tz:tz }; return true;
+    }
+    function aLaunch(A){
+      var S = A.S, p = S.pend || { p:5, turns:0 }; S.vy = p.p; S.air = true; S.pre = 0;
+      var air = 2 * p.p / 18; S.spinRem = p.turns * Math.PI * 2; S.spinSpd = p.turns ? S.spinRem / air : 0; S.wob = Math.max(S.wob, 0.05);
+      if(p.tx !== undefined && p.tx !== null){ var dx = p.tx - A.x, dz = p.tz - A.z; S.vx = dx / air; S.vz = dz / air; if(Math.hypot(dx, dz) > 0.05) A.faceTo = Math.atan2(dx, dz); } else { S.vx = 0; S.vz = 0; }
+    }
+    function aLand(A){
+      var S = A.S; S.air = false; S.y = 0; S.vy = 0; S.vx = 0; S.vz = 0; S.sq = 0.5; S.sqV = 0; S.spinRem = 0; S.wob = 0.09; puff(A.x, 0.1, A.z, 0xffffff, 5, 1.1, 4, 0.45);
+      if(A.onLand){ var f = A.onLand; A.onLand = null; f(); }
+    }
+    function aWait(A){ return !A.S.air && A.S.pre <= 0; }
+
+    // ---- 혼자 있을 때 하는 행동들 ----
+    function pickWeighted(list){ var tot = 0; list.forEach(function(e){ tot += e[1]; }); var r = Math.random() * tot; for(var i = 0; i < list.length; i++){ r -= list[i][1]; if(r <= 0) return list[i][0]; } return list[0][0]; }
+    function has(id){ return deco.indexOf(id) >= 0; }
+    function aiChoose(A, other){
+      var night = nightK > 0.6, list;
+      if(A.hungry) list = [['look', 3], ['sit', 4], ['yawn', 2], ['roam', 1]];
+      else{
+        list = [['hop', 3], ['wiggle', 2], ['look', 2], ['twirl', 2], ['roam', 5], ['dance', 1.6], ['roll', 1.3], ['yawn', 1.3], ['bubble', 1.6], ['peek', 1.1], ['chain', 1.2]];
+        if(has('cushion')) list.push(['sleep', night ? 6 : 1.4]); else if(night) list.push(['sleep', 3]);
+        if(has('flowers')) list.push(['sniff', 2.6]); if(has('pond')) list.push(['watch', 2]); if(has('ball')) list.push(['kick', 2]); if(has('house')) list.push(['knock', 1.6]);
+        if(!night && season !== 'snow') list.push(['butterfly', 2.2]);
+      }
+      aStart(A, pickWeighted(list), other);
+    }
+    function goTo(A, x, z, cb){ A.follow = null; A.mode = 'travel'; A.target = { x:x, z:z, cb:cb }; }
+    function aStart(A, name, other){
+      var S = A.S; A.modeT = 0; A.beat = 0;
+      if(name === 'hop') aJump(A, 4.4, 0); else if(name === 'twirl') aJump(A, 7.4, 1); else if(name === 'twirl2') aJump(A, 9.2, 2); else if(name === 'jump') aJump(A, 7.2, 0);
+      else if(name === 'chain'){ aJump(A, 5.2, 0); A.onLand = function(){ aJump(A, 4.4, 0); A.onLand = function(){ aJump(A, 3.6, 0); }; }; }
+      else if(name === 'wiggle'){ A.mode = 'wiggle'; A.modeT = 0.9; S.wob = 0.08; }
+      else if(name === 'look'){ A.mode = 'look'; A.modeT = 1.9; }
+      else if(name === 'cheer'){ S.happy = 1.6; aJump(A, 8.2, 1); emote(A, '💖'); }
+      else if(name === 'yawn'){ A.mode = 'yawn'; A.modeT = 1.5; }
+      else if(name === 'sit'){ A.mode = 'sit'; A.modeT = 3.2; emote(A, '🍎'); }
+      else if(name === 'bubble'){ A.mode = 'bubble'; A.modeT = 3.2; }
+      else if(name === 'dance'){ A.mode = 'dance'; A.modeT = 5.2; emote(A, '🎵'); }
+      else if(name === 'roam'){ var sp = freeSpot(A, other); goTo(A, sp.x, sp.z, function(){ A.next = 0.4; }); }
+      else if(name === 'roll'){ var sp2 = freeSpot(A, other); A.mode = 'roll'; A.target = { x:sp2.x, z:sp2.z }; A.modeT = 2.0; A.faceTo = Math.atan2(sp2.x - A.x, sp2.z - A.z); }
+      else if(name === 'sleep'){
+        var at = has('cushion') ? [PET_DECO_POS.cushion[0], PET_DECO_POS.cushion[1]] : null, sp3 = at ? { x:at[0], z:at[1] } : freeSpot(A, other);
+        goTo(A, sp3.x, sp3.z, function(){ A.mode = 'sleep'; A.modeT = 7; A.restY = at ? 0.32 : 0; A.faceTo = 0; emote(A, '💤'); });
+      }
+      else if(name === 'sniff'){ var fp = PET_DECO_POS.flowers; goTo(A, fp[0] + 1.5, fp[1] + 0.25, function(){ A.mode = 'sniff'; A.modeT = 3.2; A.faceTo = -Math.PI / 2; }); }
+      else if(name === 'watch'){ var pp = PET_DECO_POS.pond; goTo(A, pp[0] - 1.4, pp[1] - 0.2, function(){ A.mode = 'watch'; A.modeT = 3.6; A.faceTo = Math.PI / 2; emote(A, '🐟'); }); }
+      else if(name === 'kick'){ var bp = PET_DECO_POS.ball; goTo(A, bp[0] + 0.95, bp[1] - 0.1, function(){ A.mode = 'kick'; A.modeT = 3; A.faceTo = -Math.PI / 2; }); }
+      else if(name === 'knock'){ var hp = PET_DECO_POS.house; goTo(A, hp[0] + 0.15, hp[1] + 1.9, function(){ A.mode = 'knock'; A.modeT = 3; A.faceTo = Math.PI; }); }
+      else if(name === 'peek'){ goTo(A, rnd(-1.2, 1.2), BOUND.zmax, function(){ A.mode = 'peek'; A.modeT = 2.4; A.faceTo = 0; emote(A, '👋'); }); }
+      else if(name === 'butterfly'){ A.mode = 'butterfly'; A.modeT = 5; emote(A, '🦋'); }
+    }
+    // 매 프레임: 지금 하는 행동 이어가기
+    function aiUpdate(A, dt, tt0, other){
+      var S = A.S, m = A.mode;
+      if(m === 'idle'){ A.next -= dt; if(A.next <= 0 && aWait(A)){ A.next = (status.mood >= 70 ? 1.2 : 2.2) + Math.random() * 2; aiChoose(A, other); } return; }
+      if(m === 'travel'){
+        if(!aWait(A)) return;
+        var T0 = A.target; if(!T0){ A.mode = 'idle'; return; }
+        var tx = T0.x, tz = T0.z;
+        if(A.follow){ var o = A.follow.who, ddx = o.x - A.x, ddz = o.z - A.z, dd = Math.hypot(ddx, ddz); if(dd < A.follow.gap){ var cb0 = T0.cb; A.target = null; A.follow = null; A.mode = 'idle'; if(cb0) cb0(); return; } tx = o.x - ddx / dd * A.follow.gap * 0.85; tz = o.z - ddz / dd * A.follow.gap * 0.85; }
+        var dx = tx - A.x, dz = tz - A.z, d = Math.hypot(dx, dz);
+        if(d < 0.2){ var cb = T0.cb; A.target = null; A.mode = 'idle'; if(cb) cb(); return; }
+        var step = Math.min(d, 0.85 + Math.min(0.55, d * 0.18)), nx = A.x + dx / d * step, nz = A.z + dz / d * step;
+        aJump(A, 3.4 + step * 1.3, 0, nx, nz); return;
+      }
+      A.modeT -= dt;
+      if(m === 'wiggle'){ A.lean = Math.sin(tt0 * 22) * 0.16 * Math.min(1, A.modeT * 2); }
+      else if(m === 'look'){ S.lookY = Math.sin((1.9 - A.modeT) * 3.2) * 0.55; }
+      else if(m === 'yawn'){ A.stretch = Math.sin(Math.min(1, (1.5 - A.modeT) / 1.5) * Math.PI) * 0.22; }
+      else if(m === 'sit'){ A.sad = true; }
+      else if(m === 'bubble'){ A.tick -= dt; if(A.tick <= 0){ A.tick = 0.28; bubbleAt(A.x + Math.sin(A.faceTo) * 0.5, 1.4 * A.scaleNow, A.z + Math.cos(A.faceTo) * 0.5); } S.wob = Math.max(S.wob, 0.025); }
+      else if(m === 'dance'){ if(aWait(A)){ A.beat++; aJump(A, 3.2, A.beat % 4 === 0 ? 1 : 0); if(A.beat % 3 === 1) emote(A, '🎵'); } }
+      else if(m === 'roll'){
+        var T1 = A.target, dx2 = T1.x - A.x, dz2 = T1.z - A.z, d2 = Math.hypot(dx2, dz2);
+        if(d2 > 0.15){ var sp = Math.min(d2, 2.4 * dt); A.x += dx2 / d2 * sp; A.z += dz2 / d2 * sp; A.rollA = (A.rollA || 0) + 11 * dt; S.sq = 0.25; } 
+      }
+      else if(m === 'sleep'){ S.sq = 0.3 + Math.sin(tt0 * 1.6) * 0.06; A.tick -= dt; if(A.tick <= 0){ A.tick = 1.6; emote(A, '💤'); } }
+      else if(m === 'sniff'){ if(aWait(A)){ aJump(A, 2.0, 0); } if(Math.random() < dt * 1.2) emote(A, '🌸'); }
+      else if(m === 'watch'){ S.lookY = Math.sin(tt0 * 1.7) * 0.3; }
+      else if(m === 'kick'){ if(aWait(A)){ aJump(A, 5.2, 0); emote(A, '⚽'); } }
+      else if(m === 'knock'){ if(aWait(A)){ aJump(A, 3.0, 0); A.beat++; if(A.beat % 2 === 1) emote(A, '🚪'); } }
+      else if(m === 'peek'){ if(aWait(A)){ aJump(A, 4.6, 0); } }
+      else if(m === 'butterfly'){
+        if(aWait(A) && bfs.visible && bfs.children.length){
+          var b = bfs.children[Math.floor(A.beat++ % bfs.children.length)], bx = clampB(b.position.x, -BOUND.x, BOUND.x), bz = clampB(b.position.z, BOUND.zmin, BOUND.zmax);
+          if(!inKeep(bx, bz)) aJump(A, 4.2, 0, A.x + (bx - A.x) * 0.5, A.z + (bz - A.z) * 0.5); else aJump(A, 3.5, 0);
+        }
+        if(!bfs.visible) A.modeT = 0;
+      }
+      if(A.modeT <= 0){
+        if(m === 'sleep' && A.restY){ A.restY = 0; aJump(A, 3.5, 0); }
+        A.mode = 'idle'; A.lean = 0; A.stretch = 0; A.sad = false; A.rollA = 0; A.next = 0.5 + Math.random();
+      }
+    }
+
+    // ---- 한 마리의 움직임 계산 (점프, 출렁임, 표정) ----
+    function actorUpdate(A, dt, tt0){
+      var S = A.S, sl = A.slime; if(!sl) return;
+      A.born = Math.min(1, A.born + dt * 1.6);
+      A.scaleNow += (A.big - A.scaleNow) * Math.min(1, dt * 4);
+      S.wob *= Math.pow(0.04, dt); actorWobble(A, tt0);
+      if(S.pre > 0){ S.pre -= dt; S.sq += (0.62 - S.sq) * Math.min(1, dt * 18); if(S.pre <= 0) aLaunch(A); }
+      else if(S.air){
+        S.vy -= 18 * dt; S.y += S.vy * dt; A.x += S.vx * dt; A.z += S.vz * dt;
+        S.sq = -0.28 * Math.max(0, Math.min(1, Math.abs(S.vy) / 7)) + (S.vy < 0 ? 0.06 : 0);
+        if(S.spinRem > 0){ var d = Math.min(S.spinRem, S.spinSpd * dt); S.yaw += d; S.spinRem -= d; }
+        if(S.y <= 0 && S.vy < 0) aLand(A);
+      }else{ S.sqV += (-110 * S.sq - 10 * S.sqV) * dt; S.sq += S.sqV * dt; }
+      if(!A.free){ A.x = clampB(A.x, -BOUND.x - 0.2, BOUND.x + 0.2); A.z = clampB(A.z, BOUND.zmin - 0.3, BOUND.zmax + 0.3); }
+      // 몸 방향: 가는 쪽, 보는 쪽을 부드럽게 따라가요
+      var diff = A.faceTo - A.heading; while(diff > Math.PI) diff -= Math.PI * 2; while(diff < -Math.PI) diff += Math.PI * 2; A.heading += diff * Math.min(1, dt * 9);
+      var chew = 0; if(S.eat > 0){ S.eat -= dt; chew = Math.sin(tt0 * 16) * 0.07; }
+      var asleep = A.mode === 'sleep', breath = Math.sin(tt0 * (asleep ? 1.3 : 2.2)) * (asleep ? 0.04 : 0.025) + chew;
+      var sq = S.sq + (S.air ? 0 : breath) + (A.sad || A.hungry ? 0.12 : 0);
+      sq = clampB(sq, -0.45, 0.85); if(!isFinite(sq)){ sq = 0; S.sq = 0; S.sqV = 0; }
+      var st = A.stretch || 0;
+      A.spinG.rotation.set(A.rollA ? A.rollA : 0, A.heading + S.yaw + S.lookY, A.lean);
+      A.rig.position.set(A.x, S.y + A.restY, A.z);
+      var sc2 = A.scaleNow * A.visScale * (0.2 + 0.8 * A.born + (A.born < 1 ? Math.sin(A.born * Math.PI) * 0.35 : 0));
+      A.rig.scale.set(sc2 * (1 + sq * 0.4 - st * 0.3), sc2 * (1 - sq * 0.55 + st), sc2 * (1 + sq * 0.4 - st * 0.3));
+      // 표정
+      S.blinkT -= dt; if(S.blinkT <= 0){ S.blinkOn = 0.14; S.blinkT = 2 + Math.random() * 2.5; }
+      var bl = 1; if(S.blinkOn > 0){ S.blinkOn -= dt; bl = 0.1; }
+      var droop = A.hungry || A.sad ? 0.55 : 1, closed = asleep, hp = S.happy > 0; if(S.happy > 0) S.happy -= dt;
+      sl.eyes.forEach(function(e){ e.scale.set(1, closed ? 0.08 : Math.max(0.1, bl * droop), 1); e.visible = !hp; });
+      sl.happyEyes.visible = hp;
+      sl.smile.rotation.z = (A.hungry || A.sad) ? 0 : Math.PI; sl.smile.position.y = (A.hungry || A.sad) ? -0.05 : 0;
+      var eating = S.eat > 0 || A.mode === 'yawn' || A.mode === 'bubble'; sl.open.visible = eating; sl.smile.visible = !eating;
+      if(eating){ var mo = A.mode === 'yawn' ? 0.9 * (A.stretch || 0) * 4 + 0.2 : (A.mode === 'bubble' ? 0.55 : 0.12 + Math.abs(Math.sin(tt0 * 16))); sl.open.scale.set(A.mode === 'bubble' ? 0.6 : 1.1, mo, 0.5); }
+      sl.cheeks.forEach(function(c){ c.material.opacity = 0.55 + (hp ? 0.4 : 0) + Math.sin(tt0 * 3) * 0.05; });
+      sl.earsG.children.forEach(function(e, i){ e.rotation.z = (i ? 1 : -1) * (0.45 + Math.sin(tt0 * 3 + i) * 0.06 + (S.air ? 0.35 : 0)); });
+      if(sl.topG.userData.glow) sl.topG.userData.glow.material.emissiveIntensity = 0.7 + Math.sin(tt0 * 4) * 0.4;
+      if(sl.topG.userData.spin){ sl.topG.userData.spin.rotation.y = tt0 * 2; sl.topG.position.y = 1.5 + Math.sin(tt0 * 2.5) * 0.04; }
+      if(sl.wings.visible && sl.wingL){ var fl = Math.sin(tt0 * (S.air ? 14 : 3)) * (S.air ? 0.5 : 0.18); sl.wingL.rotation.y = -0.4 + fl; sl.wingR.rotation.y = 0.4 - fl; }
+      if(sl.halo.visible){ sl.halo.position.y = 1.95 + Math.sin(tt0 * 2) * 0.05; sl.halo.rotation.z = tt0 * 0.8; }
+      if(sl.wings.visible && Math.random() < dt * 3) puff(A.x + (Math.random() - 0.5) * 1.6, 0.6 + Math.random(), A.z + (Math.random() - 0.5) * 1.2, 0xfff3a0, 1, 0.3, -0.5, 1.0);
+      var sh = A.scaleNow * A.visScale * (1.05 - Math.min(0.5, S.y * 0.12)); A.shadow.position.set(A.x, 0.016, A.z); A.shadow.scale.set(sh, sh, sh); A.shadow.material.opacity = 0.34 - Math.min(0.2, S.y * 0.05); A.shadow.visible = A.rig.visible;
+    }
+    P0.visScale = 1; P1.visScale = 1;
+
+    // ---- 친구 집에 놀러가기: 둘이 같이 놀아요 ----
+    var V = { on:false, token:0, running:false, last:'', idleT:0, spec:null };
+    function release(){ [P0, P1].forEach(function(A){ A.script = false; A.follow = null; A.target = null; A.mode = 'idle'; A.next = 1.2; A.lean = 0; }); }
+    function bump(A, B){
+      A.S.sq = 0.6; B.S.sq = 0.6; A.S.wob = 0.1; B.S.wob = 0.1;
+      puff((A.x + B.x) / 2, 1.0, (A.z + B.z) / 2, 0xffe066, 14, 1.8, 3, 0.9); puff((A.x + B.x) / 2, 1.0, (A.z + B.z) / 2, 0xff9ad0, 8, 1.4, 2, 0.9);
+      emote(A, '💗'); emote(B, '💞'); aJump(A, 6.2, 1); aJump(B, 6.2, 1); A.S.happy = 1.2; B.S.happy = 1.2;
+    }
+    function face(A, B){ A.faceTo = Math.atan2(B.x - A.x, B.z - A.z); }
+    function seq(steps, tok, done){
+      var i = 0;
+      (function nx(){ if(tok !== V.token || !V.on) return; if(i >= steps.length){ if(done) done(); return; } var st = steps[i++]; st(nx); })();
+    }
+    function wait(sec, tok){ return function(nx){ afterT(sec, nx, tok); }; }
+    function hopA(A, x, z){ return function(nx){ A.script = true; goTo(A, x, z, nx); }; }
+    var ACT = {
+      greet: function(H, G, tok, done){
+        seq([
+          function(nx){ H.script = true; G.script = true; face(H, G); aStart(H, 'cheer'); emote(H, '👋'); wait(0.5, tok)(nx); },
+          function(nx){ goTo(G, H.x - 1.7, H.z + 0.3, nx); },
+          function(nx){ face(G, H); face(H, G); aStart(G, 'cheer'); emote(G, '👋'); wait(0.7, tok)(nx); },
+          function(nx){ var mx = (H.x + G.x) / 2, mz = (H.z + G.z) / 2; goTo(G, mx - 0.62, mz, null); goTo(H, mx + 0.62, mz, nx); },
+          function(nx){ wait(0.3, tok)(nx); },
+          function(nx){ face(G, H); face(H, G); bump(G, H); wait(1.0, tok)(nx); }
+        ], tok, done);
+      },
+      highfive: function(H, G, tok, done){
+        seq([
+          function(nx){ H.script = G.script = true; goTo(G, -0.75, 0.6, null); goTo(H, 0.75, 0.6, nx); },
+          function(nx){ wait(0.4, tok)(nx); },
+          function(nx){ face(G, H); face(H, G); emote(G, '🙌'); aJump(G, 7.2, 0, -0.25, 0.6); aJump(H, 7.2, 0, 0.25, 0.6); wait(0.6, tok)(nx); },
+          function(nx){ bump(G, H); wait(1.0, tok)(nx); }
+        ], tok, done);
+      },
+      chase: function(H, G, tok, done){
+        function round(runner, chaser, nx2){
+          var k = 0, finished = false;
+          function caught(){ if(finished) return; finished = true; chaser.follow = null; chaser.target = null; runner.target = null; runner.mode = 'idle'; emote(runner, '😆'); emote(chaser, '👏'); aStart(runner, 'cheer'); aStart(chaser, 'twirl'); afterT(0.9, nx2, tok); }
+          chaser.script = runner.script = true; chaser.mode = 'travel'; chaser.follow = { who:runner, gap:1.05 }; chaser.target = { x:0, z:0, cb:caught };
+          (function run(){ if(tok !== V.token || finished) return; k++; var a = k * 1.35 + rnd(0, 1), wx = clampB(Math.cos(a) * 2.5, -BOUND.x, BOUND.x), wz = clampB(0.2 + Math.sin(a) * 1.5, BOUND.zmin, BOUND.zmax); runner.follow = null; goTo(runner, wx, wz, function(){ afterT(0.05, run, tok); }); })();
+          afterT(6, caught, tok);
+        }
+        seq([ function(nx){ emote(H, '🏃'); emote(G, '😝'); wait(0.4, tok)(nx); }, function(nx){ round(H, G, nx); }, function(nx){ round(G, H, nx); }], tok, done);
+      },
+      ball: function(H, G, tok, done){
+        var ball = new T.Mesh(new T.SphereGeometry(0.3, 18, 14), pmat(0xff7aa8, 0.3)); ball.visible = false; ball.castShadow = true; scene.add(ball);
+        mesh(ball, gT(0.3, 0.025, 20), pmat(0xffffff, 0.3), 0, 0, 0, 1, 1, 1, Math.PI / 2, 0, 0).castShadow = false;
+        function pass(from, to, nx){
+          ball.visible = true; var x0 = from.x, z0 = from.z, x1 = to.x, z1 = to.z; aJump(from, 4.4, 0); emote(from, '⚽');
+          tween(0.9, function(p){ ball.position.set(x0 + (x1 - x0) * p, 0.5 + Math.sin(p * Math.PI) * 1.9, z0 + (z1 - z0) * p); ball.rotation.x = p * 9; }, function(){ to.S.sq = 0.5; aJump(to, 4.6, 0); to.S.wob = 0.1; puff(x1, 1.0, z1, 0xffe066, 6, 1.4, 3, 0.6); nx(); });
+        }
+        seq([
+          function(nx){ H.script = G.script = true; goTo(G, -1.8, 0.5, null); goTo(H, 1.8, 0.5, nx); },
+          function(nx){ face(G, H); face(H, G); wait(0.5, tok)(nx); },
+          function(nx){ pass(H, G, nx); }, function(nx){ wait(0.25, tok)(nx); },
+          function(nx){ pass(G, H, nx); }, function(nx){ wait(0.25, tok)(nx); },
+          function(nx){ pass(H, G, nx); }, function(nx){ wait(0.25, tok)(nx); },
+          function(nx){ pass(G, H, nx); }, function(nx){ wait(0.3, tok)(nx); },
+          function(nx){ scene.remove(ball); aStart(H, 'cheer'); aStart(G, 'cheer'); wait(1.2, tok)(nx); }
+        ], tok, function(){ scene.remove(ball); if(done) done(); });
+      },
+      dance: function(H, G, tok, done){
+        var steps = [function(nx){ H.script = G.script = true; goTo(G, -0.95, 0.7, null); goTo(H, 0.95, 0.7, nx); }, function(nx){ G.faceTo = 0; H.faceTo = 0; emote(G, '🎵'); emote(H, '🎶'); wait(0.4, tok)(nx); }];
+        for(var i = 0; i < 8; i++){ (function(i){ steps.push(function(nx){ G.faceTo = 0; H.faceTo = 0; aJump(G, 3.4, i % 4 === 3 ? 1 : 0); aJump(H, 3.4, i % 4 === 3 ? -1 : 0); if(i % 3 === 1){ emote(G, '🎵'); emote(H, '🎶'); } wait(0.62, tok)(nx); }); })(i); }
+        steps.push(function(nx){ aJump(G, 9, 2); aJump(H, 9, 2); puff(0, 1.5, 0.7, 0xffe066, 16, 2, 3, 1.0); wait(1.4, tok)(nx); });
+        seq(steps, tok, done);
+      },
+      hug: function(H, G, tok, done){
+        seq([
+          function(nx){ H.script = G.script = true; face(H, G); goTo(G, H.x - 1.0, H.z + 0.05, nx); },
+          function(nx){ face(G, H); face(H, G); emote(G, '🤗'); H.mode = 'wiggle'; H.modeT = 2.6; G.mode = 'wiggle'; G.modeT = 2.6; wait(0.1, tok)(nx); },
+          function(nx){ var n = 0; (function hrt(){ if(tok !== V.token || n++ > 4) { nx(); return; } emote(n % 2 ? G : H, '💗'); puff((G.x + H.x) / 2, 1.2, G.z, 0xff9ad0, 4, 1, 1.5, 0.8); afterT(0.55, hrt, tok); })(); }
+        ], tok, done);
+      },
+      peek: function(H, G, tok, done){
+        seq([
+          function(nx){ H.script = G.script = true; goTo(H, (H.x > 0 ? 2.4 : -2.4), -1.55, null); G.faceTo = Math.PI; emote(G, '❓'); aStart(G, 'look'); wait(2.6, tok)(nx); },
+          function(nx){ wait(0.8, tok)(nx); },
+          function(nx){ face(H, G); goTo(H, G.x + 0.9, G.z - 0.1, nx); aJump(H, 7, 1); },
+          function(nx){ face(G, H); emote(G, '❗'); aJump(G, 7, 1); H.S.happy = 1.4; G.S.happy = 1.4; emote(H, '😆'); wait(1.4, tok)(nx); }
+        ], tok, done);
+      }
+    };
+    var ACT_KEYS = ['greet', 'highfive', 'chase', 'ball', 'dance', 'hug', 'peek'];
+    function runAct(name){
+      if(!V.on) return; var tok = V.token; V.running = true; V.last = name; release();
+      ACT[name](P1, P0, tok, function(){ if(tok !== V.token) return; V.running = false; release(); V.idleT = 2.2 + Math.random() * 1.5; });
+    }
+    function visitAuto(dt){
+      if(!V.on || V.running || V.arriving) return;
+      V.idleT -= dt; if(V.idleT > 0) return;
+      var pool = ACT_KEYS.filter(function(k){ return k !== V.last && k !== 'greet'; }); runAct(pool[Math.floor(Math.random() * pool.length)]);
+    }
+    function visit(spec){
+      if(!spec || !spec.host || !spec.guest) return;
+      V.token++; V.on = true; V.spec = spec; V.running = true; V.arriving = true; V.last = ''; var tok = V.token;
+      setTheme(spec.theme || 'meadow'); deco = (spec.deco || []).slice(); setDeco(deco);
+      actorBuild(P1, spec.host.genes); actorBuild(P0, spec.guest.genes);
+      petStageApply(P1.slime, spec.host.stage); petStageApply(P0.slime, spec.guest.stage);
+      P1.big = [1, 0.95, 1.15, 1.35, 1.58, 1.85][clampB(spec.host.stage, 0, 5)] * 0.78; P0.big = [1, 0.95, 1.15, 1.35, 1.58, 1.85][clampB(spec.guest.stage, 0, 5)] * 0.78;
+      P1.scaleNow = P1.big; P0.scaleNow = P0.big;
+      eggG.visible = false; eggShadow.visible = false;
+      P1.x = 1.7; P1.z = 0.4; P1.faceTo = -0.4; P1.heading = -0.4; P1.rig.visible = true; P1.born = 0; P1.free = false;
+      P0.x = -8.2; P0.z = 1.0; P0.free = true; P0.rig.visible = true; P0.born = 1; P0.S.y = 0; P0.faceTo = Math.PI / 2; P0.heading = Math.PI / 2;
+      release(); P0.script = true; P1.script = false; P1.next = 3;
+      P0.free = true; goTo(P0, -2.4, 0.7, function(){ if(tok !== V.token) return; P0.free = false; V.arriving = false; runAct('greet'); });
+    }
+    function leave(){
+      V.token++; V.on = false; V.running = false; V.arriving = false; tasks = []; tweens = [];
+      P1.rig.visible = false; P1.shadow.visible = false; P0.free = false; P0.x = 0; P0.z = 0; P0.S.y = 0; P0.faceTo = 0; P0.heading = 0; P0.visScale = 1;
+      release(); P0.big = Math.max(P0.big, 0.95); P0.born = 0;
+    }
+
+    // ---- 내 펫 상태 반영 ----
+    function setPet(cfg){
+      var gn = cfg.genes; if(!gn) return;
+      var gk = JSON.stringify(gn);
+      if(gk !== curGenes){ curGenes = gk; actorBuild(P0, gn); buildEgg(gn); }
+      status.stage = cfg.stage; status.sat = cfg.sat; status.mood = cfg.mood; status.warmth = cfg.warmth || 0; status.ready = !!cfg.ready;
+      P0.hungry = cfg.sat < 20;
+      if(V.on) return;
+      var hatched = cfg.stage >= 1;
+      if(!S.hatching){ eggG.visible = !hatched; eggShadow.visible = !hatched; P0.rig.visible = hatched; P0.shadow.visible = hatched; hatchedFlag = hatched; }
+      setTheme(cfg.theme || 'meadow'); deco = (cfg.deco || []).slice(); setDeco(deco);
+      var st = cfg.stage;
+      if(P0.slime){ petStageApply(P0.slime, st); P0.big = [1.0, 0.95, 1.15, 1.35, 1.58, 1.85][Math.min(5, Math.max(0, st))]; }
+    }
+    var curGenes = '', S = { hatching:null, eggShake:0 };
+    function status2(sat, mood){ status.sat = sat; status.mood = mood; P0.hungry = sat < 20; }
+    function act(name){ if(V.on){ aStart(P0, name); return; } if(hatchedFlag) aStart(P0, name); }
     function hatch(done){ if(!eggG.visible) return; S.hatching = { t:0, done:done }; }
     function finishHatch(){
       var ud = eggG.userData;
@@ -4649,23 +4985,11 @@
         sh.position.set(Math.cos(a) * 0.3, 1.1, Math.sin(a) * 0.3); sh.rotation.set(Math.random() * 3, Math.random() * 3, 0); scene.add(sh);
         shards.push({ m:sh, vx:Math.cos(a) * 2.2, vy:3 + Math.random() * 2, vz:Math.sin(a) * 2.2, t:0, r:(Math.random() - 0.5) * 8 });
       }
-      eggG.visible = false; rig.visible = true; S.hatched = true; bornT = 0.001; S.sq = -0.2; S.wob = 0.1;
+      eggG.visible = false; eggShadow.visible = false; P0.rig.visible = true; P0.shadow.visible = true; hatchedFlag = true; P0.born = 0; P0.x = 0; P0.z = 0; P0.S.sq = -0.2; P0.S.wob = 0.1;
       if(hooks.onFlash) hooks.onFlash();
     }
-    function setPet(cfg){
-      var gn = cfg.genes; if(!gn) return;
-      var gk = JSON.stringify(gn);
-      if(gk !== curGenes){ curGenes = gk; buildSlime(gn); buildEgg(gn); }
-      status.stage = cfg.stage; status.sat = cfg.sat; status.mood = cfg.mood; status.warmth = cfg.warmth || 0; status.ready = !!cfg.ready;
-      var hatched = cfg.stage >= 1;
-      if(!S.hatching){ eggG.visible = !hatched; rig.visible = hatched; S.hatched = hatched; }
-      setTheme(cfg.theme || 'meadow'); setDeco(cfg.deco || []);
-      var st = cfg.stage;
-      if(slime){ petStageApply(slime, st); S.big = [1.0, 0.95, 1.15, 1.35, 1.58, 1.85][Math.min(5, Math.max(0, st))]; }
-    }
-    function status2(sat, mood){ status.sat = sat; status.mood = mood; }
 
-    var running = false, clock = new T.Clock(), tt = 0, scaleNow = 0.95;
+    var running = false, clock = new T.Clock(), tt = 0, apple = null;
     function resize(){
       var w = canvas.clientWidth, h = canvas.clientHeight; if(!w || !h) return;
       renderer.setSize(w, h, false); camera.aspect = w / h;
@@ -4677,17 +5001,27 @@
     window.addEventListener('resize', onWin);
     var downX = 0, downY = 0;
     canvas.addEventListener('pointerdown', function(e){ downX = e.clientX; downY = e.clientY; });
-    canvas.addEventListener('pointerup', function(e){ if(Math.hypot(e.clientX - downX, e.clientY - downY) < 14){ if(hooks.onTap) hooks.onTap(S.hatched ? 'slime' : 'egg'); if(!S.hatched) S.eggShake = 0.8; } });
-    var shadowMesh = new T.Mesh(new T.CircleGeometry(1.0, 28), new T.MeshBasicMaterial({ color:0x10200c, transparent:true, opacity:0.38, depthWrite:false }));
-    shadowMesh.rotation.x = -Math.PI / 2; scene.add(shadowMesh);
+    canvas.addEventListener('pointerup', function(e){
+      if(Math.hypot(e.clientX - downX, e.clientY - downY) >= 14) return;
+      if(V.on){
+        var r = canvas.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+        var s0 = toScreen(P0.x, 1.2, P0.z), s1 = toScreen(P1.x, 1.2, P1.z), d0 = Math.hypot(px - s0.x, py - s0.y), d1 = Math.hypot(px - s1.x, py - s1.y);
+        var A = d1 < d0 ? P1 : P0; A.S.happy = 1.2; aJump(A, 6.5, 1); emote(A, '💖'); if(hooks.onTap) hooks.onTap(d1 < d0 ? 'friend' : 'slime');
+        return;
+      }
+      if(hooks.onTap) hooks.onTap(hatchedFlag ? 'slime' : 'egg'); if(!hatchedFlag) S.eggShake = 0.8;
+    });
     function frame(){
       if(!running) return;
       requestAnimationFrame(frame);
       var dt = Math.min(clock.getDelta(), 0.05); tt += dt;
-      var lowSat = status.sat < 20, joy = status.mood >= 70 ? 1 : (status.mood < 35 ? -1 : 0);
       worldTick(dt, tt);
       decoRoot.children.forEach(function(g){ if(g.userData.pop < 1){ g.userData.pop = Math.min(1, g.userData.pop + dt * 2.2); var k = g.userData.pop, e = 1 + 1.7 * Math.pow(k - 1, 3) + 0.7 * Math.pow(k - 1, 2); g.scale.setScalar(Math.max(0.01, e)); } });
       decoAnims.forEach(function(f){ f(tt, nightK); });
+      // 예약된 일, 움직임 보간
+      if(tasks.length){ var due = tasks.filter(function(k){ return k.t <= tt; }); if(due.length){ tasks = tasks.filter(function(k){ return k.t > tt; }); due.forEach(function(k){ if(k.tok === undefined || k.tok === V.token) k.fn(); }); } }
+      for(var ti = tweens.length - 1; ti >= 0; ti--){ var tw = tweens[ti], p = Math.min(1, (tt - tw.t0) / tw.dur); tw.fn(p); if(p >= 1){ tweens.splice(ti, 1); if(tw.done) tw.done(); } }
+      // 알
       if(eggG.visible && eggG.userData.shell){
         var ud = eggG.userData, warm = status.warmth / 100;
         var rock = Math.sin(tt * (status.ready ? 9 : 2.4)) * (status.ready ? 0.14 : 0.07) + (S.eggShake > 0 ? Math.sin(tt * 40) * 0.2 * S.eggShake : 0);
@@ -4704,62 +5038,37 @@
           ud.em.emissiveIntensity = 0.3 + H.t * 0.6; ud.glow.material.opacity = 0.15 + H.t * 0.25;
           if(H.t > 1.9){ S.hatching = null; finishHatch(); if(H.done) H.done(); }
         }
+        eggShadow.visible = true;
       }
-      if(slime && rig.visible){
-        var born = bornT > 0 ? Math.min(1, bornT / 0.6) : 1; if(bornT > 0) bornT += dt; if(bornT > 0.6) bornT = 0;
-        scaleNow += (S.big - scaleNow) * Math.min(1, dt * 4);
-        S.wob *= Math.pow(0.04, dt); wobble(tt);
-        S.next -= dt;
-        if(S.next <= 0 && !S.air && S.pre <= 0 && !S.act && S.eat <= 0){
-          var r = Math.random(), mood = lowSat ? 0 : joy;
-          if(lowSat){ S.act = r < 0.7 ? 'look' : 'wiggle'; S.actT = 1.6; S.next = 3 + Math.random() * 2; }
-          else{ S.next = (mood > 0 ? 1.4 : 2.4) + Math.random() * 2.2; if(r < 0.3) act('hop'); else if(r < 0.5) act('wiggle'); else if(r < 0.7) act('twirl'); else if(r < 0.82) act('look'); else if(r < 0.92) act('chain'); else act('twirl2'); }
-        }
-        if(S.pre > 0){ S.pre -= dt; S.sq += (0.62 - S.sq) * Math.min(1, dt * 18); if(S.pre <= 0) launch(); }
-        else if(S.air){
-          S.vy -= 18 * dt; S.y += S.vy * dt;
-          S.sq = -0.28 * Math.max(0, Math.min(1, Math.abs(S.vy) / 7)) + (S.vy < 0 ? 0.06 : 0);
-          if(S.spinRem > 0){ var d = Math.min(S.spinRem, S.spinSpd * dt); S.yaw += d; S.spinRem -= d; }
-          if(S.y <= 0 && S.vy < 0){ land(); }
-        }else{ S.sqV += (-110 * S.sq - 10 * S.sqV) * dt; S.sq += S.sqV * dt; }
-        if(S.act === 'wiggle'){ S.actT -= dt; slime.g.rotation.z = Math.sin(tt * 22) * 0.16 * Math.min(1, S.actT * 2); if(S.actT <= 0){ S.act = ''; slime.g.rotation.z = 0; } }
-        else if(S.act === 'look'){ S.actT -= dt; S.lookY = Math.sin((1.8 - S.actT) * 3.2) * 0.5; if(S.actT <= 0){ S.act = ''; S.lookY = 0; } }
-        if(!S.act) slime.g.rotation.z += (Math.sin(tt * 1.4) * 0.03 - slime.g.rotation.z) * Math.min(1, dt * 6);
-        var chew = 0;
-        if(S.eat > 0){ S.eat -= dt; chew = Math.sin(tt * 16) * 0.07; if(S.eat <= 0.45 && apple){ scene.remove(apple); apple = null; } }
-        var breath = Math.sin(tt * 2.2) * 0.025 + chew;
-        var sq = S.sq + (S.air ? 0 : breath);
-        sq = Math.max(-0.45, Math.min(0.85, sq)); if(!isFinite(sq)){ sq = 0; S.sq = 0; S.sqV = 0; }
-        spinG.rotation.y = S.yaw + (S.lookY || 0); rig.position.y = S.y;
-        var sc2 = scaleNow * (0.2 + 0.8 * born + (born < 1 ? Math.sin(born * Math.PI) * 0.35 : 0));
-        rig.scale.set(sc2 * (1 + sq * 0.4), sc2 * (1 - sq * 0.55), sc2 * (1 + sq * 0.4));
-        S.blinkT -= dt; if(S.blinkT <= 0){ S.blinkOn = 0.14; S.blinkT = 2 + Math.random() * 2.5; }
-        var bl = 1; if(S.blinkOn > 0){ S.blinkOn -= dt; bl = 0.1; }
-        var droop = lowSat ? 0.55 : 1, hp = S.happy > 0; if(S.happy > 0) S.happy -= dt;
-        slime.eyes.forEach(function(e){ e.scale.set(1, Math.max(0.1, bl * droop), 1); e.visible = !hp; });
-        slime.happyEyes.visible = hp;
-        slime.smile.rotation.z = lowSat ? 0 : Math.PI; slime.smile.position.y = lowSat ? -0.05 : 0;
-        var eating = S.eat > 0; slime.open.visible = eating; slime.smile.visible = !eating;
-        if(eating){ var m = 0.12 + Math.abs(Math.sin(tt * 16)) * 1.0; slime.open.scale.set(1.1, m, 0.5); }
-        slime.cheeks.forEach(function(c){ c.material.opacity = 0.55 + (hp ? 0.4 : 0) + Math.sin(tt * 3) * 0.05; });
-        slime.earsG.children.forEach(function(e, i){ e.rotation.z = (i ? 1 : -1) * (0.45 + Math.sin(tt * 3 + i) * 0.06 + (S.air ? 0.35 : 0)); });
-        if(slime.topG.userData.glow) slime.topG.userData.glow.material.emissiveIntensity = 0.7 + Math.sin(tt * 4) * 0.4;
-        if(slime.topG.userData.spin){ slime.topG.userData.spin.rotation.y = tt * 2; slime.topG.position.y = 1.5 + Math.sin(tt * 2.5) * 0.04; }
-        if(slime.wings.visible && slime.wingL){ var fl = Math.sin(tt * (S.air ? 14 : 3)) * (S.air ? 0.5 : 0.18); slime.wingL.rotation.y = -0.4 + fl; slime.wingR.rotation.y = 0.4 - fl; }
-        if(slime.halo.visible){ slime.halo.position.y = 1.95 + Math.sin(tt * 2) * 0.05; slime.halo.rotation.z = tt * 0.8; }
-        if(slime.wings.visible && Math.random() < dt * 3) puff((Math.random() - 0.5) * 1.6, 0.6 + Math.random(), (Math.random() - 0.5) * 1.2, 0xfff3a0, 1, 0.3, -0.5, 1.0);
-        shadowMesh.position.set(0, 0.016, 0); var sh = scaleNow * (1.05 - Math.min(0.5, S.y * 0.12)); shadowMesh.scale.set(sh, sh, sh); shadowMesh.material.opacity = 0.34 - Math.min(0.2, S.y * 0.05); shadowMesh.visible = true;
-        if(apple){ var pp = Math.max(0, Math.min(1, 1 - (S.eat - 0.45) / 0.65)); apple.position.set(0, 2.6 - pp * 1.6, 0.4 + pp * 0.5); apple.scale.setScalar(Math.max(0.05, 1 - pp * 0.8)); }
-      }else if(eggG.visible){ shadowMesh.position.set(0, 0.016, 0); shadowMesh.scale.set(1.0, 1.0, 1.0); shadowMesh.material.opacity = 0.34; shadowMesh.visible = true; }
-      for(var i = fxList.length - 1; i >= 0; i--){ var f = fxList[i]; f.t += dt; f.vy -= f.g * dt; f.m.position.x += f.vx * dt; f.m.position.y += f.vy * dt; f.m.position.z += f.vz * dt; f.m.material.opacity = Math.max(0, 1 - f.t / f.life); f.m.scale.setScalar(Math.max(0.1, 1 - f.t / f.life * 0.6)); if(f.t >= f.life){ scene.remove(f.m); fxList.splice(i, 1); } }
+      // 슬라임들
+      if(P0.rig.visible){
+        var other = V.on ? P1 : null;
+        if(!P0.script){ aiUpdate(P0, dt, tt, other); }
+        else if(P0.mode !== 'idle'){ aiUpdate(P0, dt, tt, other); }
+        actorUpdate(P0, dt, tt);
+      }
+      if(V.on && P1.rig.visible){
+        if(!P1.script){ aiUpdate(P1, dt, tt, P0); }
+        else if(P1.mode !== 'idle'){ aiUpdate(P1, dt, tt, P0); }
+        actorUpdate(P1, dt, tt);
+        // 서로 겹치지 않게 살짝 밀어내요
+        if(!V.arriving){ var dx = P0.x - P1.x, dz = P0.z - P1.z, dd = Math.hypot(dx, dz), minD = 0.95 * (P0.scaleNow + P1.scaleNow) * 0.5 + 0.35;
+          if(dd < minD && dd > 0.001 && !(P0.mode === 'wiggle' && P1.mode === 'wiggle')){ var push = (minD - dd) * 0.08; P0.x += dx / dd * push; P0.z += dz / dd * push; P1.x -= dx / dd * push; P1.z -= dz / dd * push; } }
+        visitAuto(dt);
+      }
+      if(apple){ var pp2 = Math.max(0, Math.min(1, 1 - (P0.S.eat - 0.45) / 0.65)); apple.position.set(P0.x, 2.6 - pp2 * 1.6, P0.z + 0.4 + pp2 * 0.5); apple.scale.setScalar(Math.max(0.05, 1 - pp2 * 0.8)); if(P0.S.eat <= 0.45){ scene.remove(apple); apple = null; } }
+      for(var i = fxList.length - 1; i >= 0; i--){ var f = fxList[i]; f.t += dt; f.vy -= f.g * dt; f.m.position.x += f.vx * dt; f.m.position.y += f.vy * dt; f.m.position.z += f.vz * dt; f.m.material.opacity = Math.max(0, (f.pop ? 0.55 : 1) * (1 - f.t / f.life)); if(!f.pop) f.m.scale.setScalar(Math.max(0.1, 1 - f.t / f.life * 0.6)); if(f.t >= f.life){ scene.remove(f.m); fxList.splice(i, 1); } }
       for(var j = shards.length - 1; j >= 0; j--){ var s2 = shards[j]; s2.t += dt; s2.vy -= 9 * dt; s2.m.position.x += s2.vx * dt; s2.m.position.y += s2.vy * dt; s2.m.position.z += s2.vz * dt; s2.m.rotation.x += s2.r * dt; s2.m.rotation.z += s2.r * dt; if(s2.m.position.y < 0.05){ s2.m.position.y = 0.05; s2.vy = 0; s2.vx *= 0.8; s2.vz *= 0.8; } if(s2.t > 2.2){ scene.remove(s2.m); shards.splice(j, 1); } }
       renderer.render(scene, camera);
     }
-    function feedAnim(){ if(apple){ scene.remove(apple); } apple = new T.Group(); var a = new T.Mesh(new T.SphereGeometry(0.28, 14, 12), new T.MeshStandardMaterial({ color:0xff4f4f, roughness:0.3 })); apple.add(a); var lf = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshStandardMaterial({ color:0x58c458 })); lf.scale.set(1.6, 0.4, 0.8); lf.position.set(0.1, 0.3, 0); apple.add(lf); apple.position.set(0, 2.6, 0.4); scene.add(apple); act('eat'); }
+    function feedAnim(){ if(apple){ scene.remove(apple); } apple = new T.Group(); var a = new T.Mesh(new T.SphereGeometry(0.28, 14, 12), new T.MeshStandardMaterial({ color:0xff4f4f, roughness:0.3 })); apple.add(a); var lf = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshStandardMaterial({ color:0x58c458 })); lf.scale.set(1.6, 0.4, 0.8); lf.position.set(0.1, 0.3, 0); apple.add(lf); apple.position.set(P0.x, 2.6, P0.z + 0.4); scene.add(apple); P0.S.eat = 1.1; P0.S.happy = 0.8; P0.S.wob = 0.06; }
     function start(){ if(running) return; running = true; clock.getDelta(); resize(); frame(); }
     function stop(){ running = false; }
     function dispose(){ running = false; window.removeEventListener('resize', onWin); try{ renderer.dispose(); }catch(e){} }
-    return { setPet:setPet, setStatus:status2, setTimeMode:function(m){ timeMode = m; lastLight = -1e9; lastSky = -1e9; }, act:act, cuddle:function(){ act('cheer'); }, feed:feedAnim, hatch:hatch, start:start, stop:stop, resize:resize, dispose:dispose, burst:function(col, n){ puff(0, 1.2, 0, col || 0xffe066, n || 12, 2, 4, 0.9); } };
+    return { setPet:setPet, setStatus:status2, setTimeMode:function(m){ timeMode = m; lastLight = -1e9; lastSky = -1e9; }, act:act, cuddle:function(){ act('cheer'); }, feed:feedAnim, hatch:hatch, start:start, stop:stop, resize:resize, dispose:dispose,
+      burst:function(col, n){ puff(P0.x, 1.2, P0.z, col || 0xffe066, n || 12, 2, 4, 0.9); },
+      visit:visit, leave:leave, play:function(name){ if(V.on && ACT[name]){ V.token++; tasks = []; tweens = []; V.arriving = false; runAct(name); } },
+      _dbg:{ start:function(name){ aStart(P0, name, V.on ? P1 : null); }, state:function(){ return { p0:[P0.x, P0.S.y, P0.z], p1:[P1.x, P1.S.y, P1.z], m0:P0.mode, m1:P1.mode, v:V.on, run:V.running }; } } };
   }
 
   // 도감용 썸네일 (한 번에 모두 그려서 사진으로 저장)
@@ -4884,6 +5193,12 @@ const db = getFirestore(fbApp, 'default');
 let currentUser = null;
 let unsubscribeSnapshot = null;
 let words = []; // {id, en, ko, date}
+let wordsLoaded = false;   // 서버에서 내 단어를 실제로 받았는지 (받기 전에 저장하면 기존 단어가 지워질 수 있어서 막아요)
+// 새 단어를 저장할 때마다 코인 1~3개를 랜덤으로 받아요 (하루 100단어까지)
+const WORD_COIN_CAP = 100;
+let wordCoinLog = { d:'', n:0 };
+let selMode = false;            // 단어를 꾹 눌러 고르는 중인지
+const selIds = new Set();       // 고른 단어 번호
 
 // ---------- 인증 (로그인 / 회원가입 / 로그아웃) ----------
 function showAuthError(msg){
@@ -4986,10 +5301,10 @@ onAuthStateChanged(auth, (user) => {
     equippedShield = false;
     robotColor = null;
     selectedModel = 'robot'; unlockedModels = ['robot'];
-    charCollection = {}; ownedEver = []; pity5 = 0; pity6 = 0; mainChar = null; btWins = 0; btLosses = 0; btOpp = null; kingdom = null; pet = null;
+    charCollection = {}; ownedEver = []; pity5 = 0; pity6 = 0; mainChar = null; btWins = 0; btLosses = 0; btOpp = null; kingdom = null; pet = null; wordCoinLog = { d:'', n:0 };
     charStats = { atk:0, def:0, agi:0, int:0 };
     tickets = 0; totalCorrect = 0; equipment = [];
-    charDataLoaded = false;
+    charDataLoaded = false; wordsLoaded = false;
     showGroupJoin();
     words = [];
   }
@@ -5029,7 +5344,11 @@ let myNickname = '';
 function subscribeWords(){
   if(unsubscribeSnapshot) unsubscribeSnapshot();
   const ref = doc(db, 'vocab', currentUser.uid);
+  wordsLoaded = false;
   unsubscribeSnapshot = onSnapshot(ref, (snap) => {
+    // 인터넷이 없을 때 오는 '비어 있는 임시 응답'은 진짜 내 데이터가 아니라서 무시해요
+    if(snap.metadata && snap.metadata.fromCache && !snap.exists()) return;
+    wordsLoaded = true;
     const data = snap.exists() ? snap.data() : {};
     words = Array.isArray(data.words) ? data.words : [];
     renderList();
@@ -5081,6 +5400,7 @@ function subscribeWords(){
     btWins = data.btWins || 0; btLosses = data.btLosses || 0;
     kingdom = data.kingdom || null; kNorm();
     pet = (data.pet && typeof data.pet === 'object') ? data.pet : null;
+    wordCoinLog = (data.wordCoin && typeof data.wordCoin === 'object') ? { d:String(data.wordCoin.d || ''), n:Number(data.wordCoin.n) || 0 } : { d:'', n:0 };
     if(data.gameVersion !== 5){ tickets += 10; needEquipReset = true; }   // 새 게임 시작 선물: 티켓 10장
     charDataLoaded = true;
     try{
@@ -5109,6 +5429,7 @@ function subscribeWords(){
 }
 async function saveWords(){
   if(!currentUser) return;
+  if(!wordsLoaded){ console.warn('단어를 아직 불러오지 못해서 저장하지 않았어요 (기존 단어 보호)'); return; }
   try{
     await setDoc(doc(db, 'vocab', currentUser.uid), { words }, { merge:true });
   }catch(e){
@@ -5129,12 +5450,12 @@ function stopHeartbeat(){
   if(heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer = null; }
 }
 async function updateGroupCount(){
-  if(!currentUser || !groupCodes.length) return;
+  if(!currentUser || !groupCodes.length || !wordsLoaded) return;
   try{
     const hubInfo = (typeof btMyName === 'function' && btMyName())
       ? { name: btMyName(), lv: Math.max(1, charLevel(btMyName())), lvl: charLvl(btMyName()), kb: Math.round(kBuffPct() * 1000) / 1000, bs: (() => { const b = kBuffs(); return { a: Math.round(b.atk * 1000) / 1000, d: Math.round(b.def * 1000) / 1000, h: Math.round(b.hp * 1000) / 1000, s: Math.round(b.spd * 1000) / 1000 }; })() }
       : null;
-    if(hubInfo && pet && pet.hatched && pet.genes) hubInfo.pet = { g: pet.genes, s: petStage() };
+    if(hubInfo && pet && pet.hatched && pet.genes) hubInfo.pet = { g: pet.genes, s: petStage(), n: pet.name || '', d: (pet.deco.on || []).filter(id => (pet.deco.owned || []).includes(id)), t: pet.deco.theme || 'meadow' };
     const payload = { email: currentUser.email, count: words.length, updatedAt: Date.now(), battle: deleteField(), hub: hubInfo };
     await Promise.all(groupCodes.map(c => setDoc(doc(db, 'groups', c, 'members', currentUser.uid), payload, { merge:true })));
   }catch(e){ /* 조용히 무시 */ }
@@ -5742,8 +6063,65 @@ async function lookupWord(){
   btn.disabled = false;
 }
 
+// ---------- 계정 처음부터 다시 시작 ----------
+async function resetAccount(){
+  if(!currentUser) return;
+  if(!wordsLoaded || !charDataLoaded){ alert('데이터를 불러오는 중이에요. 잠시 후 다시 해주세요!'); return; }
+  const msg = `⚠️ 계정을 처음 상태로 되돌려요. 되돌릴 수 없어요!\n\n[지워지는 것]\n• 저장한 단어 ${words.length}개 전부\n• 코인, 티켓, 왕국(건물), 키우던 슬라임, 대결 기록\n• 캐릭터 전부 (서영준 한 명만 남아요)\n\n[새로 받는 것]\n• 새 계정 선물: 코인 100개, 티켓 10장\n\n[남는 것]\n• 로그인 계정, 그룹(친구 모임)\n\n계속할까요?`;
+  if(!confirm(msg)) return;
+  const typed = prompt("정말 지울까요?\n아래 칸에 '초기화'라고 입력하면 시작해요.");
+  if(typed === null || typed.trim() !== '초기화'){ alert('취소했어요. 아무것도 지우지 않았어요.'); return; }
+  try{
+    // 1) 단어
+    if(selMode) exitSel(true); selIds.clear();
+    words = []; await saveWords();
+    // 2) 이 기기에 남은 백업 (남겨두면 지운 캐릭터가 되살아나요)
+    try{ localStorage.removeItem('lx_col_' + currentUser.uid); localStorage.removeItem('kg_char_pos'); }catch(e){}
+    // 3) 게임 기록을 서버에서 완전히 지워요
+    charCollection = {}; ownedEver = []; wipeCollection = true; wipeKingdom = true;
+    kingdom = null; pet = null; tickets = 0; totalCorrect = 0; pity5 = 0; pity6 = 0; mainChar = null; btWins = 0; btLosses = 0; btOpp = null;
+    wordCoinLog = { d:'', n:0 }; charStats = { atk:0, def:0, agi:0, int:0 }; equipment = []; equippedWeapon = null; equippedEssence = null; equippedShield = false;
+    await saveCharacter();
+    // 4) 서영준 한 명만 남기고, 처음 시작하는 왕국(코인 0)으로
+    charCollection = { '서영준': { n:1, lv:1 } }; mainChar = '서영준'; ownedEver = ['서영준'];
+    kNorm();                          // 새 계정과 같은 시작 왕국 (코인 100개)
+    tickets = 10;                     // 새 계정 선물 (티켓 10장)
+    await saveCharacter();
+    hubSync();
+    alert('처음 상태로 되돌렸어요. 화면을 새로 열게요!');
+    location.reload();
+  }catch(e){
+    console.error('초기화 실패', e);
+    alert('초기화하는 중에 문제가 생겼어요. 인터넷을 확인하고 다시 해주세요.');
+  }
+}
+// ---------- 새 단어 코인 ----------
+function giveWordCoins(count){
+  const none = { total:0, n:0, capped:false };
+  if(count <= 0 || typeof charDataLoaded === 'undefined' || !charDataLoaded) return none;   // 데이터를 다 불러오기 전에는 주지 않아요
+  if(!kingdom) kNorm();
+  const today = todayStr();
+  if(!wordCoinLog || wordCoinLog.d !== today) wordCoinLog = { d:today, n:0 };
+  const room = Math.max(0, WORD_COIN_CAP - wordCoinLog.n), n = Math.min(count, room);
+  let total = 0;
+  for(let i = 0; i < n; i++) total += 1 + Math.floor(Math.random() * 3);   // 1, 2, 3 중 하나
+  if(n > 0){ wordCoinLog.n += n; kingdom.coins += total; saveCharacter(); if(typeof kRefresh === 'function' && typeof hubTab !== 'undefined') try{ kRefresh(); }catch(e){} }
+  return { total, n, capped: n < count };
+}
+function coinToast(text){
+  let t = document.getElementById('coinToast');
+  if(!t){ t = document.createElement('div'); t.id = 'coinToast'; document.body.appendChild(t); }
+  t.textContent = text; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+  clearTimeout(coinToast._t); coinToast._t = setTimeout(() => t.classList.remove('show'), 1900);
+}
 // ---------- 단어 추가/삭제 ----------
+function wordsReady(){
+  if(wordsLoaded) return true;
+  alert('내 단어를 불러오는 중이에요. 잠시 후 다시 해주세요!');
+  return false;
+}
 async function addWord(){
+  if(!wordsReady()) return;
   const enInput = document.getElementById('enInput');
   const koInput = document.getElementById('koInput');
   const en = enInput.value.trim();
@@ -5753,11 +6131,13 @@ async function addWord(){
     return;
   }
   const existing = words.find(w => w.en.toLowerCase() === en.toLowerCase());
+  let isNew = false;
   if(existing){
     existing.ko = ko;
     existing.date = todayStr();
   }else{
     words.push({id: Date.now()+Math.random(), en, ko, date: todayStr()});
+    isNew = true;
   }
   enInput.value = '';
   koInput.value = '';
@@ -5766,9 +6146,16 @@ async function addWord(){
   renderList();
   updateQuizCounts();
   saveWords();
+  if(isNew){                                   // 이미 있는 단어를 고쳐 쓸 때는 코인이 없어요
+    const r = giveWordCoins(1);
+    if(r.total > 0) coinToast(`🪙 코인 +${r.total}`);
+    else if(r.capped) coinToast('오늘은 단어 코인을 다 받았어요 (하루 100단어)');
+  }
 }
 async function deleteWord(id){
+  if(!wordsReady()) return;
   words = words.filter(w => w.id !== id);
+  selIds.delete(String(id));
   await saveWords();
   renderList();
   updateQuizCounts();
@@ -5777,6 +6164,7 @@ async function deleteWord(id){
 // ---------- 단어장 렌더링 ----------
 function renderList(){
   const area = document.getElementById('wordListArea');
+  [...selIds].forEach(id => { if(!words.some(w => String(w.id) === id)) selIds.delete(id); });   // 지워진 단어는 선택에서 빼요
   if(words.length === 0){
     area.innerHTML = `<div class="card empty">아직 저장된 단어가 없어요<br>새로운 단어를 추가해보세요</div>`;
     return;
@@ -5798,18 +6186,20 @@ function renderList(){
   const dates = Object.keys(byDate).sort().reverse();
   area.innerHTML = dates.map(d => `
     <div class="day-group">
-      <p class="day-label">${prettyDate(d)} <span class="count">${byDate[d].length}개</span></p>
+      <p class="day-label" data-date="${d}">${prettyDate(d)} <span class="count">${byDate[d].length}개</span></p>
       ${byDate[d].slice().reverse().map(w => `
-        <div class="word-card">
+        <div class="word-card${selIds.has(String(w.id)) ? ' selected' : ''}" data-wid="${w.id}">
           <div>
             <div class="en">${escapeHtml(w.en)}<button type="button" class="speak-btn" data-word="${escapeHtml(w.en)}" title="발음 듣기">${SPEAKER_SVG}</button></div>
             <div class="ko">${escapeHtml(w.ko)}</div>
           </div>
           <button class="del" data-id="${w.id}" title="삭제">✕</button>
+          <span class="sel-check"></span>
         </div>
       `).join('')}
     </div>
   `).join('');
+  area.classList.toggle('sel-mode', selMode);
   area.querySelectorAll('.del').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = Number(btn.dataset.id) === Number(btn.dataset.id) ? parseFloat(btn.dataset.id) : btn.dataset.id;
@@ -5892,7 +6282,7 @@ let totalCorrect = 0;
 let equipment = [];
 let myGender = null;
 let charDataLoaded = false; // 서버에서 진짜 캐릭터 데이터를 한 번이라도 받았는지
-let pendingSaves = 0, lastSaveDone = 0, ownedEver = [], wipeCollection = false;
+let pendingSaves = 0, lastSaveDone = 0, ownedEver = [], wipeCollection = false, wipeKingdom = false;
 let pet = null, petViewer = null, petTimer = null, petQuiz = null, petLastTouch = 0;   // 슬라임 키우기   // 저장 중에는 서버 응답이 내 새 데이터를 덮어쓰지 못하게 막아요
 
 const EQUIPMENT_POOL = [
@@ -6336,9 +6726,8 @@ function scheduleRobotGesture(){
 // 게임을 처음부터 다시 만드는 중: 로봇 캐릭터와 무기/대결은 잠시 꺼둬요 (false로 바꾸면 다시 켜져요)
 const GAME_RESET = true;
 if(GAME_RESET){ const fb = document.getElementById('floatingCharBtn'); if(fb) fb.style.display = 'none'; }
-const MASTER_EMAIL = 'suhyoungjun2010' + '@' + 'gmail' + '.com';
 function isMaster(){
-  return !!(currentUser && currentUser.email && currentUser.email.toLowerCase() === MASTER_EMAIL);
+  return false;   // 마스터 기능은 없앴어요
 }
 function updateMasterVisibility(){
   buildGameNav();
@@ -6574,7 +6963,7 @@ function updateHubTickets(){
 function hubOnData(){
   if(!document.getElementById('hubOverlay').classList.contains('hidden')){
     updateHubTickets(); renderCollection(); if(hubTab === 'gacha') renderGachaView();
-    if(hubTab === 'pet' && !petQuiz && !petBusy){
+    if(hubTab === 'pet' && !petQuiz && !petBusy && !petVisit){
       if(!petViewer || petSig() !== petRenderedSig) renderPetView();       // 저장 신호가 올 때마다 새로 그리면 슬라임이 깜빡 사라져요
       else{ petTick(); petRefreshCoin(); }
     }
@@ -6627,9 +7016,14 @@ function petBattleSpec(){
 function petSanitize(raw){
   if(!raw || !raw.g || typeof raw.g !== 'object') return null;
   const g = raw.g, n = (v, lo, hi, d) => (typeof v === 'number' && isFinite(v)) ? Math.max(lo, Math.min(hi, v)) : d;
-  return { stage: Math.max(1, Math.min(5, Math.round(n(raw.s, 1, 5, 1)))), genes: {
-    hue: n(g.hue, 0, 360, 200), sat: n(g.sat, 0.3, 1, 0.7), lit: n(g.lit, 0.4, 0.9, 0.7), acc: n(g.acc, 0, 360, 300), cheek: n(g.cheek, 0, 360, 340),
-    ears: Math.round(n(g.ears, 0, 4, 0)), top: Math.round(n(g.top, 0, 4, 0)), pat: Math.round(n(g.pat, 0, 4, 0)), eye: Math.round(n(g.eye, 0, 1, 0)), belly: !!g.belly } };
+  const ids = PET_DECO.map(d => d.id), themes = PET_THEMES.map(t => t.id);
+  return { stage: Math.max(1, Math.min(5, Math.round(n(raw.s, 1, 5, 1)))),
+    name: typeof raw.n === 'string' ? raw.n.slice(0, 8) : '',
+    deco: Array.isArray(raw.d) ? raw.d.filter(id => ids.includes(id)).slice(0, 11) : [],
+    theme: themes.includes(raw.t) ? raw.t : 'meadow',
+    genes: {
+      hue: n(g.hue, 0, 360, 200), sat: n(g.sat, 0.3, 1, 0.7), lit: n(g.lit, 0.4, 0.9, 0.7), acc: n(g.acc, 0, 360, 300), cheek: n(g.cheek, 0, 360, 340),
+      ears: Math.round(n(g.ears, 0, 4, 0)), top: Math.round(n(g.top, 0, 4, 0)), pat: Math.round(n(g.pat, 0, 4, 0)), eye: Math.round(n(g.eye, 0, 1, 0)), belly: !!g.belly } };
 }
 function petRand(a){ return a[Math.floor(Math.random() * a.length)]; }
 function petMakeGenes(){
@@ -6931,7 +7325,7 @@ function petWireShop(box){
       kingdom.coins -= d.cost; own.push(d.id); on.push(d.id); playFanfare(); hubToast(`${d.icon} ${d.name}을(를) 놓았어요!`);
       if(petViewer) petViewer.burst(0xffe066, 10);
     }
-    saveCharacter(); if(petViewer) petViewer.setPet(petCfg());
+    saveCharacter(); hubSync(); if(petViewer) petViewer.setPet(petCfg());
     box.innerHTML = petShopHTML(); petWireShop(box); petRefreshCoin();
   }));
   box.querySelectorAll('[data-theme]').forEach(b => b.addEventListener('click', () => {
@@ -6942,9 +7336,88 @@ function petWireShop(box){
       kingdom.coins -= t.cost; pet.deco.themes.push(t.id); playFanfare();
     }else playClick();
     pet.deco.theme = t.id;
-    saveCharacter(); if(petViewer) petViewer.setPet(petCfg());
+    saveCharacter(); hubSync(); if(petViewer) petViewer.setPet(petCfg());
     box.innerHTML = petShopHTML(); petWireShop(box); petRefreshCoin();
   }));
+}
+
+// ----- 친구 집에 놀러가기 -----
+let petVisit = null;      // 지금 놀러 간 친구 { uid, nick, spec }
+function petFriendList(){
+  const me = currentUser ? currentUser.uid : null;
+  return (typeof latestMembers !== 'undefined' ? latestMembers : []).filter(m => m.uid !== me && m.hub && petSanitize(m.hub.pet)).map(m => ({ m, spec: petSanitize(m.hub.pet) }));
+}
+function petFriendsHTML(){
+  const list = petFriendList();
+  if(!list.length) return `<div class="ps-head"><b>🏡 놀러가기</b></div><div class="hub-sub" style="margin:6px 0 0;line-height:1.5;">그룹 친구 중에 <b>슬라임이 태어난 친구</b>가 아직 없어요.<br>친구가 새 버전을 열고 슬라임을 키우면 여기에 나타나요.</div>`;
+  const visits = (pet && pet.visits) || {};
+  return `<div class="ps-head"><b>🏡 놀러가기</b><span>${list.length}명</span></div>
+    <div class="hub-sub" style="margin:2px 0 8px;">친구의 집에 내 슬라임이 놀러가요. 하루에 한 번 처음 가면 코인을 받아요.</div>
+    <div class="pf-list">${list.map(f => {
+      const n = (visits[f.m.uid] && visits[f.m.uid].n) || 0;
+      return `<button type="button" class="pf-item" data-uid="${escapeHtml(f.m.uid)}"><span class="pf-dot" style="background:hsl(${Math.round(f.spec.genes.hue)},70%,65%)"></span>
+        <span class="pf-info"><b>${escapeHtml(btMemberName(f.m))}</b><span>${escapeHtml(f.spec.name || '슬라임')} · ${PET_STAGES[f.spec.stage].name}</span></span>
+        <span class="pf-hr">${n ? '💗 ' + n + '번' : '처음'}</span></button>`;
+    }).join('')}</div>`;
+}
+function petVisitReward(uid){
+  pet.visits = pet.visits || {};
+  const v = pet.visits[uid] || { n:0, last:'' }, today = petDayKey(new Date());
+  if(v.last === today) return;
+  v.last = today; v.n++; pet.visits[uid] = v;
+  const keys = Object.keys(pet.visits); if(keys.length > 60){ delete pet.visits[keys[0]]; }
+  if(!kingdom) kNorm();
+  kingdom.coins += 40; petSetMood(petVals().mood + 10);
+  let msg = '놀러가서 코인 40개를 받았어요!';
+  if(v.n % 5 === 0){ tickets += 1; msg += ' (5번째 방문! 티켓 +1)'; updateHubTickets(); }
+  saveCharacter();
+  setTimeout(() => hubToast(msg), 1200);
+}
+function petStartVisit(uid){
+  if(!hubReady() || petBusy) return;
+  const f = petFriendList().find(x => x.m.uid === uid); if(!f){ hubToast('친구의 슬라임을 찾을 수 없어요'); return; }
+  petVisit = { uid, nick: btMemberName(f.m), spec: f.spec };
+  petVisitReward(uid);
+  renderPetView();
+}
+function petLeaveVisit(){
+  petVisit = null;
+  if(petViewer) petViewer.leave();
+  renderPetView();
+}
+function petEmote(e){
+  const box = document.getElementById('petStage'); if(!box) return;
+  const d = document.createElement('div');
+  d.className = 'pet-emote'; d.textContent = e.text; d.style.left = (e.x * 100) + '%'; d.style.top = (e.y * 100) + '%';
+  box.appendChild(d); setTimeout(() => d.remove(), 1400);
+}
+function renderPetVisit(){
+  const v = document.getElementById('hubPetView'), pv = petVisit, sp = pv.spec, n = ((pet.visits || {})[pv.uid] || {}).n || 1;
+  const PLAYS = [['greet', '👋 인사'], ['highfive', '🙌 하이파이브'], ['chase', '🏃 술래잡기'], ['ball', '⚽ 공놀이'], ['dance', '🎵 같이 춤'], ['hug', '🤗 안아주기'], ['peek', '🙈 까꿍']];
+  v.innerHTML = `<div class="pet-wrap">
+    <div class="pet-head"><b>🏡 ${escapeHtml(pv.nick)}의 집</b>
+      <div class="hub-sub" style="margin:2px 0 0;">${escapeHtml(sp.name || '슬라임')} (${PET_STAGES[sp.stage].name})와 ${escapeHtml(pet.name || '내 슬라임')}가 놀고 있어요 · 💗 ${n}번째 방문</div></div>
+    <div class="pet-stage" id="petStage"><canvas id="petCanvas"></canvas>
+      <button type="button" class="pet-time" id="petTimeBtn">${({ auto:'🕒 자동', day:'☀️ 낮', sunset:'🌇 노을', night:'🌙 밤' })[petTimeMode]}</button></div>
+    <div class="hub-sub" style="margin:0;text-align:center;">버튼을 누르면 둘이 그 놀이를 해요. 가만히 두면 알아서 놀아요</div>
+    <div class="pet-play">${PLAYS.map(p => `<button type="button" class="pp-btn" data-play="${p[0]}">${p[1]}</button>`).join('')}</div>
+    <button type="button" class="hub-btn b2" id="petHomeBtn">🏠 집으로 돌아가기</button>
+  </div>`;
+  document.getElementById('petHomeBtn').addEventListener('click', petLeaveVisit);
+  v.querySelectorAll('[data-play]').forEach(b => b.addEventListener('click', () => { if(petViewer){ petViewer.play(b.dataset.play); playClick(); } }));
+  document.getElementById('petTimeBtn').addEventListener('click', () => {
+    const order = ['auto', 'day', 'sunset', 'night'];
+    petTimeMode = order[(order.indexOf(petTimeMode) + 1) % order.length];
+    document.getElementById('petTimeBtn').textContent = ({ auto:'🕒 자동', day:'☀️ 낮', sunset:'🌇 노을', night:'🌙 밤' })[petTimeMode];
+    if(petViewer) petViewer.setTimeMode(petTimeMode);
+  });
+  ensureHubLib().then(lib => {
+    if(hubTab !== 'pet' || petViewer || !petVisit) return;
+    const canvas = document.getElementById('petCanvas'); if(!canvas) return;
+    petViewer = lib.makePet(canvas, { onEmote: petEmote, onTap: () => {}, onFlash: () => {} });
+    petViewer.setPet(petCfg()); petViewer.setTimeMode(petTimeMode); petViewer.start();
+    petViewer.visit({ host:{ genes:sp.genes, stage:sp.stage, name:sp.name }, guest:{ genes:pet.genes, stage:petStage(), name:pet.name }, theme:sp.theme, deco:sp.deco });
+  }).catch(e => hubToast(e.message));
 }
 
 // ----- 화면 -----
@@ -6953,6 +7426,7 @@ function renderPetView(celebrate){
   if(petBusy) return;
   petStop();
   petInit();
+  if(petVisit){ renderPetVisit(); return; }
   const st = petStage(), egg = !pet.hatched;
   const owned = HUB_CHARS.filter(c => charLevel(c.name) > 0);
   v.innerHTML = `<div class="pet-wrap">
@@ -6976,7 +7450,12 @@ function renderPetView(celebrate){
       ${egg ? `<button type="button" class="hub-btn b3" id="petWarmBtn">🔥 따뜻하게 · ${PET_WARM_COST}코인</button>` : `<button type="button" class="hub-btn b3" id="petTreatBtn">🍰 간식 · ${PET_TREAT_COST}코인</button>`}
       ${pet.gifts > 0 ? `<button type="button" class="hub-btn b2" id="petGiftBtn">🎁 ${pet.gifts}</button>` : ''}
     </div>
-    <button type="button" class="hub-btn sm b2" id="petShopBtn" style="margin-top:2px;">🛍️ 꾸미기</button>
+    <div class="pet-row2">
+      <button type="button" class="hub-btn sm b2" id="petPlayBtn">🎾 놀아주기</button>
+      <button type="button" class="hub-btn sm b2" id="petVisitBtn">🏡 놀러가기</button>
+      <button type="button" class="hub-btn sm b2" id="petShopBtn">🛍️ 꾸미기</button>
+    </div>
+    <div id="petFriends" class="pet-shop hidden"></div>
     <div id="petShop" class="pet-shop hidden"></div>
   </div>`;
   document.getElementById('petFeedBtn').addEventListener('click', petQuizStart);
@@ -6985,9 +7464,25 @@ function renderPetView(celebrate){
   const gb = document.getElementById('petGiftBtn'); if(gb) gb.addEventListener('click', petOpenGift);
   const rn = document.getElementById('petRename'); if(rn) rn.addEventListener('click', () => {
     const nm = prompt('슬라임의 이름을 지어주세요', pet.name || '');
-    if(nm && nm.trim()){ pet.name = nm.trim().slice(0, 8); saveCharacter(); renderPetView(); }
+    if(nm && nm.trim()){ pet.name = nm.trim().slice(0, 8); saveCharacter(); hubSync(); renderPetView(); }
+  });
+  document.getElementById('petPlayBtn').addEventListener('click', () => {
+    if(!pet.hatched){ hubToast('알이 깨어나면 같이 놀 수 있어요'); return; }
+    const now = Date.now(); if(now - petLastTouch < 700) return; petLastTouch = now;
+    const a = petRand(['dance', 'twirl2', 'chain', 'roll', 'bubble', 'cheer', 'peek']);
+    if(petViewer) petViewer.act(a); petSetMood(petVals().mood + 4); petHeart(); petSaveSoon(); petTick(); playClick();
+  });
+  document.getElementById('petVisitBtn').addEventListener('click', () => {
+    if(!pet.hatched){ hubToast('슬라임이 태어나면 친구 집에 놀러갈 수 있어요'); return; }
+    const box = document.getElementById('petFriends'), open = box.classList.contains('hidden');
+    document.getElementById('petShop').classList.add('hidden');
+    if(open){
+      box.innerHTML = petFriendsHTML(); box.classList.remove('hidden'); box.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      box.querySelectorAll('[data-uid]').forEach(b => b.addEventListener('click', () => petStartVisit(b.dataset.uid)));
+    }else box.classList.add('hidden');
   });
   document.getElementById('petShopBtn').addEventListener('click', () => {
+    document.getElementById('petFriends').classList.add('hidden');
     const box = document.getElementById('petShop'), open = box.classList.contains('hidden');
     if(open){ box.innerHTML = petShopHTML(); petWireShop(box); box.classList.remove('hidden'); box.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
     else box.classList.add('hidden');
@@ -7006,6 +7501,7 @@ function renderPetView(celebrate){
     const canvas = document.getElementById('petCanvas'); if(!canvas) return;
     petViewer = lib.makePet(canvas, {
       onTap: (kind) => petCuddle(kind),
+      onEmote: petEmote,
       onFlash: () => { const s = document.getElementById('petStage'); if(s){ s.classList.add('pet-flash'); setTimeout(() => s.classList.remove('pet-flash'), 900); } }
     });
     petViewer.setPet(petCfg());
@@ -7026,17 +7522,18 @@ function openHub(){
 }
 function closeHub(){
   hubViewerStop();
-  petStop();
+  petStop(); petVisit = null;
   if(typeof kgStop === 'function'){ kgStop(); kClosePanel(); }
   if(typeof btStop === 'function'){ btStop(); document.getElementById('battleHubOv').classList.add('hidden'); }
   ['hubDetail', 'hubReveal'].forEach(id => document.getElementById(id).classList.add('hidden'));
   document.getElementById('hubOverlay').classList.add('hidden');
 }
 function showHubTab(tab){
+  if(tab === 'master') tab = 'col';
   hubTab = tab;
   const map = { col:'hubColView', gacha:'hubGachaView', battle:'hubBattleView', king:'hubKingView', pet:'hubPetView', master:'hubMasterView' };
   if(tab !== 'king' && typeof kgStop === 'function'){ kgStop(); kClosePanel(); }
-  if(tab !== 'pet') petStop();
+  if(tab !== 'pet'){ petStop(); petVisit = null; }
   document.querySelector('.hub-main').classList.toggle('kg-mode', tab === 'king');
   Object.keys(map).forEach(k => document.getElementById(map[k]).classList.toggle('hidden', k !== tab));
   document.querySelectorAll('#hubNav [data-hub]').forEach(b => b.classList.toggle('on', b.dataset.hub === tab));
@@ -8877,9 +9374,9 @@ async function doSaveCharacter(){
   const wipingNow = wipeCollection;
   try{
     await setDoc(doc(db, 'vocab', currentUser.uid), {
-      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: wipeCollection ? deleteField() : charCollection, pity5, pity6, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: kingdom || null, pet: pet || null, ownedEver
+      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: wipeCollection ? deleteField() : charCollection, pity5, pity6, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: wipeKingdom ? deleteField() : (kingdom || null), pet: pet || null, wordCoin: wordCoinLog, ownedEver
     }, { merge:true });
-    if(wipingNow) wipeCollection = false;
+    if(wipingNow){ wipeCollection = false; wipeKingdom = false; }
   }catch(e){ console.error('캐릭터 저장 실패', e); }
   updateGroupCount();
 }
@@ -9190,6 +9687,7 @@ function closePdfDrawer(){
 }
 
 async function importCheckedPdfPairs(){
+  if(!wordsReady()) return;
   const checked = Array.from(document.querySelectorAll('#pdfPairsArea input[type=checkbox]:checked'))
     .map(cb => pdfParsedPairs[Number(cb.dataset.idx)])
     .filter(Boolean);
@@ -9211,11 +9709,13 @@ async function importCheckedPdfPairs(){
   updateQuizCounts();
   saveWords();
   closePdfDrawer();
-  alert(`가져오기 완료! 새 단어 ${added}개, 갱신된 단어 ${updated}개`);
+  const rw = giveWordCoins(added);
+  alert(`가져오기 완료! 새 단어 ${added}개, 갱신된 단어 ${updated}개` + (rw.total > 0 ? `\n🪙 코인 +${rw.total}` + (rw.capped ? ` (하루 ${WORD_COIN_CAP}단어까지만 받아요)` : '') : (rw.capped ? `\n오늘은 단어 코인을 다 받았어요 (하루 ${WORD_COIN_CAP}단어)` : '')));
 }
 
 // ---------- 탭 전환 ----------
 function showTab(tab){
+  if(selMode) exitSel(false);
   const listBtn = document.getElementById('tabListBtn');
   const quizBtn = document.getElementById('tabQuizBtn');
   const groupBtn = document.getElementById('tabGroupBtn');
@@ -9251,6 +9751,8 @@ function updateQuizCounts(){
   document.getElementById('allCountLabel').textContent = `${words.length}개 단어`;
   document.getElementById('quizTodayBtn').disabled = todayCount < 2;
   document.getElementById('quizAllBtn').disabled = words.length < 2;
+  const n = selPool().length, sb = document.getElementById('quizSelBtn');
+  if(sb){ sb.classList.toggle('hidden', n < 1); sb.disabled = n < 2; document.getElementById('selCountLabel').textContent = `${n}개 단어` + (n < 2 ? ' · 2개 이상 골라주세요' : ''); }
 }
 
 function resetQuizToSetup(){
@@ -9572,6 +10074,89 @@ document.getElementById('pdfOverlay').addEventListener('click', (e) => { if(e.ta
 document.getElementById('pdfImportBtn').addEventListener('click', importCheckedPdfPairs);
 document.getElementById('quizTodayBtn').addEventListener('click', () => startByMode(words.filter(w => w.date === todayStr())));
 document.getElementById('quizAllBtn').addEventListener('click', () => startByMode(words));
+document.getElementById('quizSelBtn').addEventListener('click', () => startByMode(selPool()));
+
+// ---------- 단어 꾹 눌러서 고르기 ----------
+function selPool(){ return words.filter(w => selIds.has(String(w.id))); }
+function updateSelBar(){
+  const n = selIds.size, bar = document.getElementById('selBar');
+  bar.classList.toggle('hidden', !selMode);
+  document.getElementById('selCount').textContent = `${n}개 선택됨`;
+  document.getElementById('selStartBtn').disabled = n < 2;
+  document.getElementById('selStartBtn').textContent = n < 2 ? '2개 이상 골라주세요' : `${n}개로 시작`;
+  bar.querySelectorAll('.sel-mode-chip').forEach(b => b.classList.toggle('active', b.dataset.mode === quizMode));
+  const hint = document.getElementById('selHint'); if(hint) hint.classList.toggle('hidden', selMode);
+}
+function enterSel(){
+  if(selMode) return;
+  selMode = true;
+  document.getElementById('wordListArea').classList.add('sel-mode');
+  updateSelBar();
+}
+function exitSel(clear){
+  selMode = false; if(clear) selIds.clear();
+  document.getElementById('wordListArea').classList.remove('sel-mode');
+  document.querySelectorAll('#wordListArea .word-card').forEach(c => c.classList.toggle('selected', selIds.has(c.dataset.wid)));
+  updateSelBar(); updateQuizCounts();
+}
+function setSel(id, on){
+  id = String(id);
+  if(on) selIds.add(id); else selIds.delete(id);
+  const el = document.querySelector(`#wordListArea .word-card[data-wid="${id}"]`); if(el) el.classList.toggle('selected', on);
+}
+function toggleSel(id, forceOn){
+  id = String(id);
+  const on = forceOn === undefined ? !selIds.has(id) : forceOn;
+  setSel(id, on);
+  if(selIds.size === 0){ exitSel(true); return; }       // 마지막 하나를 빼면 선택 모드가 꺼져요
+  updateSelBar(); updateQuizCounts();
+}
+function startSelected(){
+  const pool = selPool();
+  if(pool.length < 2){ alert('시험을 보려면 단어를 2개 이상 골라주세요!'); return; }
+  exitSel(false);                      // 선택은 남겨둬서, 시험이 끝난 뒤에도 '내가 고른 단어로'를 다시 쓸 수 있어요
+  showTab('quiz');
+  startByMode(pool);
+}
+(function setupLongPressSelect(){
+  const wl = document.getElementById('wordListArea');
+  let timer = null, start = null, fired = 0;
+  const cancel = () => { clearTimeout(timer); timer = null; start = null; };
+  wl.addEventListener('pointerdown', e => {
+    const card = e.target.closest('.word-card'); if(!card || e.target.closest('.del, .speak-btn')) return;
+    fired = 0; start = { x:e.clientX, y:e.clientY }; clearTimeout(timer);
+    timer = setTimeout(() => {
+      fired = Date.now(); start = null;
+      enterSel(); toggleSel(card.dataset.wid, true);
+      if(navigator.vibrate) navigator.vibrate(25);
+    }, 480);
+  });
+  wl.addEventListener('pointermove', e => { if(start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) cancel(); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => wl.addEventListener(ev, cancel));
+  wl.addEventListener('contextmenu', e => { if(e.target.closest('.word-card')) e.preventDefault(); });
+  wl.addEventListener('click', e => {
+    if(fired && Date.now() - fired < 1500){ fired = 0; e.preventDefault(); e.stopPropagation(); return; }   // 꾹 누른 직후의 클릭은 무시해요
+    fired = 0;
+    if(!selMode) return;
+    if(e.target.closest('.speak-btn')) return;                                      // 발음 듣기는 그대로 돼요
+    const lab = e.target.closest('.day-label');
+    if(lab){                                                                         // 날짜를 누르면 그날 단어를 한꺼번에
+      const cards = [...lab.parentElement.querySelectorAll('.word-card')], all = cards.every(c => selIds.has(c.dataset.wid));
+      cards.forEach(c => setSel(c.dataset.wid, !all));
+      if(selIds.size === 0) exitSel(true); else { updateSelBar(); updateQuizCounts(); }
+      return;
+    }
+    const card = e.target.closest('.word-card'); if(card){ e.stopPropagation(); toggleSel(card.dataset.wid); }
+  }, true);
+  document.getElementById('selAllBtn').addEventListener('click', () => {
+    const cards = [...wl.querySelectorAll('.word-card')], all = cards.length && cards.every(c => selIds.has(c.dataset.wid));
+    cards.forEach(c => setSel(c.dataset.wid, !all));
+    if(selIds.size === 0) exitSel(true); else { updateSelBar(); updateQuizCounts(); }
+  });
+  document.getElementById('selCancelBtn').addEventListener('click', () => exitSel(true));
+  document.getElementById('selStartBtn').addEventListener('click', startSelected);
+  document.querySelectorAll('#selBar .sel-mode-chip').forEach(b => b.addEventListener('click', () => { setQuizMode(b.dataset.mode); updateSelBar(); }));
+})();
 document.querySelectorAll('.mode-tab').forEach(btn => {
   btn.addEventListener('click', () => setQuizMode(btn.dataset.mode));
 });
@@ -9610,6 +10195,7 @@ document.getElementById('menuCalBtn').addEventListener('click', () => { closeMen
 document.getElementById('menuCharBtn').addEventListener('click', () => { closeMenu(); openCharacter(); });
 document.getElementById('menuGachaBtn').addEventListener('click', () => { closeMenu(); openGacha(); });
 document.getElementById('menuMasterBtn').addEventListener('click', () => { closeMenu(); openMaster(); });
+document.getElementById('menuResetBtn').addEventListener('click', () => { closeMenu(); resetAccount(); });
 document.getElementById('closeMasterBtn').addEventListener('click', closeMaster);
 document.getElementById('closeDuelBtn').addEventListener('click', closeDuel);
 document.getElementById('masterOverlay').addEventListener('click', (e) => { if(e.target.id === 'masterOverlay') closeMaster(); });
@@ -9647,5 +10233,21 @@ document.getElementById('gachaOverlay').addEventListener('click', (e) => { if(e.
 document.getElementById('gachaSingleBtn').addEventListener('click', () => runGacha(1));
 document.getElementById('gachaTenBtn').addEventListener('click', () => runGacha(10));
 </script>
+<div id="selBar" class="hidden">
+  <div class="sel-row">
+    <span id="selCount">0개 선택됨</span>
+    <span class="sel-sp"></span>
+    <button type="button" class="sel-link" id="selAllBtn">전체 선택</button>
+    <button type="button" class="sel-link" id="selCancelBtn">취소</button>
+  </div>
+  <div class="sel-row">
+    <div class="sel-modes">
+      <button type="button" class="sel-mode-chip" data-mode="test">시험</button>
+      <button type="button" class="sel-mode-chip" data-mode="memorize">암기</button>
+      <button type="button" class="sel-mode-chip" data-mode="game">게임</button>
+    </div>
+    <button type="button" class="sel-start" id="selStartBtn">시작</button>
+  </div>
+</div>
 </body>
 </html>
