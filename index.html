@@ -1145,6 +1145,10 @@
           <span class="mc-title">마스터피스</span>
           <span class="mc-sub">레벨(스탯)과 장비를 원하는 대로 설정</span>
         </button>
+        <button type="button" id="menuFillBtn" class="menu-choice-btn" style="border-color:#C8B26A;">
+          <span class="mc-title" style="color:#8a6a10;">🎁 내 계정 가득 채우기</span>
+          <span class="mc-sub">모든 캐릭터, 진화, 코인을 한 번에 채워요</span>
+        </button>
         <button type="button" id="menuResetBtn" class="menu-choice-btn" style="border-color:#C9A0A0;">
           <span class="mc-title" style="color:#8B3A3A;">🗑️ 처음부터 다시 시작</span>
           <span class="mc-sub">단어와 게임 기록을 모두 지워요 (되돌릴 수 없어요)</span>
@@ -6564,6 +6568,26 @@ async function lookupWord(){
   btn.disabled = false;
 }
 
+// ---------- 내 계정 가득 채우기: 모든 캐릭터(승급 ✦5, Lv.30), ★4 이상 진화, 코인 ----------
+const FILL_COINS = 99999999;
+function fillAccount(){
+  if(!currentUser) return;
+  if(!charDataLoaded){ alert('데이터를 불러오는 중이에요. 잠시 후 다시 해주세요!'); return; }
+  const msg = `🎁 내 계정을 가득 채워요!\n\n• 캐릭터 ${HUB_CHARS.length}명 전부 (승급 ✦5, Lv.30)\n• ★4 이상 ${HUB_CHARS.filter(c => c.star >= 4).length}명 전부 진화\n• 코인 ${FILL_COINS.toLocaleString()}개\n\n이미 가진 캐릭터는 최대로 올라가요. 계속할까요?`;
+  if(!confirm(msg)) return;
+  try{
+    HUB_CHARS.forEach(c => {
+      const had = (charCollection[c.name] && charCollection[c.name].n) || 0;
+      charCollection[c.name] = { n: Math.max(5, had), lv: 30, evo: c.star >= 4 ? 1 : 0 };
+    });
+    if(!kingdom) kNorm();
+    kingdom.coins = Math.max(kingdom.coins || 0, FILL_COINS);
+    hubTrackOwned(); saveCharacter(); hubSync();
+    if(typeof renderCollection === 'function') renderCollection();
+    updateHubTickets();
+    alert('가득 채웠어요! 게임에서 확인해보세요 🎉');
+  }catch(e){ console.error('채우기 실패', e); alert('채우는 중에 문제가 생겼어요. 다시 해주세요.'); }
+}
 // ---------- 계정 처음부터 다시 시작 ----------
 async function resetAccount(){
   if(!currentUser) return;
@@ -10819,6 +10843,7 @@ document.getElementById('menuCharBtn').addEventListener('click', () => { closeMe
 document.getElementById('menuGachaBtn').addEventListener('click', () => { closeMenu(); openGacha(); });
 document.getElementById('menuMasterBtn').addEventListener('click', () => { closeMenu(); openMaster(); });
 document.getElementById('menuResetBtn').addEventListener('click', () => { closeMenu(); resetAccount(); });
+document.getElementById('menuFillBtn').addEventListener('click', () => { closeMenu(); fillAccount(); });
 document.getElementById('closeMasterBtn').addEventListener('click', closeMaster);
 document.getElementById('closeDuelBtn').addEventListener('click', closeDuel);
 document.getElementById('masterOverlay').addEventListener('click', (e) => { if(e.target.id === 'masterOverlay') closeMaster(); });
