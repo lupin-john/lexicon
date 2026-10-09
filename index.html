@@ -1798,7 +1798,7 @@
         br.rotation.z = -s * 0.38;
       }
     });
-    [-1, 1].forEach(function(s){
+    if(!v.glitch) [-1, 1].forEach(function(s){
       var c = part(rig, smallG, v.cheek, [s * (ffit ? 1.0 : 0.64), 0.86, sz(s * (ffit ? 1.0 : 0.64), 0.86, 0.76)], [0.17 * (ffit ? 1.6 : 1), 0.11 * (ffit ? 1.6 : 1), 0.06], { outline:false });
       c.rotation.y = s * 0.55;
     });
@@ -2179,10 +2179,10 @@
         }
         gtex.needsUpdate = true;
       }
-      paintGlitch(gev ? 0.62 : 0.5);
-      var gmat = new T.MeshBasicMaterial({ map:gtex }); gmat.emissive = new T.Color(0x000000); gmat.emissiveIntensity = 0;
-      body.material = gmat;
-      mouth.material.color.setHex(0x9ac8ff);
+      paintGlitch(gev ? 0.5 : 0.36);
+      body.material = new T.MeshBasicMaterial({ map:gtex });
+      rig.children.forEach(function(ch){ if(ch.isMesh && ch.geometry && ch.geometry.type === 'BoxGeometry' && ch.position.y > 1.2 && ch.position.z > 0.4) ch.visible = false; });   // 눈썹
+      mouth.visible = false;
       var rim = new T.Mesh(body.geometry, new T.MeshBasicMaterial({ color:0x2a56c8, side:T.BackSide, transparent:true, opacity:0.85 }));
       rim.position.set(0, cy, 0); rim.scale.set(bs[0] * 1.05, bs[1] * 1.05, bs[2] * 1.05); rig.add(rim);
       var pcols = ['#1d3a8a', '#2a56c8', '#9ac8ff', '#39ff6a', '#ff4a2a', '#ff3ad0', '#e8f0ff', '#00e0ff'], pix = [], npx = gev ? 46 : 28;
@@ -2202,10 +2202,11 @@
         G.frame++;
         if(t > G.next){ G.until = t + 0.07 + Math.random() * 0.22; G.next = t + 0.3 + Math.random() * 1.2; }
         var burst = t < G.until;
-        if(t - G.lastPaint > (burst ? 0.035 : 0.085)){ G.lastPaint = t; paintGlitch((burst ? 0.85 : 0.5) + (gev ? 0.15 : 0)); }
+        if(t - G.lastPaint > (burst ? 0.035 : 0.085)){ G.lastPaint = t; paintGlitch((burst ? 0.8 : 0.34) + (gev ? 0.14 : 0)); }
         body.position.x = burst ? (Math.random() - 0.5) * 0.2 : 0;
         rim.material.opacity = burst ? (Math.random() < 0.4 ? 0.2 : 1) : 0.55 + Math.random() * 0.35;
-        U.eyes.forEach(function(e){ e.visible = !(Math.random() < (burst ? 0.5 : 0.05)); });
+        U.eyes.forEach(function(e){ e.visible = burst && Math.random() < 0.18; });          // 눈은 깨질 때 아주 잠깐만 보여요
+        mouth.visible = burst && Math.random() < 0.08;
         pix.forEach(function(pm, k){
           pm.userData.t -= 0.016;
           if(pm.userData.t <= 0 || (burst && Math.random() < 0.25)){
@@ -2436,7 +2437,7 @@
     if(J.col) paintRainbow(J, t);
     gp.needsUpdate = true;   // 조명 방향은 원래 모양 그대로 써서 이음매 선이 안 생겨요
     rig.scale.set(sx, sy, sz);
-    u.body.material.emissive.setRGB(hitFlash * 0.9, hitFlash * 0.15, hitFlash * 0.15);
+    if(u.body.material.emissive) u.body.material.emissive.setRGB(hitFlash * 0.9, hitFlash * 0.15, hitFlash * 0.15);
 
     var closing = (t > nextBlink && t < nextBlink + 0.13);
     if(t > nextBlink + 0.13) nextBlink = t + 2 + Math.random() * 2.5;
@@ -2937,7 +2938,7 @@
       jellyVerts(Fi.U, t);
       Fi.flash = Math.max(0, Fi.flash - rdt * 3.2); Fi.hurt = Math.max(0, Fi.hurt - rdt);
       Fi.gl = Math.max(0, Fi.gl - rdt * 1.6);
-      Fi.U.body.material.emissive.setRGB(Fi.flash * 0.9 + Fi.gl * Fi.glc[0], Fi.flash * 0.15 + Fi.gl * Fi.glc[1], Fi.flash * 0.15 + Fi.gl * Fi.glc[2]);
+      if(Fi.U.body.material.emissive) Fi.U.body.material.emissive.setRGB(Fi.flash * 0.9 + Fi.gl * Fi.glc[0], Fi.flash * 0.15 + Fi.gl * Fi.glc[1], Fi.flash * 0.15 + Fi.gl * Fi.glc[2]);
       Fi.vy = (Fi.y - Fi.py) / Math.max(rdt, 0.001); Fi.py = Fi.y;
       // 장식/장비 움직임
       var u = Fi.U;
@@ -5625,11 +5626,14 @@
       if(filterFn && !filterFn(v, i)) return;
       var bigT = v.mythic || (evoSet && v.star >= 4);
       c2.position.set(0, 2.2, bigT ? 12.4 : 9.6); c2.lookAt(0, bigT ? 1.9 : 1.5, 0);
-      var m = buildMascot(v, evoSet ? { evo:true } : undefined); m.rotation.y = -0.4;
-      s2.add(m);
-      r2.render(s2, c2);
-      out[v.name] = r2.domElement.toDataURL('image/png');
-      s2.remove(m);
+      var m = null;
+      try{
+        m = buildMascot(v, evoSet ? { evo:true } : undefined); m.rotation.y = -0.4;
+        s2.add(m);
+        r2.render(s2, c2);
+        out[v.name] = r2.domElement.toDataURL('image/png');
+      }catch(err){ if(typeof console !== 'undefined') console.error('카드 그림 실패', v.name, err); }
+      if(m) s2.remove(m);
     });
     ENV_CUR = prevEnv;
     releaseGL(r2);
