@@ -7251,8 +7251,9 @@ function scheduleRobotGesture(){
 // 게임을 처음부터 다시 만드는 중: 로봇 캐릭터와 무기/대결은 잠시 꺼둬요 (false로 바꾸면 다시 켜져요)
 const GAME_RESET = true;
 if(GAME_RESET){ const fb = document.getElementById('floatingCharBtn'); if(fb) fb.style.display = 'none'; }
+const MASTER_EMAIL = 'suhyoungjun2010' + '@' + 'gmail' + '.com';
 function isMaster(){
-  return false;   // 마스터 기능은 없앴어요
+  return !!(currentUser && currentUser.email && currentUser.email.toLowerCase() === MASTER_EMAIL);
 }
 function updateMasterVisibility(){
   buildGameNav();
@@ -8066,7 +8067,7 @@ function closeHub(){
   document.getElementById('hubOverlay').classList.add('hidden');
 }
 function showHubTab(tab){
-  if(tab === 'master') tab = 'col';
+  if(tab === 'master' && !isMaster()) tab = 'col';
   hubTab = tab;
   const map = { col:'hubColView', gacha:'hubGachaView', battle:'hubBattleView', king:'hubKingView', pet:'hubPetView', master:'hubMasterView' };
   if(tab !== 'king' && typeof kgStop === 'function'){ kgStop(); kClosePanel(); }
@@ -8345,33 +8346,61 @@ function hubGrant(name, k){
   charCollection[name] = { n: had + k, lv: charLvl(name), evo: evoRaw(name) };
   saveCharacter(); renderCollection();
 }
+function masterAction(k){
+  if(!isMaster() || !hubReady()) return;
+  const hi = HUB_CHARS.filter(c => c.star >= 4);
+  if(k === 't10') tickets += 10; else if(k === 't100') tickets += 100; else if(k === 't1000') tickets += 1000;
+  else if(k === 'all') HUB_CHARS.forEach(c => { if(!(charCollection[c.name] && charCollection[c.name].n)) charCollection[c.name] = { n: 1, lv: 1, evo: 0 }; });
+  else if(k === 'max') HUB_CHARS.forEach(c => { charCollection[c.name] = { n: Math.max(5, (charCollection[c.name] && charCollection[c.name].n) || 0), lv: charLvl(c.name), evo: evoRaw(c.name) }; });
+  else if(k === 'lv30') HUB_CHARS.forEach(c => { if(charCollection[c.name] && charCollection[c.name].n > 0) charCollection[c.name].lv = 30; });
+  else if(k === 'evoAll') hi.forEach(c => { if(charCollection[c.name] && charCollection[c.name].n > 0) charCollection[c.name].evo = 1; });
+  else if(k === 'evoOff') hi.forEach(c => { if(charCollection[c.name]) charCollection[c.name].evo = 0; });
+  else if(k === 'full'){
+    HUB_CHARS.forEach(c => { const had = (charCollection[c.name] && charCollection[c.name].n) || 0; charCollection[c.name] = { n: Math.max(5, had), lv: 30, evo: c.star >= 4 ? 1 : 0 }; });
+    kNorm(); kingdom.coins = Math.max(kingdom.coins, 99999999); tickets = Math.max(tickets, 999);
+    K_IDS.forEach(id => { kingdom.b[id].lv = K_MAX; }); kingdom.decor = { owned: KDECO_IDS.slice() }; kNorm();
+  }
+  else if(k === 'reset'){
+    if(!confirm('도감을 전부 지울까요? 되돌릴 수 없어요.')) return;
+    charCollection = {}; ownedEver = []; pity5 = 0; pity6 = 0; pity7 = 0; mainChar = null; wipeCollection = true;
+    try{ localStorage.removeItem('lx_col_' + currentUser.uid); }catch(e){}
+  }
+  else if(k === 'c10000'){ kNorm(); kingdom.coins += 10000; }
+  else if(k === 'c1m'){ kNorm(); kingdom.coins += 1000000; }
+  else if(k === 'cmax'){ kNorm(); kingdom.coins = Math.max(kingdom.coins, 99999999); }
+  else if(k === 'kb5'){ kNorm(); K_IDS.forEach(id => { kingdom.b[id].lv = Math.max(kingdom.b[id].lv, 5); }); kNorm(); }
+  else if(k === 'kb10'){ kNorm(); K_IDS.forEach(id => { kingdom.b[id].lv = K_MAX; }); kNorm(); }
+  else if(k === 'kt8'){ kNorm(); K_IDS.forEach(id => { kingdom.b[id].t -= 8 * 3600000; if(kingdom.b[id].exp){ kingdom.b[id].exp.s -= 8 * 3600000; kingdom.b[id].exp.e -= 8 * 3600000; } }); }
+  else if(k === 'decorAll'){ kNorm(); kingdom.decor = { owned: KDECO_IDS.slice() }; kNorm(); }
+  else if(k === 'decorOff'){ kNorm(); kingdom.decor = { owned: [] }; kNorm(); }
+  else return;
+  hubTrackOwned(); saveCharacter(); hubSync(); updateHubTickets(); renderCollection();
+}
+function masterEvoToggle(name){
+  if(!isMaster() || !hubReady()) return;
+  const c = HUB_BY_NAME[name]; if(!c || c.star < 4) return;
+  if(!(charCollection[name] && charCollection[name].n > 0)) hubGrant(name, 1);
+  charCollection[name].evo = evoRaw(name) ? 0 : 1;
+  hubTrackOwned(); saveCharacter(); hubSync(); renderCollection();
+}
 function renderMasterView(){
   const v = document.getElementById('hubMasterView');
-  v.innerHTML = `<div class="hub-sub">내 계정에서만 보여요</div>
-    <div class="pull-row" style="margin-bottom:12px;">
-      <button class="hub-btn sm" data-ms="t10">티켓 +10</button><button class="hub-btn sm b2" data-ms="t100">티켓 +100</button>
-      <button class="hub-btn sm b3" data-ms="all">전부 1장씩</button><button class="hub-btn sm" data-ms="max" style="background:linear-gradient(180deg,#5fe0b8,#21b98a);box-shadow:0 5px 0 #13805f;">전부 승급 최대</button>
-      <button class="hub-btn sm" data-ms="reset" style="background:linear-gradient(180deg,#4a4f86,#33386a);box-shadow:0 5px 0 #20244a;">초기화</button>
-      <button class="hub-btn sm b2" data-ms="c10000">코인 +10000</button><button class="hub-btn sm b3" data-ms="kb5">건물 전부 Lv5</button><button class="hub-btn sm" data-ms="kt8">생산 8시간 앞당기기</button>
-    </div>
-    ${HUB_CHARS.map(c => `<div class="ms-row"><div><b>${escapeHtml(c.name)}</b> <span class="hub-sub">${hubStarText(c.star)} · ${(charCollection[c.name] && charCollection[c.name].n) || 0}장</span></div>
-      <button class="hub-btn sm" data-g="${escapeHtml(c.name)}">+1</button></div>`).join('')}`;
+  const B = (k, label, cls, style) => `<button class="hub-btn sm ${cls || ''}" data-ms="${k}"${style ? ` style="${style}"` : ''}>${label}</button>`;
+  v.innerHTML = `<div class="hub-sub">마스터 · 내 계정에서만 보여요</div>
+    <div class="hub-sub" style="margin:8px 0 4px;color:#ffd24a;">한 번에 다 하기</div>
+    <div class="pull-row" style="margin-bottom:10px;">${B('full', '🎁 전부 가득 (캐릭터·진화·코인·건물·장식)', 'b3')}</div>
+    <div class="hub-sub" style="margin:8px 0 4px;color:#ffd24a;">티켓 · 코인</div>
+    <div class="pull-row" style="margin-bottom:10px;">${B('t10', '티켓 +10')}${B('t100', '티켓 +100', 'b2')}${B('t1000', '티켓 +1000', 'b3')}${B('c10000', '코인 +1만', 'b2')}${B('c1m', '코인 +100만', 'b3')}${B('cmax', '코인 최대')}</div>
+    <div class="hub-sub" style="margin:8px 0 4px;color:#ffd24a;">캐릭터</div>
+    <div class="pull-row" style="margin-bottom:10px;">${B('all', '전부 1장씩', 'b3')}${B('max', '전부 승급 최대', '', 'background:linear-gradient(180deg,#5fe0b8,#21b98a);box-shadow:0 5px 0 #13805f;')}${B('lv30', '전부 Lv.30', 'b2')}${B('evoAll', '★4↑ 전부 진화', 'b3')}${B('evoOff', '진화 해제', '', 'background:linear-gradient(180deg,#4a4f86,#33386a);box-shadow:0 5px 0 #20244a;')}${B('reset', '도감 초기화', '', 'background:linear-gradient(180deg,#4a4f86,#33386a);box-shadow:0 5px 0 #20244a;')}</div>
+    <div class="hub-sub" style="margin:8px 0 4px;color:#ffd24a;">왕국</div>
+    <div class="pull-row" style="margin-bottom:12px;">${B('kb5', '건물 전부 Lv5', 'b3')}${B('kb10', '건물 전부 Lv10', 'b2')}${B('decorAll', '장식 전부', 'b3')}${B('decorOff', '장식 치우기')}${B('kt8', '생산 8시간 앞당기기')}</div>
+    <div class="hub-sub" style="margin:8px 0 4px;color:#ffd24a;">캐릭터별 (+1장 · 진화 켜기/끄기)</div>
+    ${HUB_CHARS.map(c => `<div class="ms-row"><div><b>${escapeHtml(c.name)}</b> <span class="hub-sub">${hubStarText(c.star)} · ${(charCollection[c.name] && charCollection[c.name].n) || 0}장${charEvo(c.name) ? ' · ✨진화' : ''}</span></div>
+      <div style="display:flex;gap:6px;"><button class="hub-btn sm" data-g="${escapeHtml(c.name)}">+1</button>${c.star >= 4 ? `<button class="hub-btn sm b3" data-e="${escapeHtml(c.name)}">✨</button>` : ''}</div></div>`).join('')}`;
   v.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', () => { hubGrant(b.dataset.g, 1); renderMasterView(); }));
-  v.querySelectorAll('[data-ms]').forEach(b => b.addEventListener('click', () => {
-    const k = b.dataset.ms;
-    if(k === 't10') tickets += 10; else if(k === 't100') tickets += 100;
-    else if(k === 'all') HUB_CHARS.forEach(c => { if(!(charCollection[c.name] && charCollection[c.name].n)) charCollection[c.name] = { n: 1, lv: 1 }; });
-    else if(k === 'max') HUB_CHARS.forEach(c => { charCollection[c.name] = { n: 5, lv: charCollection[c.name] && charCollection[c.name].lv || 1 }; });
-    else if(k === 'reset'){
-      if(!confirm('도감을 전부 지울까요? 되돌릴 수 없어요.')) return;
-      charCollection = {}; ownedEver = []; pity5 = 0; pity6 = 0; pity7 = 0; mainChar = null; wipeCollection = true;
-      try{ localStorage.removeItem('lx_col_' + currentUser.uid); }catch(e){}
-    }
-    else if(k === 'c10000'){ kNorm(); kingdom.coins += 10000; }
-    else if(k === 'kb5'){ kNorm(); K_IDS.forEach(id => { kingdom.b[id].lv = Math.max(kingdom.b[id].lv, 5); }); kNorm(); }
-    else if(k === 'kt8'){ kNorm(); K_IDS.forEach(id => { kingdom.b[id].t -= 8 * 3600000; if(kingdom.b[id].exp){ kingdom.b[id].exp.s -= 8 * 3600000; kingdom.b[id].exp.e -= 8 * 3600000; } }); }
-    saveCharacter(); hubSync(); updateHubTickets(); renderCollection(); renderMasterView();
-  }));
+  v.querySelectorAll('[data-e]').forEach(b => b.addEventListener('click', () => { masterEvoToggle(b.dataset.e); renderMasterView(); }));
+  v.querySelectorAll('[data-ms]').forEach(b => b.addEventListener('click', () => { masterAction(b.dataset.ms); renderMasterView(); }));
 }
 // ----- 전투 (개인전): 두 캐릭터가 서로에게 뛰어들어 철푸덕 부딪혀요 -----
 let btOpp = null, btCtl = null, btWins = 0, btLosses = 0;
