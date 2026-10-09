@@ -2150,18 +2150,19 @@
     // ---- 오라 ----
     if(v.aura && !(opts && opts.battle)){
       // 연기처럼: 몸 주위에서 피어올라 퍼지며 사라지는 흐릿한 덩어리들 (둥근 막은 없애요)
-      var smoke = [], nsm = v.mythic ? 26 : 18, wideA = Math.max(1, bs[0] * 0.9);
+      var smoke = [], nsm = v.mythic ? 36 : 26, wideA = Math.max(1, bs[0] * 0.9), smokeCol = new T.Color(v.fx);
+      if(smokeCol.lerp) smokeCol.lerp(new T.Color(0xffffff), 0.28);
       for(var qi = 0; qi < nsm; qi++){
-        var spr = new T.Sprite(new T.SpriteMaterial({ map:smokeTex(), color:v.fx, transparent:true, opacity:0, blending:T.AdditiveBlending, depthWrite:false }));
-        spr.userData.ph = qi / nsm; spr.userData.s = 0.8 + (qi % 5) * 0.12; root.add(spr); smoke.push(spr);
+        var spr = new T.Sprite(new T.SpriteMaterial({ map:smokeTex(), color:smokeCol.clone ? smokeCol.clone() : v.fx, transparent:true, opacity:0, blending:T.AdditiveBlending, depthWrite:false }));
+        spr.userData.ph = qi / nsm; spr.userData.s = 1.0 + (qi % 5) * 0.16 + (qi < 8 ? 0.7 : 0); spr.userData.low = qi < 8; root.add(spr); smoke.push(spr);
       }
       function placeSmoke(t){
         for(var qj = 0; qj < smoke.length; qj++){
-          var sp = smoke[qj], ph = sp.userData.ph, u = (t * 0.16 + ph) % 1, a = ph * 6.283 * 3 + t * 0.25 + qj, rr = (0.55 + u * 0.5) * wideA;
-          sp.position.set(Math.cos(a) * rr + Math.sin(t * 0.8 + ph * 9) * 0.22 * u, 0.1 + u * 3.1, Math.sin(a) * rr * 0.8);
-          var sc = (1.0 + u * 2.6) * sp.userData.s; sp.scale.set(sc, sc, 1);
-          sp.material.opacity = Math.sin(u * Math.PI) * ((v.glitch && Math.random() < 0.08) ? 0.04 : 0.2);
-          if(v.mythic && sp.material.color.setHSL) sp.material.color.setHSL((t * 0.05 + ph) % 1, 0.7, 0.6);
+          var sp = smoke[qj], ph = sp.userData.ph, low = sp.userData.low, u = (t * (low ? 0.1 : 0.2) + ph) % 1, a = ph * 6.283 * 3 + t * 0.3 + qj, rr = ((low ? 0.9 : 0.75) + u * (low ? 0.9 : 0.7)) * wideA;
+          sp.position.set(Math.cos(a) * rr + Math.sin(t * 0.9 + ph * 9) * 0.3 * u, low ? 0.15 + u * 0.7 : 0.2 + u * 3.6, Math.sin(a) * rr * 0.85);
+          var sc = ((low ? 2.4 : 1.5) + u * (low ? 1.6 : 3.2)) * sp.userData.s; sp.scale.set(sc, sc, 1);
+          sp.material.opacity = Math.sin(u * Math.PI) * ((v.glitch && Math.random() < 0.08) ? 0.08 : (low ? 0.38 : 0.46));
+          if(v.mythic && sp.material.color.setHSL) sp.material.color.setHSL((t * 0.05 + ph) % 1, 0.75, 0.62);
         }
       }
       placeSmoke(0); U.anims.push(placeSmoke);
@@ -3719,7 +3720,7 @@
   }
 
   // ---- 왕국 장식 12가지 ----
-  var KDECO_SCALE = { banners:2.0, lamps:2.0, fountain:2.8, wall:2.2, cannon:2.2, rose:2.6, crystal:2.6, gate:2.2, statue:2.8, fireworks:2.4, balloon:2.4, dragon:2.8 };
+  var KDECO_SCALE = { banners:2.0, lamps:2.0, fountain:2.8, wall:2.2, cannon:2.2, rose:2.6, crystal:2.6, gate:2.2, statue:2.8, fireworks:2.4, balloon:2.4, dragon:2.3 };
   var KDECO_POS0 = { banners:[0, 5], lamps:[0, 6], fountain:[0, 4], wall:[0, -14], cannon:[0, -11], rose:[-9, 11], crystal:[10, 10], gate:[0, 11], statue:[6.5, -6], fireworks:[8, 2], balloon:[0, 0], dragon:[-9, -4] };
   var KDECO_POS = {}; Object.keys(KDECO_POS0).forEach(function(k){ KDECO_POS[k] = [KDECO_POS0[k][0] * MAPK, KDECO_POS0[k][1] * MAPK]; });
   var KDECO_BUILD = {
@@ -3912,33 +3913,93 @@
     },
     dragon: function(g, A){
       var P = new T.Group(); P.position.set(-9, 0, -4); P.rotation.y = 0.45; g.add(P);
-      var rock = pmat(0x5d5a68, 0.85), dark = pmat(0x3c3a48, 0.8), gold = gMat(), mem = pmat(0x8a3a5a, 0.7, { side:T.DoubleSide });
-      blobShadow(P, 3.4, 0.24);
-      mesh(P, gC(2.2, 2.6, 1.2, 8), pmat(0x8d879c, 0.9), 0, 0.6, 0); mesh(P, gT(2.3, 0.1, 8), gold, 0, 1.22, 0, 1, 1, 1, Math.PI / 2, 0, 0);
-      var D = new T.Group(); D.position.set(0, 1.2, 0); P.add(D);
-      mesh(D, gS(1, 18, 14), rock, 0, 1.5, 0, 1.15, 0.9, 1.75);
-      [[-0.8, 0.9], [0.8, 0.9], [-0.8, -0.9], [0.8, -0.9]].forEach(function(l){ mesh(D, gC(0.28, 0.34, 1.2, 8), dark, l[0], 0.6, l[1]); mesh(D, gB(0.6, 0.2, 0.8), rock, l[0], 0.1, l[1] + 0.15); });
-      var neck = [[0, 2.1, 1.4, 0.55], [0, 2.7, 1.9, 0.48], [0, 3.3, 2.2, 0.42]]; neck.forEach(function(n){ mesh(D, gS(n[3], 12, 10), rock, n[0], n[1], n[2]); });
-      var H = new T.Group(); H.position.set(0, 3.7, 2.45); D.add(H);
-      mesh(H, gS(0.52, 14, 12), rock, 0, 0, 0, 1, 0.85, 1.3); mesh(H, gS(0.34, 10, 8), rock, 0, -0.1, 0.65, 1, 0.7, 1.4);
-      [-0.28, 0.28].forEach(function(x){ mesh(H, gK(0.1, 0.62, 6), gold, x, 0.5, -0.2, 1, 1, 1, -0.5, 0, x * -0.8); mesh(H, gS(0.1, 8, 6), emis(0xff3a2a, 1.0), x * 1.2, 0.2, 0.42); });
-      var fire = [];
-      for(var i = 0; i < 6; i++){ var fm = mesh(H, gK(0.3, 1.2, 8), emis(i % 2 ? 0xffd24a : 0xff7a2a, 1.0, 0.3, { transparent:true, opacity:0.9 }), 0, -0.1, 1.6 + i * 0.55, 1, 1, 1, Math.PI / 2, 0, 0); fm.castShadow = false; fm.visible = false; fire.push(fm); }
-      var fg = glowSprite(0xff9a3a, 4, 0); fg.position.set(0, -0.1, 2.2); H.add(fg);
+      var sc1 = pmat(0x2d2b38, 0.5, { metalness:0.3, flatShading:true }), sc2 = pmat(0x1c1a25, 0.55, { metalness:0.2, flatShading:true }),
+          belly = pmat(0xff6a2a, 0.4, { emissive:0xff3a10, emissiveIntensity:0.4, flatShading:true }), gold = gMat(),
+          memM = pmat(0x9a1a30, 0.55, { emissive:0x3a0610, emissiveIntensity:0.55, side:T.DoubleSide }), boneM = pmat(0x2a2420, 0.6, { metalness:0.35, flatShading:true }),
+          lavaM = emis(0xff5a1a, 0.95, 0.4), eyeM = emis(0xffe040, 1.5, 0.2), rock = pmat(0x4a4656, 0.9, { flatShading:true });
+      function bar(par, a, b, r0, r1, mat){
+        var dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 0.01;
+        var gp = new T.Group(); gp.position.set((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2); gp.rotation.order = 'YXZ'; gp.rotation.y = Math.atan2(dx, dz); gp.rotation.x = -Math.asin(Math.max(-1, Math.min(1, dy / len)));
+        par.add(gp); var m = new T.Mesh(gC(r1, r0, len, 6), mat); m.rotation.x = Math.PI / 2; m.castShadow = true; m.receiveShadow = true; gp.add(m); return gp;
+      }
+      function spike(par, a, b, r, mat){
+        var dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 0.01;
+        var gp = new T.Group(); gp.position.set((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2); gp.rotation.order = 'YXZ'; gp.rotation.y = Math.atan2(dx, dz); gp.rotation.x = -Math.asin(Math.max(-1, Math.min(1, dy / len)));
+        par.add(gp); var m = new T.Mesh(gK(r, len, 6), mat); m.rotation.x = Math.PI / 2; m.castShadow = true; gp.add(m); return gp;
+      }
+      function tri(par, p1, p2, p3, mat){
+        var geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute([p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], p3[0], p3[1], p3[2]], 3)); geo.computeVertexNormals();
+        var m = new T.Mesh(geo, mat); m.castShadow = true; par.add(m); return m;
+      }
+      blobShadow(P, 4.6, 0.3);
+      // ---- 받침: 팔각 검은 바위 + 흐르는 용암 + 뾰족한 바위들 ----
+      mesh(P, gC(2.7, 3.3, 1.0, 8), rock, 0, 0.5, 0); mesh(P, gC(2.4, 2.5, 0.22, 8), pmat(0x6a6478, 0.8, { flatShading:true }), 0, 1.1, 0);
+      var lavaRing = mesh(P, gT(3.0, 0.11, 8), lavaM, 0, 0.9, 0, 1, 1, 1, Math.PI / 2, 0, Math.PI / 8); lavaRing.castShadow = false;
+      for(var ri = 0; ri < 9; ri++){ var ra = ri / 9 * Math.PI * 2 + 0.3, rr = 3.4 + (ri % 3) * 0.25; spike(P, [Math.cos(ra) * rr, 0, Math.sin(ra) * rr], [Math.cos(ra) * (rr - 0.2), 1.0 + (ri % 4) * 0.45, Math.sin(ra) * (rr - 0.2)], 0.38, rock); }
+      var D = new T.Group(); D.position.set(0, 1.2, 0); D.rotation.x = -0.07; P.add(D);
+      // ---- 몸통: 가슴은 우람하게, 배는 붉게 빛나는 비늘판 ----
+      var torso = mesh(D, gS(1, 8, 6), sc1, 0, 1.95, 0, 0.95, 0.82, 1.55); var chest = mesh(D, gS(1, 8, 6), sc1, 0, 2.2, 1.0, 0.92, 0.85, 0.85); mesh(D, gS(1, 8, 6), sc1, 0, 1.8, -1.05, 0.85, 0.78, 0.9);
+      for(var bi = 0; bi < 6; bi++) mesh(D, gS(1, 6, 5), belly, 0, 1.28 + (bi % 2) * 0.03, 1.1 - bi * 0.42, 0.52 - bi * 0.025, 0.2, 0.26);
+      var core = mesh(D, gS(0.22, 8, 6), emis(0xffa040, 1.6, 0.2), 0, 2.15, 1.72); core.castShadow = false; var coreGlow = glowSprite(0xff7a2a, 2.4, 0.5); coreGlow.position.set(0, 2.15, 1.8); D.add(coreGlow);
+      // 몸에 흐르는 용암 균열
+      [[-0.88, 2.25, 0.3, 0.5], [0.88, 2.3, 0.1, -0.4], [-0.92, 1.85, -0.5, 0.3], [0.92, 1.9, -0.7, -0.35], [-0.5, 2.7, 0.2, 0.2], [0.55, 2.68, -0.1, -0.2], [-0.8, 2.0, 1.0, 0.6], [0.82, 2.05, 0.9, -0.6]].forEach(function(c){ var cr = mesh(D, gB(0.07, 0.42, 0.05), lavaM, c[0], c[1], c[2], 1, 1, 1, 0, 0, c[3]); cr.castShadow = false; });
+      // ---- 다리와 발톱 ----
       [-1, 1].forEach(function(sx){
-        var W = new T.Group(); W.position.set(sx * 0.9, 2.5, -0.1); D.add(W);
-        mesh(W, gC(0.07, 0.1, 3.2, 6), dark, sx * 1.6, 1.1, -0.4, 1, 1, 1, 0, 0, sx * -1.15); mesh(W, gC(0.05, 0.08, 2.8, 6), dark, sx * 1.4, 0.6, -1.3, 1, 1, 1, 0.5, 0, sx * -1.0);
-        mesh(W, gB(2.4, 0.04, 1.8), mem, sx * 1.4, 0.7, -0.7, 1, 1, 1, 0.1, 0, sx * -0.5).castShadow = false;
-        W.userData.sx = sx; A.push(function(t){ W.rotation.z = sx * (0.1 + Math.sin(t * 1.2) * 0.12); });
+        bar(D, [sx * 0.7, 1.45, 0.9], [sx * 0.95, 0.85, 1.3], 0.2, 0.3, sc1); bar(D, [sx * 0.95, 0.85, 1.3], [sx * 0.9, 0.18, 1.7], 0.15, 0.2, sc2); mesh(D, gS(1, 6, 5), sc1, sx * 0.95, 0.85, 1.3, 0.34, 0.34, 0.34);
+        for(var c = -1; c <= 1; c++) spike(D, [sx * 0.9 + c * 0.14, 0.12, 1.75], [sx * 0.9 + c * 0.2, 0.04, 2.25], 0.07, gold);
+        mesh(D, gS(1, 7, 5), sc1, sx * 0.9, 1.55, -1.0, 0.58, 0.62, 0.6); bar(D, [sx * 0.9, 1.35, -1.0], [sx * 0.85, 0.2, -1.5], 0.16, 0.34, sc2);
+        for(var c2 = -1; c2 <= 1; c2++) spike(D, [sx * 0.85 + c2 * 0.14, 0.12, -1.5], [sx * 0.85 + c2 * 0.2, 0.04, -0.95], 0.07, gold);
       });
-      for(var k = 0; k < 6; k++){ var s = 1 - k * 0.13; mesh(D, gS(0.55 * s, 10, 8), rock, Math.sin(k * 0.7) * 0.5, 1.1 - k * 0.05, -1.7 - k * 0.8); mesh(D, gK(0.12 * s, 0.4 * s, 5), gold, Math.sin(k * 0.7) * 0.5, 1.7 - k * 0.05, -1.7 - k * 0.8); }
-      var st = { next:4, t0:-99 };
+      // ---- 긴 목: 구부러져 올라가며 머리가 정면을 노려봐요 ----
+      var neck = [[0, 2.5, 1.4, 0.58], [0, 3.05, 1.82, 0.52], [0, 3.62, 1.98, 0.48], [0, 4.18, 1.9, 0.45], [0, 4.62, 1.74, 0.42]];
+      neck.forEach(function(n, i){ mesh(D, gS(1, 8, 6), sc1, n[0], n[1], n[2], n[3], n[3], n[3]); if(i < neck.length - 1){ bar(D, [n[0], n[1], n[2]], [neck[i + 1][0], neck[i + 1][1], neck[i + 1][2]], neck[i + 1][3] * 0.95, n[3] * 0.95, sc1); spike(D, [0, n[1] + 0.35, n[2] - 0.38], [0, n[1] + 0.95, n[2] - 0.62], 0.13, boneM); } });
+      var H = new T.Group(); H.position.set(0, 4.88, 1.98); H.rotation.x = 0.28; D.add(H);
+      mesh(H, gS(1, 8, 6), sc1, 0, 0, 0, 0.44, 0.4, 0.58); mesh(H, gS(1, 8, 6), sc1, 0, -0.1, 0.72, 0.36, 0.27, 0.62);
+      mesh(H, gB(0.5, 0.1, 0.5), boneM, 0, 0.3, 0.2, 1, 1, 1, 0.5, 0, 0);
+      var jaw = new T.Group(); jaw.position.set(0, -0.32, 0.25); H.add(jaw); mesh(jaw, gS(1, 7, 5), sc2, 0, 0, 0.5, 0.3, 0.14, 0.6);
+      for(var ti = 0; ti < 6; ti++){ var tz = 0.55 + ti * 0.17, tx = (ti % 2 ? 0.2 : -0.2); spike(jaw, [tx, 0.08, tz], [tx, 0.32, tz + 0.03], 0.05, pmat(0xf2ead8, 0.4)); spike(H, [tx, -0.2, tz * 0.8 + 0.2], [tx, -0.42, tz * 0.8 + 0.22], 0.05, pmat(0xf2ead8, 0.4)); }
+      [-1, 1].forEach(function(sx){
+        mesh(H, gS(0.1, 8, 6), eyeM, sx * 0.25, 0.1, 0.4, 1, 0.7, 0.7); mesh(H, gB(0.04, 0.12, 0.03), pmat(0x100808, 0.5), sx * 0.25, 0.1, 0.49);
+        spike(H, [sx * 0.28, 0.28, 0.0], [sx * 0.55, 0.85, -0.7], 0.14, gold); spike(H, [sx * 0.55, 0.85, -0.7], [sx * 0.72, 0.92, -1.45], 0.09, gold);
+        spike(H, [sx * 0.4, 0.05, -0.1], [sx * 0.9, 0.0, -0.55], 0.1, boneM); mesh(H, gS(0.05, 6, 5), emis(0xff7a2a, 1.4, 0.3), sx * 0.12, 0.0, 1.28);
+      });
+      for(var ci2 = 0; ci2 < 4; ci2++) spike(H, [0, 0.3 - ci2 * 0.02, -0.15 - ci2 * 0.22], [0, 0.65 - ci2 * 0.07, -0.25 - ci2 * 0.25], 0.09, gold);
+      // ---- 날개: 뼈대가 있는 박쥐 날개 (위로 활짝) ----
+      var wings = [];
+      [-1, 1].forEach(function(sx){
+        var W = new T.Group(); W.position.set(sx * 0.8, 3.1, 0.45); D.add(W);
+        var wr = [sx * 2.7, 2.1, -0.4], t1 = [sx * 5.9, 1.9, -1.4], t2 = [sx * 5.4, -0.3, -2.3], t3 = [sx * 3.9, -1.7, -2.6], t4 = [sx * 1.2, -1.2, -1.5], S = [0, 0, 0];
+        bar(W, S, wr, 0.1, 0.17, boneM); [t1, t2, t3].forEach(function(t){ bar(W, wr, t, 0.04, 0.1, boneM); }); mesh(W, gS(1, 6, 5), gold, wr[0], wr[1], wr[2], 0.16, 0.16, 0.16); spike(W, wr, [wr[0] + sx * 0.5, wr[1] + 0.55, wr[2] + 0.1], 0.09, gold);
+        tri(W, wr, t1, t2, memM); tri(W, wr, t2, t3, memM); tri(W, S, wr, t3, memM); tri(W, S, t3, t4, memM);
+        function mid(a, b, k){ k = k == null ? 0.5 : k; return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]; }
+        bar(W, wr, mid(t1, t2), 0.025, 0.05, lavaM); bar(W, wr, mid(t2, t3), 0.025, 0.05, lavaM); bar(W, S, mid(wr, t3, 0.55), 0.025, 0.05, lavaM); bar(W, mid(wr, t3, 0.3), mid(t3, t4, 0.5), 0.02, 0.04, lavaM);
+        wings.push({ W:W, sx:sx });
+      });
+      // ---- 긴 꼬리와 등줄기 가시 ----
+      var tailG = new T.Group(); tailG.position.set(0, 1.8, -1.6); D.add(tailG);
+      var tseg = [[0, 0, -0.2, 0.55], [0, -0.1, -0.85, 0.5], [0, -0.22, -1.5, 0.45], [0, -0.32, -2.15, 0.4], [0, -0.28, -2.75, 0.35], [0, -0.1, -3.25, 0.3], [0, 0.2, -3.6, 0.26], [0, 0.58, -3.78, 0.22]];
+      tseg.forEach(function(q, i){ mesh(tailG, gS(1, 7, 5), sc1, q[0], q[1], q[2], q[3], q[3], q[3]); if(i < tseg.length - 1){ var q2 = tseg[i + 1]; bar(tailG, [q[0], q[1], q[2]], [q2[0], q2[1], q2[2]], q2[3] * 0.95, q[3] * 0.95, sc1); } spike(tailG, [0, q[1] + q[3] * 0.7, q[2]], [0, q[1] + q[3] * 0.7 + 0.45 - i * 0.03, q[2] - 0.22], 0.13 - i * 0.008, gold); });
+      spike(tailG, [0, 0.8, -3.75], [0, 1.45, -3.95], 0.26, lavaM); spike(tailG, [0.15, 0.7, -3.7], [0.6, 1.0, -4.0], 0.12, gold); spike(tailG, [-0.15, 0.7, -3.7], [-0.6, 1.0, -4.0], 0.12, gold);
+      for(var si = 0; si < 7; si++) spike(D, [0, 2.65 - si * 0.04, 1.0 - si * 0.36], [0, 3.15 - si * 0.05, 0.85 - si * 0.36], 0.14, si % 2 ? gold : boneM);
+      // ---- 불 뿜기, 콧김 연기, 눈과 가슴이 숨 쉬듯 빛나요 ----
+      var fire = [];
+      for(var fi = 0; fi < 7; fi++){ var fm = mesh(H, gK(0.2 + fi * 0.09, 1.3, 8), emis(fi % 2 ? 0xffd24a : 0xff5a1a, 1.2, 0.3, { transparent:true, opacity:0.9 }), 0, -0.12, 1.5 + fi * 0.8, 1, 1, 1, -Math.PI / 2, 0, 0); fm.castShadow = false; fm.visible = false; fire.push(fm); }
+      var fg = glowSprite(0xff8a30, 6, 0); fg.position.set(0, -0.1, 3.6); H.add(fg);
+      var embers = []; for(var ei = 0; ei < 14; ei++){ var em = new T.Mesh(gS(0.09, 6, 5), new T.MeshBasicMaterial({ color:ei % 2 ? 0xffd24a : 0xff5a1a })); em.visible = false; H.add(em); embers.push({ m:em, ph:ei / 14 }); }
+      var puffs = []; for(var pj = 0; pj < 8; pj++){ var pf = new T.Sprite(new T.SpriteMaterial({ map:smokeTex(), color:0xb8b0c0, transparent:true, opacity:0, depthWrite:false })); pf.userData.ph = pj / 8; pf.userData.side = pj % 2 ? 1 : -1; H.add(pf); puffs.push(pf); }
+      var st = { next:3, t0:-99 };
       A.push(function(t){
-        H.rotation.x = Math.sin(t * 0.9) * 0.05; H.position.y = 3.7 + Math.sin(t * 1.1) * 0.05;
-        if(t > st.next){ st.t0 = t; st.next = t + 7 + Math.random() * 4; }
-        var u = t - st.t0, on = u >= 0 && u < 1.8;
-        fire.forEach(function(f, i){ f.visible = on; if(on){ var w = Math.sin(Math.min(1, u / 1.8) * Math.PI), pul = 0.8 + Math.sin(t * 20 + i) * 0.25; f.scale.set(w * pul, w * (0.8 + i * 0.12), w * pul); } });
-        fg.material.opacity = on ? 0.5 * Math.sin(Math.min(1, u / 1.8) * Math.PI) : 0;
+        var br = Math.sin(t * 1.6); torso.scale.set(0.95, 0.82 + br * 0.03, 1.55); chest.scale.set(0.92 + br * 0.02, 0.85 + br * 0.03, 0.85);
+        H.rotation.y = Math.sin(t * 0.5) * 0.25; H.rotation.x = 0.28 + Math.sin(t * 0.9) * 0.05; tailG.rotation.y = Math.sin(t * 0.8) * 0.2; tailG.rotation.x = Math.sin(t * 0.6) * 0.04;
+        wings.forEach(function(w){ w.W.rotation.z = w.sx * (0.05 + Math.sin(t * 1.3) * 0.13); w.W.rotation.y = w.sx * Math.sin(t * 1.3 + 0.6) * 0.06; });
+        eyeM.emissiveIntensity = 1.3 + Math.sin(t * 3) * 0.35; coreGlow.material.opacity = 0.42 + Math.sin(t * 2.2) * 0.14; lavaM.emissiveIntensity = 0.8 + Math.sin(t * 2.6) * 0.2;
+        if(t > st.next){ st.t0 = t; st.next = t + 6 + Math.random() * 4; }
+        var u = t - st.t0, on = u >= 0 && u < 2.0, w2 = on ? Math.sin(Math.min(1, u / 2.0) * Math.PI) : 0;
+        jaw.rotation.x = on ? 0.5 * Math.min(1, w2 * 2.2) : 0.02;
+        fire.forEach(function(f, i){ f.visible = on; if(on){ var pul = 0.85 + Math.sin(t * 24 + i * 1.7) * 0.22; f.scale.set(w2 * pul, w2 * (0.8 + i * 0.1), w2 * pul); f.material.opacity = 0.92 * (1 - i * 0.08); } });
+        fg.material.opacity = on ? 0.6 * w2 : 0;
+        embers.forEach(function(e){ e.m.visible = on; if(on){ var q = ((u * 1.4) + e.ph) % 1; e.m.position.set(Math.sin(e.ph * 40) * 0.4 * q, -0.1 + Math.sin(e.ph * 22) * 0.35 * q - q * 0.4, 1.4 + q * 5.2); e.m.scale.setScalar(Math.max(0.2, 1 - q)); } });
+        puffs.forEach(function(pf){ var q = (t * 0.35 + pf.userData.ph) % 1; pf.position.set(pf.userData.side * (0.1 + q * 0.12), -0.05 + q * 0.9, 1.35 + q * 0.5); var s2 = 0.35 + q * 1.4; pf.scale.set(s2, s2, 1); pf.material.opacity = Math.sin(q * Math.PI) * (on ? 0.1 : 0.28); });
       });
     }
   };
@@ -4701,7 +4762,7 @@
     c.clearRect(0, 0, 128, 128);
     for(var i = 0; i < 14; i++){
       var x = 64 + (R() - 0.5) * 44, y = 64 + (R() - 0.5) * 44, r = 22 + R() * 26, g = c.createRadialGradient(x, y, 0, x, y, r);
-      g.addColorStop(0, 'rgba(255,255,255,0.30)'); g.addColorStop(0.55, 'rgba(255,255,255,0.11)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      g.addColorStop(0, 'rgba(255,255,255,0.95)'); g.addColorStop(0.5, 'rgba(255,255,255,0.5)'); g.addColorStop(1, 'rgba(255,255,255,0)');
       c.fillStyle = g; c.fillRect(0, 0, 128, 128);
     }
     return (smokeTex.t = new T.CanvasTexture(cv));
@@ -8728,7 +8789,7 @@ const KDECO = [
   { id:'statue',    name:'황금 슬라임 왕 동상', icon:'🗿', cost:6000,  need:5, desc:'왕관을 쓴 황금 슬라임 동상이 반짝여요' },
   { id:'fireworks', name:'불꽃놀이 광장',      icon:'🎆', cost:7000,  need:6, desc:'하늘 가득 알록달록 불꽃이 터져요' },
   { id:'balloon',   name:'하늘 열기구',        icon:'🎈', cost:9000,  need:7, desc:'커다란 열기구가 왕국 위를 천천히 돌아요' },
-  { id:'dragon',    name:'불을 뿜는 용 조각상', icon:'🐉', cost:12000, need:8, desc:'날개를 펼친 용이 가끔 불을 뿜어요' }
+  { id:'dragon',    name:'용암의 흑룡',        icon:'🐉', cost:12000, need:8, desc:'검은 비늘에 용암이 흐르는 거대한 용이 날개를 펴고 불을 뿜어요' }
 ];
 const KDECO_IDS = KDECO.map(d => d.id);
 function kNorm(){
