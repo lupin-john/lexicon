@@ -543,6 +543,25 @@
   .hc .hc-lv{position:absolute;top:8px;left:8px;background:#000a;border-radius:8px;padding:1px 6px;font-size:10px;color:#fff;}
   .hc.r3{border-color:#4f86ff;} .hc.r4{border-color:#b45cff;box-shadow:0 0 10px rgba(180,92,255,.3);}
   .hc.r5{border-color:#ffd24a;box-shadow:0 0 14px rgba(255,210,74,.45);}
+  .hc{position:relative;}
+  .hc-evo{position:absolute;right:4px;top:4px;font-size:14px;z-index:2;filter:drop-shadow(0 0 5px #ffd24a);animation:evoTwinkle 1.6s ease-in-out infinite;}
+  @keyframes evoTwinkle{0%,100%{transform:scale(1) rotate(0);opacity:1;}50%{transform:scale(1.25) rotate(18deg);opacity:.75;}}
+  .hc.evo{box-shadow:0 0 14px rgba(255,226,138,.75),0 0 28px rgba(122,92,255,.55);}
+  .dt-evo{display:flex;flex-direction:column;gap:5px;width:100%;max-width:520px;margin:8px 0 4px;padding:11px 13px;border-radius:14px;background:linear-gradient(135deg,#2a1a52,#1b2a5a);border:1px solid #7a5cff;font-size:12.5px;text-align:left;}
+  .dt-evo b{color:#ffe28a;font-size:14px;} .dt-evo .ok{color:#8affb0;} .dt-evo .no{color:#ff9a9a;} .dt-evo .hub-btn{margin-top:6px;}
+  .dt-evo.done{border-color:#ffd24a;background:linear-gradient(135deg,#3a2a10,#2a1a52);}
+  .dt-flash.evo{background:linear-gradient(90deg,#ffd24a,#ff4fd8,#7a8cff,#5fe0ff,#ffd24a);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;font-size:30px;letter-spacing:3px;}
+  .hc.r2{border-color:#8c93a8;}
+  .hc.r7{border-color:#39f0ff;background:#06070f;box-shadow:0 0 14px rgba(57,240,255,.75),0 0 28px rgba(255,42,138,.5);animation:hubGlitch 1.4s steps(1,end) infinite;}
+  .hc.r7 .hc-star{color:#fff;text-shadow:1px 0 #ff2a8a,-1px 0 #00fff0;letter-spacing:0;font-weight:900;}
+  @keyframes hubGlitch{0%{transform:none;filter:none;}7%{transform:translate(-2px,1px);filter:hue-rotate(60deg);}9%{transform:translate(3px,-1px);filter:invert(.2);}11%,58%{transform:none;filter:none;}60%{transform:translate(2px,0);filter:hue-rotate(-60deg);}62%{transform:translate(-3px,1px);}64%,100%{transform:none;filter:none;}}
+  @keyframes glitchText{0%{text-shadow:2px 0 #ff2a8a,-2px 0 #00fff0;transform:none;}20%{text-shadow:-3px 1px #ff2a8a,3px -1px #00fff0;transform:translateX(2px);}40%{text-shadow:2px 0 #ff2a8a,-2px 0 #00fff0;transform:none;}60%{text-shadow:4px 0 #ff2a8a,-4px 0 #00fff0;transform:translateX(-3px) skewX(-8deg);}80%{text-shadow:-2px 0 #ff2a8a,2px 0 #00fff0;transform:none;}100%{text-shadow:2px 0 #ff2a8a,-2px 0 #00fff0;}}
+  .rv-name.r7{color:#fff;font-family:monospace;letter-spacing:2px;animation:glitchText .8s steps(1,end) infinite;}
+  .rv-star.glitchy,.rv-name.r7 ~ .rv-star{}
+  .glitch-num{color:#fff;font-family:monospace;text-shadow:1px 0 #ff2a8a,-1px 0 #00fff0;animation:glitchText 1.1s steps(1,end) infinite;display:inline-block;}
+  .capsule.r7.shake{animation:capShake .2s ease-in-out infinite,hubGlitch .6s steps(1,end) infinite;}
+  .capsule.r2{filter:grayscale(.2);}
+  .bt-card.r7{border-color:#39f0ff;box-shadow:0 0 12px rgba(57,240,255,.6);}
   .hc.r6{border-color:#fff;box-shadow:0 0 16px rgba(255,210,74,.8),0 0 28px rgba(255,79,216,.45);animation:hubMyth 2.4s ease-in-out infinite;}
   @keyframes hubMyth{0%,100%{box-shadow:0 0 12px rgba(255,210,74,.7),0 0 22px rgba(255,79,216,.35);}50%{box-shadow:0 0 22px rgba(95,224,255,.85),0 0 36px rgba(255,210,74,.55);}}
   .hub-btn{border:none;border-radius:14px;padding:14px 18px;font-size:15px;font-weight:900;color:#fff;cursor:pointer;letter-spacing:1px;
@@ -624,6 +643,15 @@
   @keyframes emoteUp{0%{opacity:0;transform:translate(-50%,-20%) scale(.5);}20%{opacity:1;transform:translate(-50%,-60%) scale(1.15);}100%{opacity:0;transform:translate(-50%,-170%) scale(1);}}
   .pf-list{display:grid;gap:8px;} .pf-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;border:2px solid #33406a;background:#161b3a;color:#f1ecff;cursor:pointer;text-align:left;}
   .pf-dot{width:34px;height:34px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 -4px 0 #0003;} .pf-info{display:flex;flex-direction:column;flex:1;min-width:0;} .pf-info b{font-size:14px;} .pf-info span{font-size:12px;opacity:.8;} .pf-hr{font-size:12px;color:#ffd24a;font-weight:800;white-space:nowrap;}
+  .err3d{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20;width:min(86%,360px);background:#141934f2;color:#f1ecff;border:1px solid #3a4a8a;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:8px;text-align:center;font-size:13px;line-height:1.5;}
+  .err3d b{font-size:15px;color:#ffd24a;}
+  .kg-deco-btn{position:absolute;left:10px;bottom:34px;z-index:5;border:none;border-radius:999px;padding:11px 18px;font-size:14px;font-weight:900;color:#fff;background:linear-gradient(180deg,#b58aff,#7a4ae0);box-shadow:0 4px 0 #4a2a9a,0 6px 18px #7a4ae066;cursor:pointer;}
+  .kg-deco-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #4a2a9a;}
+  .kd-list{display:grid;gap:8px;} .kd-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;border:1.5px solid #33406a;background:#1a2146;}
+  .kd-item.has{border-color:#5a8a4a;background:#1a2a3a;} .kd-ic{font-size:28px;width:38px;text-align:center;flex-shrink:0;}
+  .kd-info{display:flex;flex-direction:column;flex:1;min-width:0;gap:2px;} .kd-info b{font-size:14px;} .kd-info span{font-size:11.5px;opacity:.82;line-height:1.35;} .kd-info .kd-need{color:#ffd24a;opacity:1;}
+  .kd-btn{border:none;border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:900;color:#4a3000;background:linear-gradient(180deg,#ffe28a,#f0a418);box-shadow:0 3px 0 #b27400;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+  .kd-btn.dim{opacity:.45;filter:grayscale(.5);} .kd-btn.go{color:#fff;background:linear-gradient(180deg,#6fa8ff,#3a6ae0);box-shadow:0 3px 0 #1e3a8a;}
   .pet-time{position:absolute;right:8px;bottom:8px;z-index:4;border:none;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800;background:#000a;color:#fff;cursor:pointer;}
   .pet-stage{position:relative;width:100%;max-width:640px;height:min(48vh,430px);border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
   .pet-stage canvas{width:100%;height:100%;display:block;touch-action:none;}
@@ -1254,6 +1282,7 @@
           <canvas id="kgCanvas"></canvas>
           <div class="kg-hud"><button type="button" class="kg-collect-all" id="kgCollectAll" style="display:none;"></button><span class="kg-chip" id="kgCoinChip" style="pointer-events:auto;">코인 <span id="kgCoins">0</span></span><span class="kg-chip">왕국 Lv.<span id="kgLv">1</span></span></div>
           <div class="kg-jump" id="kgJump"><button data-j="all">전체</button><button data-j="castle">왕성</button><button data-j="mine">광산</button><button data-j="farm">작업장</button><button data-j="tower">전망대</button><button data-j="barracks">훈련소</button><button data-j="blacksmith">대장간</button><button data-j="church">교회</button><button data-j="archery">궁술장</button><button data-j="market">시장</button><button data-j="windmill">풍차</button></div>
+          <button type="button" class="kg-deco-btn" id="kgDecoBtn">🎨 꾸미기</button>
           <div class="kg-hint" id="kgHint">끌어서 이동 · 두 손가락으로 확대/축소</div>
           <div class="kg-panel hidden" id="kgPanel"></div>
         </div>
@@ -1603,7 +1632,14 @@
       gear:[['cape',0xc0182f],['crown',0xffd24a],['scarf',0xffffff],['scepter',0xff3b5a]] },
     { name:'젤리 슬라임',  star:3, gel:true, shape:[1.15, 0.95, 1.08], body:0x5fe39a, belly:null, ears:'none', cheek:0xff8aa0, arm:0.7, eyes:'round', fx:0x5fe39a, aura:false, gear:[] },
     { name:'프린세스 슬라임', star:4, gel:true, shape:[1.12, 0.95, 1.06], body:0xff9bd0, belly:null, ears:'none', cheek:0xff6f9f, arm:0.7, eyes:'round', fx:0xff9bd0, aura:true,
-      gear:[['crown',0xffd24a],['scarf',0xffffff]] }
+      gear:[['crown',0xffd24a],['scarf',0xffffff]] },
+    { name:'신기영', star:2, body:0x5b6bff, belly:0xdfe6ff, ears:'round', cheek:0xff9ac0, arm:1.0, eyes:'sharp', fx:0x7fe9ff, aura:true,
+      gear:[['halo',0x7fe9ff],['goggles',0x2a2a3a],['scarf',0x9fe3ff]] },
+    { name:'박지용', star:2, body:0xff6a4a, belly:0xffd9b0, ears:'tri', cheek:0xffb07a, arm:1.1, eyes:'sharp', fx:0xffb03a, aura:true,
+      gear:[['wings',0x8a1f2f],['tail',0xffd9b0],['flamehair',0xffd24a]] },
+    { name:'서현서', star:6, mythic:true, shape:[1.8, 0.95, 1.55], faceFit:true, body:0xffe3b0, belly:0xfff6dc, ears:'round', cheek:0xff8aa8, arm:1.25, eyes:'round', fx:0xffd24a, aura:true,
+      gear:[['mandala',0xffd24a],['lightwings',0xfff1b0],['mythcrown',0xffd24a],['halo',0xfff1b0]] },
+    { name:'ERR0R', star:7, glitch:true, body:0x050507, belly:null, ears:'none', cheek:0x39f0ff, arm:1.0, eyes:'glow', eyeColor:0xff2a4a, fx:0x39f0ff, aura:true, gear:[] }
   ];
 
   var ENV_CUR = null;   // 반짝이는 반사를 위한 가짜 환경 (젤리·금속에 써요)
@@ -1689,7 +1725,22 @@
     }
     pos.needsUpdate = true;
   }
+  // 진화형: 원래 모습에 화려한 장비를 더해요 (★4 이상부터)
+  function evoVariant(v){
+    var g = v.gear.slice(), col = v.fx != null ? v.fx : 0xffd24a;
+    function has(k){ return g.some(function(x){ return x[0] === k; }); }
+    if(!has('wings') && !has('lightwings') && !has('jetpack')) g.push(['lightwings', col]);
+    var head = ['halo', 'crown', 'mythcrown', 'icecrown', 'wizhat', 'flamehair', 'dragonhelm', 'devilcap', 'piratehat', 'helmet', 'hood'].some(has);
+    if(!head) g.push(['halo', col]);
+    if(!v.faceFit && !has('chestcore')) g.push(['chestcore', col]);
+    if(v.star >= 6){ if(!has('mandala')) g.push(['mandala', 0xffd24a]); if(!has('floatswords')) g.push(['floatswords', col]); }
+    var nv = Object.assign({}, v, { gear:g, evoFx:true, aura:true });
+    if(!v.rainbow && !v.glitch) nv.body = lighten(v.body, 0.1);
+    if(v.glitch) nv.glitchEvo = true;
+    return nv;
+  }
   function buildMascot(v, opts){
+    if(opts && opts.evo && v.star >= 4) v = evoVariant(v);
     var root = new T.Group();
     var rig = new T.Group();
     root.add(rig);
@@ -1725,28 +1776,31 @@
         bubs.forEach(function(b){ var ph = b.userData.ph; b.position.set(Math.sin(t * 0.8 + ph * 1.7) * 0.5 * bs[0], bs[1] * 0.5 + ((t * 0.25 + ph * 0.37) % 1) * bs[1] * 1.1, Math.cos(t * 0.7 + ph) * 0.35); });
       });
     }
-    if(v.belly != null) part(rig, smallG, v.belly, [0, 0.78, 0.5], [0.74, 0.7, 0.5], { outline:false });
+    if(v.belly != null){ if(v.faceFit) part(rig, smallG, v.belly, [0, 0.85, 0.96], [bs[0] * 0.72, bs[1] * 0.72, 0.6], { outline:false }); else part(rig, smallG, v.belly, [0, 0.78, 0.5], [0.74, 0.7, 0.5], { outline:false }); }
 
     // 눈
+    var ffit = !!v.faceFit, fxs = ffit ? 0.58 : 0.37;
+    function sz(x, y, dflt){ if(!ffit) return dflt; var q = 1 - Math.pow(x / bs[0], 2) - Math.pow((y - cy) / bs[1], 2); return bs[2] * Math.sqrt(Math.max(0.05, q)) - 0.03; }
     var sharp = (v.eyes === 'sharp' || v.eyes === 'glow');
     var eyeColor = v.eyeColor != null ? v.eyeColor : (v.eyes === 'glow' ? 0xff3b3b : 0x2a2233);
     U.eyeOpen = sharp ? 0.17 : 0.22;
     if(v.eyes !== 'none') [-1, 1].forEach(function(s){
-      var e = part(rig, smallG, eyeColor, [s * 0.37, 1.1, 0.86], [0.16, U.eyeOpen, 0.12], { outline:false, glow: v.eyes === 'glow' ? eyeColor : null, gi:1.4 });
+      var e = part(rig, smallG, eyeColor, [s * fxs, 1.1, sz(s * fxs, 1.1, 0.86)], [0.16 * (ffit ? 1.35 : 1), U.eyeOpen * (ffit ? 1.35 : 1), 0.12], { outline:false, glow: v.eyes === 'glow' ? eyeColor : null, gi:1.4 });
       part(e, smallG, 0xffffff, [0.3, 0.34, 0.8], [0.32, 0.26, 0.3], { outline:false });
       part(e, smallG, 0xffffff, [-0.28, -0.3, 0.8], [0.16, 0.14, 0.2], { outline:false });
       U.eyes.push(e);
       if(sharp){
-        var br = part(rig, new T.BoxGeometry(1, 1, 1), 0x2a1f3a, [s * 0.38, 1.36, 0.82], [0.26, 0.05, 0.06], { outline:false });
+        var br = part(rig, new T.BoxGeometry(1, 1, 1), 0x2a1f3a, [s * (ffit ? fxs + 0.01 : 0.38), 1.36, sz(s * fxs, 1.36, 0.82) - (ffit ? 0.03 : 0)], [0.26, 0.05, 0.06], { outline:false });
         br.rotation.z = -s * 0.38;
       }
     });
     [-1, 1].forEach(function(s){
-      var c = part(rig, smallG, v.cheek, [s * 0.64, 0.86, 0.76], [0.17, 0.11, 0.06], { outline:false });
+      var c = part(rig, smallG, v.cheek, [s * (ffit ? 1.0 : 0.64), 0.86, sz(s * (ffit ? 1.0 : 0.64), 0.86, 0.76)], [0.17 * (ffit ? 1.6 : 1), 0.11 * (ffit ? 1.6 : 1), 0.06], { outline:false });
       c.rotation.y = s * 0.55;
     });
     var mouth = new T.Mesh(new T.TorusGeometry(0.085, 0.022, 8, 16, Math.PI), new T.MeshBasicMaterial({ color:0x2a1f3a }));
-    mouth.rotation.z = Math.PI; mouth.position.set(0, 0.93, 0.945);
+    mouth.rotation.z = Math.PI; mouth.position.set(0, 0.93, sz(0, 0.93, 0.945) + (ffit ? 0.01 : 0));
+    if(ffit) mouth.scale.set(1.9, 1.9, 1);
     if(sharp){ mouth.scale.set(0.8, 0.6, 1); mouth.position.y = 0.92; }
     if(v.eyes !== 'none') rig.add(mouth);
     if(v.ghost){ body.material.transparent = true; body.material.opacity = 0.88; }
@@ -2048,7 +2102,7 @@
           var rn2 = part(mg, new T.BoxGeometry(1, 1, 1), 0xffd24a, [Math.cos(mra) * 1.45, Math.sin(mra) * 1.45, 0], [0.12, 0.12, 0.03], { outline:false, glow:0xffd24a, gi:1.4 });
           rn2.rotation.z = mra;
         }
-        mg.position.set(0, 1.45, -1.3); rig.add(mg);
+        mg.position.set(0, 1.45, -1.3 - (v.faceFit ? bs[2] - 0.95 : 0)); rig.add(mg);
         U.anims.push(function(t){ mg.rotation.z = t * 0.35; mg.children[1].rotation.x = Math.sin(t * 1.2) * 0.25; mg.children[2].rotation.y = Math.sin(t * 1.5) * 0.3; });
       }else if(k === 'lightwings'){
         [-1, 1].forEach(function(s){
@@ -2062,7 +2116,7 @@
               ft.rotation.z = -s * th; wg.add(ft);
             }
           }
-          wg.position.set(s * 0.5, 1.2, -0.85); wg.rotation.y = s * 0.55; wg.userData.side = s;
+          wg.position.set(s * (0.5 + (v.faceFit ? (bs[0] - 1) * 0.55 : 0)), 1.2, -0.85 - (v.faceFit ? bs[2] - 0.95 : 0)); wg.rotation.y = s * 0.55; wg.userData.side = s;
           rig.add(wg); U.wings.push(wg);
         });
       }else if(k === 'floatswords'){
@@ -2094,6 +2148,87 @@
       root.add(au); U.aura = au;
       var rg = new T.Mesh(new T.TorusGeometry(1.5, 0.05, 8, 48), glowMat(v.fx, 0.55));
       rg.rotation.x = Math.PI / 2; rg.position.y = 0.04; root.add(rg); U.ring = rg;
+    }
+    // ---- 측정불가: 존재 자체가 버그 (검은 몸 + RGB 갈라짐 + 깨진 조각 + 지지직 + 오류 글자) ----
+    if(v.glitch){
+      body.material.color.setHex(0x050507); body.material.emissive = new T.Color(0x14002a); body.material.emissiveIntensity = 0.7; body.material.roughness = 0.55;
+      mouth.material.color.setHex(0x39f0ff);
+      var gcols = [0x00fff0, 0xff2a8a], ghosts = [];
+      [-1, 1].forEach(function(s, gi){
+        var gm = new T.Mesh(body.geometry, new T.MeshBasicMaterial({ color:gcols[gi], transparent:true, opacity:0.5, blending:T.AdditiveBlending, depthWrite:false }));
+        gm.position.set(s * 0.07, cy, 0); gm.scale.set(bs[0] * 1.02, bs[1] * 1.02, bs[2] * 1.02); gm.renderOrder = 2; rig.add(gm); ghosts.push(gm);
+      });
+      var pcols = [0x00fff0, 0xff2a8a, 0xffffff, 0x14141c], pix = [];
+      for(var pi = 0; pi < (v.glitchEvo ? 44 : 24); pi++){
+        var pm = new T.Mesh(new T.BoxGeometry(1, 1, 1), new T.MeshBasicMaterial({ color:pcols[pi % 4], transparent:true, opacity:0.95 }));
+        var ps = 0.07 + (pi % 4) * 0.05; pm.scale.set(ps * (1 + (pi % 3)), ps, ps);
+        var pa = pi * 0.9; pm.position.set(Math.cos(pa) * (1.0 + (pi % 5) * 0.12), 0.4 + (pi % 7) * 0.28, Math.sin(pa) * 0.5 + 0.2);
+        pm.visible = pi < 10; pm.userData.t = Math.random() * 3; rig.add(pm); pix.push(pm);
+      }
+      var bars = [];
+      for(var bi2 = 0; bi2 < 3; bi2++){
+        var bm = new T.Mesh(new T.BoxGeometry(1, 1, 1), new T.MeshBasicMaterial({ color:bi2 === 1 ? 0xff2a8a : 0x00fff0, transparent:true, opacity:0.0, depthWrite:false }));
+        bm.scale.set(2.6, 0.045 + bi2 * 0.03, 0.05); bm.position.set(0, 1, 1.0); bm.userData.p = bi2 * 0.37; rig.add(bm); bars.push(bm);
+      }
+      var tcv = document.createElement('canvas'); tcv.width = 256; tcv.height = 64; var tcx = tcv.getContext('2d');
+      var ttex = new T.CanvasTexture(tcv), tsp = new T.Sprite(new T.SpriteMaterial({ map:ttex, transparent:true, depthTest:false }));
+      tsp.scale.set(1.9, 0.48, 1); tsp.position.set(0, 2.55, 0); tsp.renderOrder = 12; rig.add(tsp);
+      var TXT = ['ERROR', '404', 'NULL', '???', '0xDEAD', 'NaN', 'SEGFAULT', 'undefined', 'ERR0R', '██▒▒'], txtNow = '';
+      function drawTxt(str, col){
+        if(!tcx) return; tcx.clearRect(0, 0, 256, 64); tcx.font = '900 40px monospace'; tcx.textAlign = 'center'; tcx.textBaseline = 'middle';
+        tcx.fillStyle = '#ff2a8a'; tcx.fillText(str, 130, 34); tcx.fillStyle = '#00fff0'; tcx.fillText(str, 126, 30); tcx.fillStyle = col || '#ffffff'; tcx.fillText(str, 128, 32); ttex.needsUpdate = true; txtNow = str;
+      }
+      drawTxt('ERROR', '#ffffff');
+      var G = { until:0, next:0.4, lastT:0, txtT:0, frame:0 };
+      U.glitch = G;
+      U.anims.push(function(t){
+        G.frame++;
+        if(t > G.next){ G.until = t + 0.07 + Math.random() * 0.2; G.next = t + 0.25 + Math.random() * 1.3; }
+        var burst = t < G.until, big = burst ? 1 : 0;
+        ghosts.forEach(function(gm, gi){
+          var s = gi ? 1 : -1, gk = v.glitchEvo ? 1.8 : 1, j = burst ? (Math.random() - 0.5) * 0.7 * gk : ((G.frame % 3 === 0) ? (Math.random() - 0.5) * 0.12 * gk : 0);
+          gm.position.set(s * (0.07 + Math.abs(j) * 0.8) + j * 0.3, cy + (burst ? (Math.random() - 0.5) * 0.35 : 0), 0);
+          gm.scale.set(bs[0] * (1.02 + big * (Math.random() * 0.25)), bs[1] * (1.02 + big * Math.random() * 0.1), bs[2] * 1.02);
+          gm.material.opacity = burst ? 0.75 : 0.38 + Math.random() * 0.2;
+        });
+        body.material.color.setHex(burst && Math.random() < 0.35 ? 0xe6e6f4 : 0x050507);
+        body.material.emissiveIntensity = 0.5 + Math.random() * 0.5 + big * 1.2;
+        U.eyes.forEach(function(e){ e.visible = !(Math.random() < (burst ? 0.5 : 0.05)); });
+        pix.forEach(function(pm, k){
+          pm.userData.t -= 0.016; if(pm.userData.t <= 0 || (burst && Math.random() < 0.2)){
+            pm.userData.t = 0.05 + Math.random() * 0.45; pm.visible = Math.random() < (burst ? 0.9 : 0.5);
+            var a = Math.random() * 6.283, r = 0.9 + Math.random() * 0.9; pm.position.set(Math.cos(a) * r, 0.1 + Math.random() * 2.4, Math.sin(a) * 0.7 + 0.2);
+            pm.scale.set((0.05 + Math.random() * 0.2) * (1 + (k % 3)), 0.05 + Math.random() * 0.12, 0.08);
+          }
+        });
+        bars.forEach(function(bm){ var p = (t * 0.9 + bm.userData.p) % 1; bm.position.y = 0.1 + p * 2.3; bm.position.x = burst ? (Math.random() - 0.5) * 0.4 : 0; bm.material.opacity = (p > 0.1 && p < 0.9 ? 0.3 : 0.0) * (burst ? 2.2 : (Math.random() < 0.15 ? 1.6 : 0.7)); });
+        if(t - G.txtT > (burst ? 0.05 : 0.22)){ G.txtT = t; var str = (burst || Math.random() < 0.3) ? TXT[(Math.random() * TXT.length) | 0] : 'ERROR'; if(str !== txtNow || burst) drawTxt(str, burst && Math.random() < 0.5 ? '#ff2a8a' : '#ffffff'); }
+        tsp.material.opacity = burst ? (Math.random() < 0.4 ? 0.15 : 1) : 0.75 + Math.sin(t * 9) * 0.2;
+        tsp.position.x = burst ? (Math.random() - 0.5) * 0.35 : 0;
+      });
+    }
+    // ---- 진화형 효과 ----
+    if(v.evoFx){
+      var ec = v.fx != null ? v.fx : 0xffd24a, bigE = v.star >= 6, wideE = Math.max(1, bs[0]);
+      if(!v.glitch){ body.material.emissive = new T.Color(ec); body.material.emissiveIntensity = 0.2; }
+      var erings = [];
+      [[1.5 * wideE, 0.03, ec, 0.8], [1.25 * wideE, 0.025, 0xffffff, 0.6]].concat(bigE ? [[1.8 * wideE, 0.03, 0xffd24a, 0.7]] : []).forEach(function(r, ri){
+        var tr = new T.Mesh(new T.TorusGeometry(r[0], r[1], 6, 56), glowMat(r[2], r[3])); tr.position.y = cy + 0.1 + ri * 0.15; tr.rotation.x = Math.PI / 2; rig.add(tr); erings.push(tr);
+      });
+      var esparks = [], nsp = bigE ? 22 : 16;
+      for(var si = 0; si < nsp; si++){ var esp = new T.Mesh(smallG, glowMat(si % 3 === 0 ? 0xffffff : ec, 0.9)); esp.scale.setScalar(0.04 + (si % 3) * 0.02); esp.userData.ph = si / nsp; rig.add(esp); esparks.push(esp); }
+      var edia = part(rig, new T.OctahedronGeometry(0.2, 0), ec, [0, 3.2, 0], [1, 1.5, 1], { outline:false, glow:ec, gi:1.8 });
+      var edh = new T.Mesh(smallG, glowMat(ec, 0.35)); edh.scale.setScalar(0.5); edh.position.set(0, 3.2, 0); rig.add(edh);
+      var ecir = new T.Group(); ecir.position.y = 0.035;
+      [[2.0 * wideE, 0.035, ec, 0.8], [1.55 * wideE, 0.025, 0xffffff, 0.55]].forEach(function(r){ var t2 = new T.Mesh(new T.TorusGeometry(r[0], r[1], 6, 64), glowMat(r[2], r[3])); t2.rotation.x = Math.PI / 2; ecir.add(t2); });
+      for(var ri2 = 0; ri2 < 8; ri2++){ var era = ri2 / 8 * Math.PI * 2, erc = part(ecir, new T.BoxGeometry(1, 1, 1), ec, [Math.cos(era) * 1.78 * wideE, 0, Math.sin(era) * 1.78 * wideE], [0.12, 0.02, 0.12], { outline:false, glow:ec, gi:1.6 }); erc.rotation.y = -era; }
+      root.add(ecir);
+      U.anims.push(function(t){
+        erings.forEach(function(r, i){ r.rotation.z = t * (0.8 + i * 0.4) * (i % 2 ? -1 : 1); r.rotation.x = Math.PI / 2 + Math.sin(t * 1.3 + i) * 0.18; r.material.opacity = 0.55 + Math.sin(t * 3 + i) * 0.2; });
+        esparks.forEach(function(sp){ var u = (t * 0.35 + sp.userData.ph) % 1, a = t * 1.4 + sp.userData.ph * 6.283, rad = (1.2 + 0.5 * Math.sin(u * 3.14)) * wideE; sp.position.set(Math.cos(a) * rad, 0.2 + u * 2.6, Math.sin(a) * rad * 0.8); sp.material.opacity = Math.sin(u * 3.14) * 0.9; });
+        edia.rotation.y = t * 2; edia.position.y = 3.2 + Math.sin(t * 2.2) * 0.08; edh.position.y = edia.position.y; edh.material.opacity = 0.3 + Math.sin(t * 3) * 0.1;
+        ecir.rotation.y = t * 0.5;
+      });
     }
     if(v.rainbow && typeof rig.traverse === 'function'){
       var rbm = [];
@@ -2170,14 +2305,15 @@
     curIndex = i;
     var v = VARIANTS[i];
     ENV_CUR = envTex;
-    current = buildMascot(v);
+    var evoV = !!(opts && opts.evo && v.star >= 4), bigV = v.mythic || evoV;
+    current = buildMascot(v, evoV ? { evo:true } : undefined);
     scene.add(current);
-    camera.position.set(0, v.mythic ? 2.6 : 2.3, v.mythic ? 11.2 : 9.4); camera.lookAt(0, v.mythic ? 1.75 : 1.55, 0);
+    camera.position.set(0, bigV ? 2.6 : 2.3, bigV ? 11.4 : 9.4); camera.lookAt(0, bigV ? 1.8 : 1.55, 0);
     rimL.color.setHex(v.fx); rimR.color.setHex(v.fx);
     stageRing.material.color.setHex(v.fx);
     if(hooks && hooks.onVariant) hooks.onVariant(v, i);
     trigger(opts && opts.intro ? opts.intro : 'cheer');
-    if(v.mythic){ for(var mq = 0; mq < 40; mq++) burst((Math.random() - 0.5) * 3, 1 + Math.random() * 2, (Math.random() - 0.5) * 2, [0xffd24a, 0xff4fd8, 0x5fe0ff, 0xffffff][(Math.random() * 4) | 0], 1); }
+    if(v.mythic || (evoV && opts.celebrate)){ for(var mq = 0; mq < 40; mq++) burst((Math.random() - 0.5) * 3, 1 + Math.random() * 2, (Math.random() - 0.5) * 2, [0xffd24a, 0xff4fd8, 0x5fe0ff, 0xffffff][(Math.random() * 4) | 0], 1); }
   }
 
   function resize(){
@@ -2332,7 +2468,7 @@
   function dispose(){
     running = false;
     window.removeEventListener('resize', onWinResize);
-    try{ renderer.dispose(); }catch(e){}
+    releaseGL(renderer);
   }
   return { setVariant:setVariant, trigger:trigger, resize:resize, start:start, stop:stop, dispose:dispose,
            setStageHue:function(c){ stageRing.material.color.setHex(c); }, setScale:function(k){ petScale = k; } };
@@ -2359,6 +2495,8 @@
   function makeBattle(canvas, cfg, hooks){
     hooks = hooks || {};
     var renderer = new T.WebGLRenderer({ canvas:canvas, antialias:true, alpha:true });
+    var lostH = function(e){ if(e && e.preventDefault) e.preventDefault(); if(!over && hooks.onLost) hooks.onLost(); };
+    canvas.addEventListener('webglcontextlost', lostH, false);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     var scene = new T.Scene();
     var camera = new T.PerspectiveCamera(38, 1, 0.1, 100);
@@ -2446,10 +2584,10 @@
         });
       });
     }
-    function mk(side, vIdx, st, petSpec){
+    function mk(side, vIdx, st, petSpec, evo){
       var v = VARIANTS[vIdx];
       ENV_CUR = envTex;
-      var root = buildMascot(v, { battle:true });
+      var root = buildMascot(v, { battle:true, evo:!!evo });
       scene.add(root);
       var U = root.userData;
       var sh = new T.Mesh(shadowG, new T.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.4 }));
@@ -2477,7 +2615,7 @@
       F.pet = mkPet(F, petSpec);
       return F;
     }
-    var FA = mk(0, cfg.left, cfg.leftStats, cfg.leftPet), FB = mk(1, cfg.right, cfg.rightStats, cfg.rightPet);
+    var FA = mk(0, cfg.left, cfg.leftStats, cfg.leftPet, cfg.leftEvo), FB = mk(1, cfg.right, cfg.rightStats, cfg.rightPet, cfg.rightEvo);
     trInit(FA); trInit(FB); trIntimidate(FA, FB); trIntimidate(FB, FA);
     var F = [FA, FB];
 
@@ -2634,7 +2772,14 @@
           var kx0 = D.x;
           anim(0.2, function(p){ D.x = kx0 + A.dir * 0.65 * easeOut(p); }, null);       // 맞은 쪽은 뒤로 밀려나요
           collide(A, D, special || r.crit, function(){
-            if(D.hp <= 0){ done(true); return; }
+            if(D.hp <= 0){
+              if(trLethal(D)){                                           // 불굴, 시스템 복구: 쓰러져도 다시 일어나요
+                setHp(D); D.gl = 1; D.glc = [1, 0.9, 0.3]; hitFx(D.x, 1.2, 0xffe066, true);
+                var scr = toScreen(D.x, 3.1, 0); pop(hooks.onAssist, { side:D.side, kind:'trait', text:(D.tr === 'glitch' ? '♻ 시스템 복구!' : '✨ 다시 일어나요!'), x:scr.x, y:scr.y });
+                peel(A, D, 0, function(){ done(false); }); return;
+              }
+              done(true); return;
+            }
             peel(A, D, 0, function(){ done(false); });
           });
         });
@@ -2666,7 +2811,7 @@
       if(FA.turns + FB.turns > 60){ var w = FA.hp >= FB.hp ? FA : FB; finish(w, w === FA ? FB : FA); return; }
       var tev = trTurn(a, a.turns);                      // 화상 피해, 등불/축복/무지개 회복 …
       if(tev.length) showTrait(tev);
-      if(a.hp <= 0){ finish(d, a); return; }
+      if(a.hp <= 0){ if(trLethal(a)){ setHp(a); a.gl = 1; a.glc = [1, 0.9, 0.3]; } else{ finish(d, a); return; } }
       if(a.st.stun > 0){                                  // 감전되면 이번 턴을 쉬어요
         a.st.stun--;
         var scs = toScreen(a.x, 3.1, 0); pop(hooks.onAssist, { side:a.side, kind:'trait', text:'⚡ 감전! 쉬어요', x:scs.x, y:scs.y });
@@ -2852,7 +2997,8 @@
     function dispose(){
       running = false; over = true;
       window.removeEventListener('resize', onWin);
-      try{ renderer.dispose(); }catch(e){}
+      canvas.removeEventListener('webglcontextlost', lostH);
+      releaseGL(renderer);
     }
     return { start:start, dispose:dispose, resize:resize };
   }
@@ -3456,10 +3602,307 @@
   var CHAR_MEM = {};
   try{ var rawMem = localStorage.getItem('kg_char_pos'); if(rawMem) CHAR_MEM = JSON.parse(rawMem) || {}; }catch(e){}
 
+  // =====================================================================
+  //  왕국 꾸미기: 건물 레벨 외형 + 코인으로 사는 장식들
+  // =====================================================================
+  function gCo(r, h, seg, t0, tl){
+    var k = 'co' + r + '_' + h + '_' + (seg || 24) + '_' + (t0 || 0) + '_' + (tl === undefined ? 6.2832 : tl);
+    return PG[k] || (PG[k] = new T.CylinderGeometry(r, r, h, seg || 24, 1, true, t0 || 0, tl === undefined ? Math.PI * 2 : tl));
+  }
+  function gOct(r){ var k = 'oc' + r; return PG[k] || (PG[k] = new T.OctahedronGeometry(r, 0)); }
+  function emis(c, i, rough, extra){ return pmat(c, rough == null ? 0.3 : rough, Object.assign({ emissive:c, emissiveIntensity:i == null ? 0.5 : i }, extra || {})); }
+  function gMat(){ return pmat(0xffd24a, 0.25, { metalness:0.85, emissive:0x6a4a00, emissiveIntensity:0.12 }); }
+  function flagAnim(A, fl, ph, sp){ A.push(function(t){ fl.rotation.y = Math.sin(t * (sp || 3) + ph) * 0.38; }); }
+
+  // ---- 건물이 레벨업하면 점점 멋있어져요 (Lv3 깃발 → Lv5 돌담 → Lv7 황금 장식·불 → Lv9 빛나는 구슬) ----
+  var LVX_COL = { mine:0x5fd8ff, farm:0x8be06a, tower:0x7fe9ff, barracks:0xff6a6a, blacksmith:0xff9a3a, church:0xffe08a, archery:0x8affb0, market:0xffd24a, windmill:0x9ad0ff };
+  function levelExtras(id, lv, topH){
+    var g = new T.Group(), A = [], R = 3.1, col = LVX_COL[id] || 0xffe08a;
+    var tier = lv >= 9 ? 4 : (lv >= 7 ? 3 : (lv >= 5 ? 2 : (lv >= 3 ? 1 : 0)));
+    g.userData.tier = tier;
+    if(tier < 1) return { g:g, A:A };
+    var gold = gMat(), stone = pmat(0xd8d0c0, 0.9), stone2 = pmat(0xb9b0a0, 0.95);
+    function flagPole(px, pz, c, ph){
+      mesh(g, gC(0.05, 0.06, 3.2, 8), pmat(0x6b5a46, 0.8), px, 1.6, pz);
+      mesh(g, gS(0.1, 8, 6), gold, px, 3.25, pz);
+      var fl = mesh(g, gB(1.0, 0.6, 0.04), pmat(c, 0.6, { side:T.DoubleSide }), px + 0.52, 2.85, pz); fl.castShadow = false;
+      flagAnim(A, fl, ph);
+    }
+    flagPole(-R * 0.95, R * 0.55, 0xe8423f, 0); flagPole(R * 0.95, R * 0.55, col, 2);
+    if(tier < 2) return { g:g, A:A };
+    var gap = 0.42, arc = Math.PI * 2 - gap * 2;
+    mesh(g, gCo(R, 0.8, 32, gap, arc), pmat(0xcfc6b4, 0.9, { side:T.DoubleSide }), 0, 0.4, 0);
+    mesh(g, gCo(R + 0.14, 0.16, 32, gap, arc), pmat(0xb0a690, 0.9, { side:T.DoubleSide }), 0, 0.88, 0);
+    [[gap, 1], [-gap, 1], [1.9, 0], [-1.9, 0], [Math.PI - 0.55, 0], [-Math.PI + 0.55, 0]].forEach(function(p){
+      var px = Math.sin(p[0]) * R, pz = Math.cos(p[0]) * R;
+      mesh(g, gC(0.22, 0.27, 1.5, 10), stone, px, 0.75, pz);
+      mesh(g, gS(0.2, 10, 8), tier >= 3 ? gold : stone2, px, 1.6, pz);
+    });
+    if(tier < 3) return { g:g, A:A };
+    mesh(g, gT(R + 0.02, 0.05, 40), gold, 0, 0.55, 0, 1, 1, 1, Math.PI / 2, 0, 0);
+    function brazier(ang, ph){
+      var px = Math.sin(ang) * (R - 0.5), pz = Math.cos(ang) * (R - 0.5);
+      mesh(g, gC(0.32, 0.2, 0.32, 10), pmat(0x3a3548, 0.5, { metalness:0.6 }), px, 1.05, pz);
+      mesh(g, gC(0.06, 0.1, 0.9, 6), pmat(0x3a3548, 0.5, { metalness:0.6 }), px, 0.5, pz);
+      var fl = mesh(g, gK(0.26, 0.7, 8), emis(0xff8a2a, 1.0), px, 1.55, pz); fl.castShadow = false;
+      var hl = glowSprite(0xffa040, 1.8, 0.45); hl.position.set(px, 1.6, pz); g.add(hl);
+      A.push(function(t){ var f = 0.85 + Math.sin(t * 11 + ph) * 0.18 + Math.sin(t * 7 + ph) * 0.1; fl.scale.set(1 / Math.sqrt(f), f, 1 / Math.sqrt(f)); hl.material.opacity = 0.38 + (f - 0.85) * 0.5; });
+    }
+    brazier(2.3, 0); brazier(-2.3, 2);
+    function obelisk(ang, ph){
+      var px = Math.sin(ang) * (R + 0.9), pz = Math.cos(ang) * (R + 0.9);
+      mesh(g, gC(0.4, 0.5, 0.4, 8), stone2, px, 0.2, pz);
+      var cr = mesh(g, gOct(0.32), emis(col, 0.8, 0.15, { transparent:true, opacity:0.92 }), px, 1.6, pz, 1, 2.6, 1);
+      var hl = glowSprite(col, 2.2, 0.4); hl.position.set(px, 1.7, pz); g.add(hl);
+      A.push(function(t){ cr.rotation.y = t * 1.2 + ph; cr.position.y = 1.6 + Math.sin(t * 2 + ph) * 0.12; hl.position.y = cr.position.y + 0.1; hl.material.opacity = 0.34 + Math.sin(t * 3 + ph) * 0.1; });
+    }
+    obelisk(0.62, 0); obelisk(-0.62, 1.5);
+    if(tier < 4) return { g:g, A:A };
+    var top = (topH || 3.4) + 1.5;
+    var orb = mesh(g, gS(0.55, 16, 12), emis(col, 1.0, 0.1, { transparent:true, opacity:0.95 }), 0, top, 0); orb.castShadow = false;
+    var halo = mesh(g, gT(1.0, 0.05, 36), emis(0xffe08a, 0.9), 0, top, 0); halo.castShadow = false;
+    var glow = glowSprite(col, 5.2, 0.5); glow.position.set(0, top, 0); g.add(glow);
+    var pil = new T.Sprite(new T.SpriteMaterial({ map:auraTex(), color:col, transparent:true, opacity:0.32, blending:T.AdditiveBlending, depthWrite:false }));
+    pil.scale.set(3.4, 11, 1); pil.position.set(0, top * 0.5 + 1.5, 0); g.add(pil);
+    var sp = [];
+    for(var i = 0; i < 8; i++){ var s = glowSprite(0xffffff, 0.34, 0.9); g.add(s); sp.push(s); }
+    A.push(function(t){
+      orb.position.y = top + Math.sin(t * 1.8) * 0.18; glow.position.y = orb.position.y; halo.position.y = orb.position.y;
+      halo.rotation.set(Math.PI / 2 + Math.sin(t * 0.8) * 0.5, t * 1.4, 0); glow.material.opacity = 0.45 + Math.sin(t * 2.4) * 0.12;
+      sp.forEach(function(s, k){ var a = t * 1.5 + k * 0.785, r = 1.2 + (k % 2) * 0.35; s.position.set(Math.cos(a) * r, orb.position.y + Math.sin(a * 1.3 + k) * 0.4, Math.sin(a) * r); s.material.opacity = 0.5 + Math.sin(t * 5 + k) * 0.4; });
+    });
+    return { g:g, A:A };
+  }
+
+  // ---- 왕국 장식 12가지 ----
+  var KDECO_POS = { banners:[0, 5], lamps:[0, 6], fountain:[0, 4], wall:[0, -14], cannon:[0, -11], rose:[-9, 11], crystal:[10, 10], gate:[0, 11], statue:[6.5, -6], fireworks:[8, 2], balloon:[0, 0], dragon:[-9, -4] };
+  var KDECO_BUILD = {
+    banners: function(g, A){
+      var gold = gMat(), cols = [0xe8423f, 0xffd24a, 0x4aa8ff, 0xff7aa8, 0x6fe0b0, 0xa58aff], k = 0;
+      function pole(px, pz, c){
+        var ph = px + pz; mesh(g, gC(0.06, 0.08, 3.6, 8), pmat(0x6b5a46, 0.8), px, 1.8, pz); mesh(g, gS(0.12, 8, 6), gold, px, 3.65, pz);
+        var fl = mesh(g, gB(1.2, 0.8, 0.04), pmat(c, 0.55, { side:T.DoubleSide }), px + (px > 0 ? -0.62 : 0.62), 3.15, pz); fl.castShadow = false; flagAnim(A, fl, ph, 2.6);
+      }
+      for(var z = -6; z <= 16; z += 4){ pole(-2.7, z, cols[k++ % 6]); pole(2.7, z, cols[k++ % 6]); }
+    },
+    lamps: function(g, A){
+      var iron = pmat(0x3a3548, 0.45, { metalness:0.6 }), glowM = emis(0xfff0b0, 0.6), sprites = [], i = 0;
+      function lamp(px, pz){
+        mesh(g, gC(0.07, 0.1, 3.4, 8), iron, px, 1.7, pz); mesh(g, gC(0.22, 0.18, 0.18, 8), iron, px, 3.4, pz);
+        var gl = mesh(g, gS(0.3, 12, 10), glowM, px, 3.7, pz, 1, 1.2, 1); gl.castShadow = false; mesh(g, gK(0.34, 0.3, 8), iron, px, 4.1, pz);
+        var hl = glowSprite(0xffd88a, 2.6, 0.5); hl.position.set(px, 3.7, pz); g.add(hl); sprites.push(hl);
+      }
+      for(var z = -4; z <= 16; z += 5){ lamp(-4.7 - (i % 2) * 0.3, z); lamp(4.7 + (i % 2) * 0.3, z + 2.5); i++; }
+      A.push(function(t){ glowM.emissiveIntensity = 0.55 + Math.sin(t * 3) * 0.15; sprites.forEach(function(h, k){ h.material.opacity = 0.42 + Math.sin(t * 3 + k) * 0.1; }); });
+    },
+    fountain: function(g, A){
+      var P = new T.Group(); P.position.set(0, 0, 4); g.add(P);
+      var st = pmat(0xe8e0d0, 0.8), gold = gMat(), water = pmat(0x6fd0ff, 0.1, { metalness:0.2, transparent:true, opacity:0.85 });
+      blobShadow(P, 3.6, 0.22);
+      mesh(P, gC(3.2, 3.4, 0.7, 40), st, 0, 0.35, 0); mesh(P, gT(3.2, 0.2, 40), gold, 0, 0.75, 0, 1, 1, 1, Math.PI / 2, 0, 0);
+      mesh(P, gC(2.95, 2.95, 0.1, 40), water, 0, 0.66, 0).castShadow = false;
+      mesh(P, gC(0.5, 0.7, 1.4, 16), st, 0, 1.4, 0); mesh(P, gC(1.5, 0.9, 0.4, 28), st, 0, 2.15, 0); mesh(P, gT(1.5, 0.1, 28), gold, 0, 2.36, 0, 1, 1, 1, Math.PI / 2, 0, 0);
+      mesh(P, gC(1.3, 1.3, 0.06, 28), water, 0, 2.3, 0).castShadow = false;
+      mesh(P, gC(0.2, 0.3, 1.2, 12), st, 0, 2.9, 0);
+      var star = mesh(P, gOct(0.34), gold, 0, 3.75, 0, 1, 1.4, 1);
+      var jets = [];
+      for(var i = 0; i < 30; i++){ var m = new T.Mesh(gS(0.12, 6, 5), new T.MeshBasicMaterial({ color:0xbfeaff, transparent:true, opacity:0.85 })); P.add(m); jets.push({ m:m, a:i * 2.4, ph:i / 30 }); }
+      var rip = []; for(var q = 0; q < 3; q++){ var rg = mesh(P, gT(1.0, 0.03, 36), pmat(0xffffff, 0.3, { transparent:true, opacity:0.4 }), 0, 0.72, 0, 1, 1, 1, Math.PI / 2, 0, 0); rg.castShadow = false; rip.push(rg); }
+      A.push(function(t){
+        star.rotation.y = t * 1.4;
+        jets.forEach(function(j){ var u = (t * 0.8 + j.ph) % 1, r = 2.6 * u, y = 3.6 + 5.2 * u - 8.6 * u * u; j.m.visible = y > 0.75; j.m.position.set(Math.cos(j.a) * r, y, Math.sin(j.a) * r); });
+        rip.forEach(function(r, i){ var p = (t * 0.4 + i / 3) % 1; r.scale.setScalar(0.3 + p * 2.6); r.material.opacity = 0.45 * (1 - p); });
+      });
+    },
+    wall: function(g, A){
+      var st = pmat(0xd9d1c1, 0.9), st2 = pmat(0xb7ae9c, 0.95), red = pmat(0xd9503a, 0.5), gold = gMat();
+      function tower(x, z, s, ph){
+        mesh(g, gC(1.5 * s, 1.7 * s, 5.2 * s, 16), st, x, 2.6 * s, z); mesh(g, gT(1.55 * s, 0.14, 24), st2, x, 5.1 * s, z, 1, 1, 1, Math.PI / 2, 0, 0);
+        mesh(g, gK(1.95 * s, 2.3 * s, 16), red, x, 6.3 * s, z); mesh(g, gS(0.2 * s, 8, 6), gold, x, 7.55 * s, z);
+        [0, 2.1, 4.2].forEach(function(a){ mesh(g, gB(0.18, 0.9, 0.1), pmat(0x2a2a3a, 0.7), x + Math.sin(a) * 1.55 * s, 3.4 * s, z + Math.cos(a) * 1.55 * s, 1, 1, 1, 0, a, 0); });
+        mesh(g, gC(0.04, 0.05, 1.6, 6), pmat(0x6b5a46, 0.8), x, 8.3 * s, z);
+        var fl = mesh(g, gB(1.1, 0.7, 0.04), pmat(0xe8423f, 0.55, { side:T.DoubleSide }), x + 0.58, 8.7 * s, z); fl.castShadow = false; flagAnim(A, fl, ph, 3);
+      }
+      [-1, 1].forEach(function(sx, si){
+        var cx = sx * 15.6, len = 11.5;
+        mesh(g, gB(len, 2.8, 1.4), st, cx, 1.4, -15); mesh(g, gB(len + 0.3, 0.3, 1.7), st2, cx, 2.95, -15);
+        for(var i = 0; i < 8; i++){ var mx = cx - len / 2 + 0.7 + i * (len - 1.4) / 7; mesh(g, gB(0.75, 0.75, 0.5), st, mx, 3.5, -14.4); mesh(g, gB(0.75, 0.75, 0.5), st, mx, 3.5, -15.6); }
+        for(var j = 0; j < 4; j++){ mesh(g, gB(0.7, 3.0, 0.6), st2, cx - len / 2 + 1.4 + j * (len - 2.8) / 3, 1.5, -14.2); }
+        mesh(g, gB(len - 1, 0.18, 0.1), gold, cx, 2.3, -14.28);
+        tower(sx * 22.0, -15, 1, si); tower(sx * 9.6, -15, 0.8, si + 2);
+      });
+    },
+    cannon: function(g, A){
+      var wood = pmat(0x6b4a2a, 0.8), metal = pmat(0x2f2f3a, 0.4, { metalness:0.7 }), gold = gMat();
+      function one(x, z, yaw, idx){
+        var C = new T.Group(); C.position.set(x, 0, z); C.rotation.y = yaw; g.add(C);
+        mesh(C, gC(1.5, 1.7, 0.45, 20), pmat(0xb9b0a0, 0.95), 0, 0.22, 0); mesh(C, gB(1.5, 0.35, 2.2), wood, 0, 0.62, 0);
+        [-0.85, 0.85].forEach(function(sx){ mesh(C, gT(0.5, 0.1, 18), wood, sx, 0.72, 0.1, 1, 1, 1, 0, Math.PI / 2, 0); mesh(C, gC(0.12, 0.12, 0.2, 8), gold, sx, 0.72, 0.1, 1, 1, 1, 0, 0, Math.PI / 2); });
+        var bar = new T.Group(); bar.position.set(0, 1.2, -0.4); bar.rotation.x = -0.28; C.add(bar);
+        mesh(bar, gC(0.34, 0.46, 2.6, 16), metal, 0, 0, 0.9, 1, 1, 1, Math.PI / 2, 0, 0); mesh(bar, gT(0.42, 0.07, 16), gold, 0, 0, 2.15); mesh(bar, gT(0.5, 0.08, 16), gold, 0, 0, 0.2);
+        for(var b = 0; b < 3; b++) mesh(C, gS(0.22, 10, 8), metal, 1.45 + (b % 2) * 0.3, 0.7 + (b > 1 ? 0.3 : 0.05), -0.5 + b * 0.3);
+        var flash = glowSprite(0xffc060, 3.2, 0); flash.position.set(0, 1.55, 2.4); C.add(flash);
+        var smoke = [];
+        for(var s = 0; s < 6; s++){ var sm = new T.Mesh(gS(0.3, 8, 6), new T.MeshBasicMaterial({ color:0xdddddd, transparent:true, opacity:0, depthWrite:false })); C.add(sm); smoke.push(sm); }
+        var ball = mesh(C, gS(0.3, 10, 8), metal, 0, -5, 0); ball.castShadow = false; ball.visible = false;
+        var st = { next:3 + idx * 1.7 + Math.random() * 3, t0:-99 };
+        A.push(function(t){
+          if(t > st.next){ st.t0 = t; st.next = t + 6 + Math.random() * 6; }
+          var u = t - st.t0;
+          if(u >= 0 && u < 2.4){
+            flash.material.opacity = u < 0.2 ? (1 - u / 0.2) * 0.95 : 0; bar.position.z = -0.4 - (u < 0.3 ? Math.sin(u / 0.3 * Math.PI) * 0.35 : 0);
+            smoke.forEach(function(sm, i){ var p = Math.max(0, Math.min(1, (u - 0.05 - i * 0.07) / 1.7)); sm.position.set(Math.sin(i) * 0.3, 1.5 + p * 1.8, 2.5 + p * 1.2 + i * 0.1); sm.scale.setScalar(0.5 + p * 2.4); sm.material.opacity = p > 0 && p < 1 ? 0.55 * (1 - p) : 0; });
+            if(u < 1.5){ var q = u / 1.5; ball.visible = true; ball.position.set(0, 1.5 + Math.sin(q * Math.PI) * 5 - q * 1.2, 2.5 + q * 26); } else ball.visible = false;
+          }else{ flash.material.opacity = 0; ball.visible = false; bar.position.z = -0.4; smoke.forEach(function(sm){ sm.material.opacity = 0; }); }
+        });
+      }
+      [[-12.4, -11.6, -0.12], [-17.2, -11.6, -0.2], [12.4, -11.6, 0.12], [17.2, -11.6, 0.2]].forEach(function(c, i){ one(c[0], c[1], c[2], i); });
+    },
+    rose: function(g, A){
+      var P = new T.Group(); P.position.set(-9, 0, 11); g.add(P);
+      var hedge = pmat(0x3f8a3c, 0.9), wood = pmat(0xf2ead8, 0.7), cols = [0xe8423f, 0xff7aa8, 0xffd24a, 0xffffff];
+      blobShadow(P, 3.8, 0.18); mesh(P, gC(3.2, 3.3, 0.08, 32), pmat(0x6ec46a, 1), 0, 0.04, 0).castShadow = false;
+      for(var i = 0; i < 18; i++){ var a = i / 18 * Math.PI * 2; if(Math.abs(Math.cos(a - Math.PI / 2)) > 0.97) continue; mesh(P, gS(0.75, 10, 8), hedge, Math.cos(a) * 3.3, 0.6, Math.sin(a) * 3.3, 1, 0.85, 1); mesh(P, gS(0.17, 8, 6), pmat(cols[i % 4], 0.45), Math.cos(a) * 3.3 + 0.2, 1.15, Math.sin(a) * 3.3); }
+      for(var k = 0; k < 12; k++){ var ang = k * 2.4, r = 0.9 + (k % 4) * 0.45, bx = Math.cos(ang) * r, bz = Math.sin(ang) * r; mesh(P, gS(0.36, 10, 8), hedge, bx, 0.3, bz, 1, 0.8, 1); for(var q = 0; q < 3; q++) mesh(P, gS(0.13, 8, 6), pmat(cols[(k + q) % 4], 0.45), bx + (q - 1) * 0.15, 0.6 + (q % 2) * 0.05, bz + (q % 2) * 0.1); }
+      [-1.3, 1.3].forEach(function(x){ mesh(P, gC(0.07, 0.08, 1.8, 8), wood, x, 0.9, 0); });
+      mesh(P, gT(1.3, 0.08, 24, Math.PI), wood, 0, 1.8, 0);
+      for(var m = 0; m < 9; m++){ var aa = m / 8 * Math.PI; mesh(P, gS(0.13, 8, 6), pmat(cols[m % 4], 0.45), Math.cos(aa) * 1.3, 1.8 + Math.sin(aa) * 1.3, 0.05); mesh(P, gS(0.1, 6, 5), hedge, Math.cos(aa) * 1.3 + 0.1, 1.8 + Math.sin(aa) * 1.3, 0.05); }
+      mesh(P, gB(1.6, 0.12, 0.5), wood, 0, 0.5, -2.3); mesh(P, gB(1.6, 0.5, 0.1), wood, 0, 0.85, -2.5);
+      var pet = [];
+      for(var p = 0; p < 12; p++){ var pm = mesh(P, gS(0.07, 6, 5), pmat(0xffb2ce, 0.8), 0, 1, 0, 1, 0.2, 0.8); pm.castShadow = false; pet.push({ m:pm, ph:p * 0.7 }); }
+      A.push(function(t){ pet.forEach(function(o, i){ var u = (t * 0.2 + o.ph) % 1; o.m.position.set(Math.sin(t * 0.6 + o.ph) * 2.4, 3.2 - u * 3.0, Math.cos(t * 0.5 + o.ph * 1.3) * 2.4); o.m.rotation.set(t + o.ph, t * 0.7, 0); }); });
+    },
+    crystal: function(g, A){
+      var P = new T.Group(); P.position.set(10, 0, 10); g.add(P);
+      var dark = pmat(0x6f6a7c, 0.9);
+      blobShadow(P, 3.6, 0.22); mesh(P, gC(2.6, 2.9, 0.5, 6), dark, 0, 0.25, 0); mesh(P, gC(1.9, 2.2, 0.5, 6), pmat(0x8d879c, 0.9), 0, 0.75, 0);
+      var rune = mesh(P, gT(3.5, 0.06, 48), emis(0xb59aff, 0.9), 0, 0.06, 0, 1, 1, 1, Math.PI / 2, 0, 0); rune.castShadow = false;
+      var main = mesh(P, gOct(1), emis(0x9a7aff, 0.75, 0.15, { transparent:true, opacity:0.92 }), 0, 3.6, 0, 1.1, 3.4, 1.1);
+      var smalls = [];
+      for(var i = 0; i < 6; i++){ var a = i / 6 * Math.PI * 2, c = [0x6fe8ff, 0xff8ad0, 0x9a7aff][i % 3]; var sm = mesh(P, gOct(0.45), emis(c, 0.75, 0.15, { transparent:true, opacity:0.92 }), Math.cos(a) * 1.9, 1.5, Math.sin(a) * 1.9, 1, 2.6, 1); sm.rotation.z = Math.cos(a) * 0.3; sm.rotation.x = -Math.sin(a) * 0.3; smalls.push(sm); }
+      var ring = mesh(P, gT(1.9, 0.06, 40), emis(0xffe08a, 0.9), 0, 3.6, 0); ring.castShadow = false;
+      var halo = glowSprite(0x9a7aff, 8, 0.4); halo.position.set(0, 3.6, 0); P.add(halo);
+      var pil = new T.Sprite(new T.SpriteMaterial({ map:auraTex(), color:0xb59aff, transparent:true, opacity:0.4, blending:T.AdditiveBlending, depthWrite:false })); pil.scale.set(4.2, 14, 1); pil.position.set(0, 6.5, 0); P.add(pil);
+      var sp = []; for(var s = 0; s < 8; s++){ var sg = glowSprite(0xffffff, 0.4, 0.9); P.add(sg); sp.push(sg); }
+      A.push(function(t){
+        main.rotation.y = t * 0.6; main.position.y = 3.6 + Math.sin(t * 1.4) * 0.2; ring.position.y = main.position.y; ring.rotation.set(Math.PI / 2 + Math.sin(t * 0.7) * 0.5, t * 1.1, 0); halo.position.y = main.position.y;
+        main.material.emissiveIntensity = 0.7 + Math.sin(t * 2.2) * 0.2; rune.material.emissiveIntensity = 0.8 + Math.sin(t * 2) * 0.25;
+        smalls.forEach(function(sm, i){ sm.position.y = 1.5 + Math.sin(t * 1.6 + i) * 0.12; });
+        sp.forEach(function(sg, k){ var a = t * 1.1 + k * 0.785, r = 2.3 + (k % 2) * 0.5; sg.position.set(Math.cos(a) * r, 3.4 + Math.sin(a * 1.4 + k) * 1.4, Math.sin(a) * r); sg.material.opacity = 0.5 + Math.sin(t * 4 + k) * 0.4; });
+      });
+    },
+    gate: function(g, A){
+      var P = new T.Group(); P.position.set(0, 0, 11); g.add(P);
+      var st = pmat(0xe3dac8, 0.85), st2 = pmat(0xbfb6a2, 0.9), gold = gMat();
+      [-4.4, 4.4].forEach(function(x, xi){
+        mesh(P, gB(1.9, 0.8, 1.9), st2, x, 0.4, 0); mesh(P, gB(1.35, 5.4, 1.35), st, x, 3.5, 0);
+        [1.6, 3.4, 5.2].forEach(function(y){ mesh(P, gB(1.5, 0.16, 1.5), gold, x, y, 0); });
+        mesh(P, gB(1.95, 0.5, 1.95), st2, x, 6.4, 0); mesh(P, gK(0.9, 1.3, 4), gold, x, 7.3, 0, 1, 1, 1, 0, Math.PI / 4, 0);
+      });
+      mesh(P, gB(10.9, 1.3, 1.5), st, 0, 6.1, 0); mesh(P, gB(11.1, 0.25, 1.7), st2, 0, 6.85, 0);
+      for(var i = 0; i < 9; i++) mesh(P, gB(0.7, 0.6, 0.5), st, -4.6 + i * 1.15, 7.3, 0.55);
+      mesh(P, gB(3.2, 0.8, 0.12), gold, 0, 6.1, 0.8); var star = mesh(P, gOct(0.3), emis(0xfff2b0, 0.8), 0, 6.1, 0.9, 1, 1.3, 0.6);
+      var lamps = [];
+      [-2.3, 2.3].forEach(function(x, i){
+        var lg = new T.Group(); lg.position.set(x, 5.5, 0.4); P.add(lg);
+        mesh(lg, gC(0.02, 0.02, 0.7, 4), pmat(0x3a3548, 0.5, { metalness:0.6 }), 0, 0.35, 0); mesh(lg, gS(0.28, 10, 8), emis(0xffe9a0, 0.9), 0, -0.1, 0, 1, 1.2, 1); lamps.push(lg);
+        var hl = glowSprite(0xffd88a, 2.4, 0.4); hl.position.set(0, -0.1, 0); lg.add(hl);
+      });
+      [-3.3, 3.3].forEach(function(x, i){ var fl = mesh(P, gB(0.9, 2.2, 0.04), pmat(i ? 0x4aa8ff : 0xe8423f, 0.55, { side:T.DoubleSide }), x, 4.6, 0.85); fl.castShadow = false; flagAnim(A, fl, i, 2.2); });
+      A.push(function(t){ star.rotation.y = t * 1.5; lamps.forEach(function(lg, i){ lg.rotation.z = Math.sin(t * 1.4 + i) * 0.1; }); });
+    },
+    statue: function(g, A){
+      var P = new T.Group(); P.position.set(6.5, 0, -6); g.add(P);
+      var st = pmat(0xe3dac8, 0.85), gold = gMat(), dark = pmat(0x3a2a1a, 0.5);
+      blobShadow(P, 2.4, 0.22);
+      mesh(P, gB(3.2, 0.5, 3.2), pmat(0xbfb6a2, 0.9), 0, 0.25, 0); mesh(P, gB(2.6, 0.5, 2.6), st, 0, 0.75, 0); mesh(P, gB(2.0, 1.3, 2.0), st, 0, 1.65, 0); mesh(P, gB(2.15, 0.16, 2.15), gold, 0, 2.35, 0);
+      var S = new T.Group(); S.position.set(0, 3.5, 0); P.add(S);
+      mesh(S, gS(1.1, 22, 16), gold, 0, 0, 0, 1.15, 0.95, 1.05);
+      [-0.38, 0.38].forEach(function(x){ mesh(S, gS(0.13, 10, 8), dark, x, 0.18, 1.0); mesh(S, gS(0.04, 6, 5), pmat(0xffffff, 0.3), x + 0.04, 0.23, 1.12); mesh(S, gS(0.17, 8, 6), pmat(0xffa8c0, 0.5), x * 1.5, -0.12, 0.92, 1, 0.6, 0.6); });
+      mesh(S, gT(0.3, 0.035, 16, Math.PI), dark, 0, -0.02, 1.08, 1, 1, 1, 0, 0, Math.PI);
+      mesh(S, gT(0.62, 0.07, 24), gold, 0, 1.05, 0, 1, 1, 1, Math.PI / 2, 0, 0);
+      for(var i = 0; i < 5; i++){ var a = i / 5 * Math.PI * 2; mesh(S, gK(0.14, 0.42, 6), gold, Math.cos(a) * 0.6, 1.3, Math.sin(a) * 0.6); mesh(S, gS(0.08, 8, 6), emis([0xff4a6a, 0x4aa8ff, 0x6fe0b0, 0xffd24a, 0xa58aff][i], 0.9), Math.cos(a) * 0.6, 1.58, Math.sin(a) * 0.6); }
+      var halo = glowSprite(0xffd24a, 6.5, 0.38); halo.position.set(0, 3.7, -0.3); P.add(halo);
+      var sp = []; for(var s = 0; s < 6; s++){ var sg = glowSprite(0xffffff, 0.36, 0.9); P.add(sg); sp.push(sg); }
+      A.push(function(t){ S.rotation.y = Math.sin(t * 0.5) * 0.3; S.position.y = 3.5 + Math.sin(t * 1.3) * 0.04; halo.material.opacity = 0.34 + Math.sin(t * 1.8) * 0.06; sp.forEach(function(sg, k){ var a = t * 0.9 + k * 1.05; sg.position.set(Math.cos(a) * 1.9, 3.3 + Math.sin(a * 1.6 + k) * 1.2, Math.sin(a) * 1.9); sg.material.opacity = 0.45 + Math.sin(t * 4 + k) * 0.4; }); });
+    },
+    fireworks: function(g, A){
+      var P = new T.Group(); P.position.set(8, 0, 2); g.add(P);
+      var wood = pmat(0x6b4a2a, 0.8), metal = pmat(0x2f2f3a, 0.45, { metalness:0.6 });
+      blobShadow(P, 2.8, 0.22);
+      mesh(P, gC(2.2, 2.4, 0.5, 20), pmat(0xb9b0a0, 0.95), 0, 0.25, 0); mesh(P, gB(2.4, 0.3, 1.1), wood, 0, 0.7, 0);
+      [-0.7, 0, 0.7].forEach(function(x, i){ mesh(P, gC(0.24, 0.28, 1.5, 10), pmat([0xe8423f, 0x4aa8ff, 0xffd24a][i], 0.5), x, 1.4, 0, 1, 1, 1, 0, 0, x * -0.15); mesh(P, gC(0.26, 0.26, 0.1, 10), metal, x, 2.2, 0); });
+      var pool = [], pal = [0xff5a6a, 0xffd24a, 0x6fe0ff, 0xb58aff, 0x7aff9a, 0xff9ad0];
+      for(var i = 0; i < 160; i++){ var m = new T.Mesh(gS(0.16, 6, 5), new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0 })); m.visible = false; P.add(m); pool.push({ m:m, on:false, vx:0, vy:0, vz:0, t:0, life:1 }); }
+      var rocket = new T.Mesh(gS(0.2, 8, 6), new T.MeshBasicMaterial({ color:0xfff0b0 })); rocket.visible = false; P.add(rocket);
+      var flash = glowSprite(0xffffff, 9, 0); P.add(flash);
+      var S = { next:2, rk:null, burst:null };
+      function spark(x, y, z, col){ for(var i = 0; i < pool.length; i++){ if(!pool[i].on){ var p = pool[i]; p.on = true; p.t = 0; p.life = 1.3 + Math.random() * 0.8; p.m.visible = true; p.m.material.color.setHex(col); p.m.position.set(x, y, z); var a = Math.random() * 6.283, b = Math.acos(2 * Math.random() - 1), sp = 5 + Math.random() * 3.5; p.vx = Math.sin(b) * Math.cos(a) * sp; p.vy = Math.cos(b) * sp; p.vz = Math.sin(b) * Math.sin(a) * sp; return; } } }
+      A.push(function(t, dt){
+        dt = dt || 0.016;
+        if(!S.rk && t > S.next){ S.rk = { x0:(Math.random() - 0.5) * 1.4, tx:(Math.random() - 0.5) * 12, ty:14 + Math.random() * 5, tz:(Math.random() - 0.5) * 8, t0:t, col:pal[Math.floor(Math.random() * pal.length)] }; S.next = t + 2.4 + Math.random() * 2.2; }
+        if(S.rk){ var q = (t - S.rk.t0) / 0.85; rocket.visible = q < 1; if(q < 1){ rocket.position.set(S.rk.x0 + (S.rk.tx - S.rk.x0) * q, 2.2 + (S.rk.ty - 2.2) * q, S.rk.tz * q); } else { var r = S.rk; for(var n = 0; n < 46; n++) spark(r.tx, r.ty, r.tz, n % 5 === 0 ? 0xffffff : r.col); flash.position.set(r.tx, r.ty, r.tz); S.burst = t; S.rk = null; rocket.visible = false; } }
+        flash.material.opacity = S.burst !== null && S.burst !== undefined ? Math.max(0, 0.9 - (t - S.burst) * 2.6) : 0;
+        pool.forEach(function(p){ if(!p.on) return; p.t += dt; p.vy -= 4.2 * dt; p.vx *= 0.985; p.vz *= 0.985; p.m.position.x += p.vx * dt; p.m.position.y += p.vy * dt; p.m.position.z += p.vz * dt; var k = 1 - p.t / p.life; p.m.material.opacity = Math.max(0, k); p.m.scale.setScalar(Math.max(0.2, 0.4 + k * 0.8)); if(p.t >= p.life){ p.on = false; p.m.visible = false; } });
+      });
+    },
+    balloon: function(g, A){
+      var B = new T.Group(); g.add(B);
+      var cols = [0xe8423f, 0xffd24a, 0xffffff, 0x4aa8ff, 0xe8423f, 0xffd24a, 0xffffff, 0x4aa8ff], gold = gMat();
+      for(var i = 0; i < 8; i++){ var seg = new T.Mesh(new T.SphereGeometry(3.1, 20, 16, i * Math.PI / 4, Math.PI / 4), pmat(cols[i], 0.4, { side:T.DoubleSide })); seg.scale.set(1, 1.25, 1); seg.position.y = 6.6; seg.castShadow = true; B.add(seg); }
+      mesh(B, gK(1.6, 1.6, 16), pmat(0x6b4a2a, 0.8), 0, 3.0, 0, 1, 1, 1, Math.PI, 0, 0);
+      mesh(B, gT(1.55, 0.08, 20), gold, 0, 2.3, 0, 1, 1, 1, Math.PI / 2, 0, 0);
+      mesh(B, gB(1.5, 1.0, 1.5), pmat(0x9a6a3a, 0.85), 0, -0.1, 0); mesh(B, gB(1.65, 0.15, 1.65), pmat(0x6b4a2a, 0.85), 0, 0.45, 0);
+      [[-0.7, -0.7], [0.7, -0.7], [-0.7, 0.7], [0.7, 0.7]].forEach(function(p){ var ln = mesh(B, gC(0.025, 0.025, 2.6, 4), pmat(0xe3d8bc, 0.8), p[0] * 0.7, 1.6, p[1] * 0.7); ln.rotation.z = p[0] * -0.28; ln.rotation.x = p[1] * 0.28; ln.castShadow = false; });
+      var fl = mesh(B, gK(0.28, 0.9, 8), emis(0xff8a2a, 1.0), 0, 1.6, 0); fl.castShadow = false;
+      var hl = glowSprite(0xffa040, 2.6, 0.5); hl.position.set(0, 1.7, 0); B.add(hl);
+      var sh = new T.Mesh(new T.CircleGeometry(2.4, 24), new T.MeshBasicMaterial({ color:0x10200c, transparent:true, opacity:0.2, depthWrite:false })); sh.rotation.x = -Math.PI / 2; sh.position.y = 0.06; g.add(sh);
+      A.push(function(t){
+        var a = t * 0.1 + 1.2, x = Math.cos(a) * 25, z = Math.sin(a) * 19 - 3, y = 15 + Math.sin(t * 0.7) * 0.9;
+        B.position.set(x, y, z); B.rotation.y = -a + Math.PI; B.rotation.z = Math.sin(t * 0.8) * 0.05;
+        var f = 0.85 + Math.sin(t * 12) * 0.2; fl.scale.set(1, f, 1); hl.material.opacity = 0.4 + (f - 0.85) * 0.6;
+        sh.position.set(x, 0.06, z); sh.scale.setScalar(1 - Math.min(0.4, (y - 14) * 0.05));
+      });
+    },
+    dragon: function(g, A){
+      var P = new T.Group(); P.position.set(-9, 0, -4); P.rotation.y = 0.45; g.add(P);
+      var rock = pmat(0x5d5a68, 0.85), dark = pmat(0x3c3a48, 0.8), gold = gMat(), mem = pmat(0x8a3a5a, 0.7, { side:T.DoubleSide });
+      blobShadow(P, 3.4, 0.24);
+      mesh(P, gC(2.2, 2.6, 1.2, 8), pmat(0x8d879c, 0.9), 0, 0.6, 0); mesh(P, gT(2.3, 0.1, 8), gold, 0, 1.22, 0, 1, 1, 1, Math.PI / 2, 0, 0);
+      var D = new T.Group(); D.position.set(0, 1.2, 0); P.add(D);
+      mesh(D, gS(1, 18, 14), rock, 0, 1.5, 0, 1.15, 0.9, 1.75);
+      [[-0.8, 0.9], [0.8, 0.9], [-0.8, -0.9], [0.8, -0.9]].forEach(function(l){ mesh(D, gC(0.28, 0.34, 1.2, 8), dark, l[0], 0.6, l[1]); mesh(D, gB(0.6, 0.2, 0.8), rock, l[0], 0.1, l[1] + 0.15); });
+      var neck = [[0, 2.1, 1.4, 0.55], [0, 2.7, 1.9, 0.48], [0, 3.3, 2.2, 0.42]]; neck.forEach(function(n){ mesh(D, gS(n[3], 12, 10), rock, n[0], n[1], n[2]); });
+      var H = new T.Group(); H.position.set(0, 3.7, 2.45); D.add(H);
+      mesh(H, gS(0.52, 14, 12), rock, 0, 0, 0, 1, 0.85, 1.3); mesh(H, gS(0.34, 10, 8), rock, 0, -0.1, 0.65, 1, 0.7, 1.4);
+      [-0.28, 0.28].forEach(function(x){ mesh(H, gK(0.1, 0.62, 6), gold, x, 0.5, -0.2, 1, 1, 1, -0.5, 0, x * -0.8); mesh(H, gS(0.1, 8, 6), emis(0xff3a2a, 1.0), x * 1.2, 0.2, 0.42); });
+      var fire = [];
+      for(var i = 0; i < 6; i++){ var fm = mesh(H, gK(0.3, 1.2, 8), emis(i % 2 ? 0xffd24a : 0xff7a2a, 1.0, 0.3, { transparent:true, opacity:0.9 }), 0, -0.1, 1.6 + i * 0.55, 1, 1, 1, Math.PI / 2, 0, 0); fm.castShadow = false; fm.visible = false; fire.push(fm); }
+      var fg = glowSprite(0xff9a3a, 4, 0); fg.position.set(0, -0.1, 2.2); H.add(fg);
+      [-1, 1].forEach(function(sx){
+        var W = new T.Group(); W.position.set(sx * 0.9, 2.5, -0.1); D.add(W);
+        mesh(W, gC(0.07, 0.1, 3.2, 6), dark, sx * 1.6, 1.1, -0.4, 1, 1, 1, 0, 0, sx * -1.15); mesh(W, gC(0.05, 0.08, 2.8, 6), dark, sx * 1.4, 0.6, -1.3, 1, 1, 1, 0.5, 0, sx * -1.0);
+        mesh(W, gB(2.4, 0.04, 1.8), mem, sx * 1.4, 0.7, -0.7, 1, 1, 1, 0.1, 0, sx * -0.5).castShadow = false;
+        W.userData.sx = sx; A.push(function(t){ W.rotation.z = sx * (0.1 + Math.sin(t * 1.2) * 0.12); });
+      });
+      for(var k = 0; k < 6; k++){ var s = 1 - k * 0.13; mesh(D, gS(0.55 * s, 10, 8), rock, Math.sin(k * 0.7) * 0.5, 1.1 - k * 0.05, -1.7 - k * 0.8); mesh(D, gK(0.12 * s, 0.4 * s, 5), gold, Math.sin(k * 0.7) * 0.5, 1.7 - k * 0.05, -1.7 - k * 0.8); }
+      var st = { next:4, t0:-99 };
+      A.push(function(t){
+        H.rotation.x = Math.sin(t * 0.9) * 0.05; H.position.y = 3.7 + Math.sin(t * 1.1) * 0.05;
+        if(t > st.next){ st.t0 = t; st.next = t + 7 + Math.random() * 4; }
+        var u = t - st.t0, on = u >= 0 && u < 1.8;
+        fire.forEach(function(f, i){ f.visible = on; if(on){ var w = Math.sin(Math.min(1, u / 1.8) * Math.PI), pul = 0.8 + Math.sin(t * 20 + i) * 0.25; f.scale.set(w * pul, w * (0.8 + i * 0.12), w * pul); } });
+        fg.material.opacity = on ? 0.5 * Math.sin(Math.min(1, u / 1.8) * Math.PI) : 0;
+      });
+    }
+  };
+
   function makeKingdom(canvas, hooks){
     hooks = hooks || {};
     noOutlines = true;
     var renderer = new T.WebGLRenderer({ canvas:canvas, antialias:true, alpha:true });
+    var lostH = function(e){ if(e && e.preventDefault) e.preventDefault(); if(hooks.onLost) hooks.onLost(); };
+    canvas.addEventListener('webglcontextlost', lostH, false);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     if(renderer.shadowMap){ renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap; }
     var scene = new T.Scene();
@@ -3611,7 +4054,16 @@
           ce.g.scale.setScalar(rs * 1.5); rg.add(ce.g); b.A = ce.A;
           if(lv >= 9) b.top += 3.2;
         }
+        if(id !== 'castle'){                                  // 레벨이 오르면 깃발, 돌담, 황금 장식, 빛나는 구슬이 붙어요
+          var lx2 = levelExtras(id, lv, kitRef[id].userData.h);
+          lx2.g.scale.setScalar(rs * 1.5); rg.add(lx2.g); b.A = (b.A || []).concat(lx2.A);
+          if(lv >= 9) b.top += 3.2;
+        }
       }else if(lv > 0){
+        if(id !== 'castle'){
+          var lx = levelExtras(id, lv, b.top);
+          b.g.add(lx.g); b.A = (b.A || []).concat(lx.A);
+        }
         b.g.scale.multiplyScalar(1.8); b.top *= 1.8;
       }
       b.g.position.set(BPOS[id][0], 0, BPOS[id][2]);
@@ -3643,11 +4095,12 @@
     }
     function ensureChar(info){
       var C = chars[info.name];
+      if(C && !!C.evo !== !!info.evo){ world.remove(C.root); delete chars[info.name]; C = null; }     // 진화하면 모습을 새로 만들어요
       if(!C){
         var v = VARIANTS[info.idx];
         ENV_CUR = envTex;
         noOutlines = false;
-        var root = buildMascot(v, { battle:true });
+        var root = buildMascot(v, { battle:true, evo:!!info.evo });
         noOutlines = true;
         shade(root, true);
         var s = v.mythic ? 0.95 : 0.78;
@@ -3665,7 +4118,7 @@
             }
           }
         }
-        C = { name:info.name, root:root, U:root.userData, x:sx0, z:sz0, tx:0, tz:0, mode:'idle', wait:Math.random() * 2,
+        C = { evo:!!info.evo, name:info.name, root:root, U:root.userData, x:sx0, z:sz0, tx:0, tz:0, mode:'idle', wait:Math.random() * 2,
           phase:Math.random() * 6, speed:1.0 + Math.random() * 0.7, jump:0, yaw:yaw0, at:null, slot:0, busy:false };
         chars[info.name] = C;
       }
@@ -3715,7 +4168,22 @@
     }
 
     // ---- 상태 반영 ----
+    // ---- 코인으로 산 장식들 (새로 산 것만 땅에서 솟아나요) ----
+    var decorRoot = new T.Group(); world.add(decorRoot);
+    var decorMap = {}, decorAnims = [];
+    function syncDecor(list){
+      list = list || [];
+      Object.keys(decorMap).forEach(function(id){ if(list.indexOf(id) < 0){ decorRoot.remove(decorMap[id].g); delete decorMap[id]; } });
+      decorAnims = []; Object.keys(decorMap).forEach(function(id){ decorMap[id].A.forEach(function(f){ decorAnims.push(f); }); });
+      list.forEach(function(id){
+        if(decorMap[id] || !KDECO_BUILD[id]) return;
+        var g = new T.Group(), A = []; KDECO_BUILD[id](g, A);
+        g.userData.pop = 0; g.scale.y = 0.01; decorRoot.add(g);
+        decorMap[id] = { g:g, A:A }; A.forEach(function(f){ decorAnims.push(f); });
+      });
+    }
     function setState(st){
+      syncDecor(st.decor);
       Object.keys(BPOS).forEach(function(id){
         var s = st.buildings[id] || { lv:0 };
         if(!B[id] || B[id].lv !== s.lv) placeBuilding(id, s.lv);
@@ -3863,6 +4331,8 @@
         if(Math.hypot(focusTo.x - tgt.x, focusTo.z - tgt.z) < 0.15) focusTo = null;
       }
       clouds.forEach(function(c){ c.position.x += c.userData.sp * dt; if(c.position.x > 140) c.position.x = -140; });
+      decorRoot.children.forEach(function(g){ if(g.userData.pop < 1){ g.userData.pop = Math.min(1, g.userData.pop + dt * 1.1); var k = g.userData.pop, e = 1 + 1.7 * Math.pow(k - 1, 3) + 0.7 * Math.pow(k - 1, 2); g.scale.y = Math.max(0.01, e); } });
+      for(var di = 0; di < decorAnims.length; di++){ decorAnims[di](tt, dt); }
       Object.keys(B).forEach(function(id){
         var b = B[id];
         b.A.forEach(function(f){ f(tt); });
@@ -3898,8 +4368,9 @@
       Object.keys(chars).forEach(function(n){ var C = chars[n]; CHAR_MEM[n] = { x:C.x, z:C.z, yaw:C.yaw, t:Date.now() }; });
       try{ localStorage.setItem('kg_char_pos', JSON.stringify(CHAR_MEM)); }catch(e){}
     }
-    function dispose(){ if(hitLayer && hitLayer.parentNode){ try{ hitLayer.parentNode.removeChild(hitLayer); }catch(e){} hitLayer = null; } saveMem(); noOutlines = false; running = false; window.removeEventListener('resize', onWin); try{ renderer.dispose(); }catch(e){} }
-    return { setState:setState, start:start, dispose:dispose, resize:resize, celebrate:celebrate, focus:focus, overview:overview, floatText:floatText };
+    function dispose(){ if(hitLayer && hitLayer.parentNode){ try{ hitLayer.parentNode.removeChild(hitLayer); }catch(e){} hitLayer = null; } saveMem(); noOutlines = false; running = false; window.removeEventListener('resize', onWin); canvas.removeEventListener('webglcontextlost', lostH); releaseGL(renderer); }
+    return { setState:setState, start:start, dispose:dispose, resize:resize, celebrate:celebrate, focus:focus, overview:overview, floatText:floatText,
+      focusDecor:function(id){ var p = KDECO_POS[id]; if(p){ focusTo = { x:p[0], z:p[1] }; zoomTo = 1.5; } } };
   }
 
   // =====================================================================
@@ -3913,7 +4384,7 @@
     '닌자곰':'shadow', '기사 슬라임':'ironwall', '유령 등불지기':'lantern', '판다 파이터':'bamboo', '젤리 슬라임':'bounce',
     '마법사 병아리':'spark', '사무라이 토끼':'iai', '해적 고양이':'plunder', '번개 여우':'thunder', '로봇 용병':'pierce', '불꽃 정령':'ember', '프린세스 슬라임':'crown',
     '악마 버섯':'spore', '서리 펭귄':'frost', '용기사':'dragonrage', '해골 기사':'reaper', '대천사':'blessing', '왕곰':'reign',
-    '서영준':'rainbow'
+    '서영준':'rainbow', '신기영':'timestop', '박지용':'dragonwill', '서현서':'kingbody', 'ERR0R':'glitch'
   };
   var TRAIT_INFO = {
     shadow:   { name:'그림자 걸음',   icon:'🌑', kind:'방어', desc:'적의 공격을 6% 확률로 완전히 피해요', p:{ dodge:0.06 } },
@@ -3934,11 +4405,15 @@
     reaper:   { name:'저승의 처형',   icon:'💀', kind:'공격', desc:'상대 체력이 30% 이하일 때 입히는 피해가 38% 늘어요', p:{ execute:0.38, thr:0.3 } },
     blessing: { name:'천사의 축복',   icon:'😇', kind:'회복', desc:'내 턴 3번마다 최대 체력의 2.5%를 회복해요', p:{ heal3:0.025 } },
     reign:    { name:'왕의 군림',     icon:'🐻', kind:'방해', desc:'전투 시작 때 상대의 공격력을 5% 깎아요', p:{ intimidate:0.05 } },
+    timestop:  { name:'시간 정지',     icon:'⏳', kind:'방해', desc:'공격하면 45% 확률로 상대의 시간이 멈춰 한 턴을 쉬어요. 30% 확률로 순식간에 두 번 때려요(피해 2배). 15% 확률로 공격을 피해요', p:{ stun:0.45, double:0.3, dodge:0.15 } },
+    dragonwill:{ name:'불굴의 용',     icon:'🐲', kind:'방어', desc:'쓰러져도 두 번 다시 일어나요(체력 60%로). 받는 피해가 20% 줄고, 입힌 피해의 15%를 체력으로 되찾아요', p:{ revive:{ n:2, hp:0.6 }, reduce:0.2, lifesteal:0.15 } },
+    kingbody:  { name:'대왕의 풍채',   icon:'👑', kind:'방어', desc:'전투 시작 때 체력이 20% 늘어나요. 받는 피해 10% 감소, 내 턴마다 체력 1.5% 회복, 상대 방어력의 15%를 무시해요', p:{ bulk:0.2, reduce:0.1, regen:0.015, pierce:0.15 } },
+    glitch:    { name:'치명적 오류',   icon:'☠️', kind:'공격', desc:'존재 자체가 버그예요. 해로운 효과를 받지 않고 30% 확률로 공격을 피해요. 공격하면 20% 확률로 피해 3배, 12% 확률로 상대 체력의 30%를 삭제하고, 상대 방어력의 40%를 무시해요. 한 번 쓰러져도 체력 60%로 복구돼요', p:{ immune:true, dodge:0.3, x3:0.2, del:0.12, delPct:0.3, pierce:0.4, revive:{ n:1, hp:0.6 } } },
     rainbow:  { name:'무지개의 은총', icon:'🌈', kind:'회복', desc:'내 턴 4번마다 체력 2.2% 회복, 나쁜 효과 해제, 다음 공격 +4.8%', p:{ rainbow:0.022, rbuff:0.048 } }
   };
   function trP(F){ var t = F && F.tr ? TRAIT_INFO[F.tr] : null; return t ? t.p : null; }
   function trHeal(F, v){ var h = Math.max(0, Math.min(F.max - F.hp, Math.round(v))); F.hp += h; return h; }
-  function trInit(F){ F.st = { burn:0, burnPct:0, stun:0, freeze:0, weakMul:1, shield:0, bamboo:false, undying:false, buff:1 }; var p = trP(F); if(p && p.startShield) F.st.shield = Math.round(F.max * p.startShield); }
+  function trInit(F){ F.st = { burn:0, burnPct:0, stun:0, freeze:0, weakMul:1, shield:0, bamboo:false, undying:false, buff:1, rev:0 }; var p = trP(F); if(p && p.bulk){ F.max = Math.round(F.max * (1 + p.bulk)); F.hp = F.max; } if(p && p.startShield) F.st.shield = Math.round(F.max * p.startShield); }
   function trIntimidate(F, E){ var p = trP(F); if(p && p.intimidate) E.atk = E.atk * (1 - p.intimidate); }
   // 한 번의 공격 계산: 회피, 치명타, 방어 관통, 용의 분노, 약화/빙결 등을 모두 반영해요
   function trCalc(A, D, special){
@@ -3949,9 +4424,10 @@
     var def = D.def * (D.st.bamboo ? pd.bamboo : 1) * (1 - (pa.pierce || 0));
     var sm = special ? (pa.special || 1.7) : 1;
     var frz = 1; if(A.st.freeze > 0){ frz = 0.6; A.st.freeze--; }
-    var dmg = atk * 100 / (100 + def) * (0.9 + Math.random() * 0.25) * sm * (crit ? 1.5 : 1) * 0.9 * frz * (1 - (pd.reduce || 0));
+    var dbl = !!(pa.double && Math.random() < pa.double), x3 = !!(pa.x3 && Math.random() < pa.x3);
+    var dmg = atk * 100 / (100 + def) * (0.9 + Math.random() * 0.25) * sm * (crit ? 1.5 : 1) * 0.9 * frz * (1 - (pd.reduce || 0)) * (dbl ? 2 : 1) * (x3 ? 3 : 1);
     A.st.buff = 1;
-    return { dodge:false, dmg:Math.max(1, Math.round(dmg)), crit:crit };
+    return { dodge:false, dmg:Math.max(1, Math.round(dmg)), crit:crit, dbl:dbl, x3:x3 };
   }
   // 피해 적용 (보호막이 먼저 막아요)
   function trApply(D, dmg){
@@ -3960,26 +4436,37 @@
   }
   // 맞춘 뒤에 일어나는 일들: 약탈, 화상, 감전, 빙결, 약화, 튕김 …
   function trAfter(A, D, r){
-    var ev = [], pa = trP(A) || {}, pd = trP(D) || {};
-    if(pa.lifesteal && r.dmg > 0){ var h = trHeal(A, r.dmg * pa.lifesteal); if(h > 0) ev.push({ t:'heal', who:A, v:h, txt:'🏴‍☠️ 약탈 +' + h, col:[0.9, 0.3, 0.6] }); }
+    var ev = [], pa = trP(A) || {}, pd = trP(D) || {}, imm = !!pd.immune;
+    if(r.dbl) ev.push({ t:'dbl', who:A, txt:'⏳ 연타!', col:[0.5, 0.9, 1] });
+    if(r.x3) ev.push({ t:'x3', who:A, txt:'⚠ 오버플로우 ×3', col:[1, 0.2, 0.5] });
+    if(pa.lifesteal && r.dmg > 0){ var h = trHeal(A, r.dmg * pa.lifesteal); if(h > 0) ev.push({ t:'heal', who:A, v:h, txt:'💗 흡수 +' + h, col:[0.9, 0.3, 0.6] }); }
     if(D.hp > 0){
-      if(pa.burn){ D.st.burn = 2; D.st.burnPct = pa.burn; ev.push({ t:'burn', who:D, txt:'🔥 화상', col:[1, 0.35, 0.05] }); }
-      if(pa.stun && Math.random() < pa.stun){ D.st.stun = 1; ev.push({ t:'stun', who:D, txt:'⚡ 감전!', col:[1, 0.9, 0.2] }); }
-      if(pa.freeze && Math.random() < pa.freeze){ D.st.freeze = 1; ev.push({ t:'freeze', who:D, txt:'❄️ 빙결', col:[0.3, 0.8, 1] }); }
-      if(pa.weaken){ var was = D.st.weakMul; D.st.weakMul = Math.max(1 - pa.weakCap, was - pa.weaken); if(D.st.weakMul < was) ev.push({ t:'weak', who:D, txt:'🍄 중독 ' + Math.round((1 - D.st.weakMul) * 100) + '%', col:[0.6, 0.3, 0.8] }); }
+      if(!imm){
+        if(pa.burn){ D.st.burn = 2; D.st.burnPct = pa.burn; ev.push({ t:'burn', who:D, txt:'🔥 화상', col:[1, 0.35, 0.05] }); }
+        if(pa.stun && Math.random() < pa.stun){ D.st.stun = 1; ev.push({ t:'stun', who:D, txt:(A.tr === 'timestop' ? '⏳ 시간 정지!' : '⚡ 감전!'), col:(A.tr === 'timestop' ? [0.5, 0.9, 1] : [1, 0.9, 0.2]) }); }
+        if(pa.freeze && Math.random() < pa.freeze){ D.st.freeze = 1; ev.push({ t:'freeze', who:D, txt:'❄️ 빙결', col:[0.3, 0.8, 1] }); }
+        if(pa.weaken){ var was = D.st.weakMul; D.st.weakMul = Math.max(1 - pa.weakCap, was - pa.weaken); if(D.st.weakMul < was) ev.push({ t:'weak', who:D, txt:'🍄 중독 ' + Math.round((1 - D.st.weakMul) * 100) + '%', col:[0.6, 0.3, 0.8] }); }
+      }
       if(pd.bamboo && !D.st.bamboo && D.hp <= D.max * 0.5){ D.st.bamboo = true; ev.push({ t:'buff', who:D, txt:'🎋 맷집!', col:[0.3, 0.8, 0.4] }); }
+      if(pa.del && Math.random() < pa.del){ var cut = Math.round(D.max * pa.delPct); D.hp = Math.max(0, D.hp - cut); ev.push({ t:'del', who:D, v:cut, txt:'▒ 삭제 -' + cut, col:[0.2, 1, 0.9] }); }
     }
     if(pd.counter && r.dmg > 0 && Math.random() < pd.counter){ var rf = Math.max(1, Math.round(r.dmg * pd.reflect)); A.hp = Math.max(1, A.hp - rf); ev.push({ t:'reflect', who:A, v:rf, txt:'🫧 튕김 -' + rf, col:[0.3, 0.8, 1] }); }
     return ev;
   }
   // 쓰러질 뻔할 때 한 번 일어나요
   function trLethal(D){
-    var pd = trP(D); if(pd && pd.undying && !D.st.undying){ D.st.undying = true; D.hp = Math.max(1, Math.round(D.max * pd.undying)); return true; }
+    var pd = trP(D); if(!pd) return false;
+    if(pd.revive && (D.st.rev || 0) < pd.revive.n){
+      D.st.rev = (D.st.rev || 0) + 1; D.hp = Math.max(1, Math.round(D.max * pd.revive.hp));
+      D.st.burn = 0; D.st.stun = 0; D.st.freeze = 0; D.st.weakMul = 1; D.st.shield = 0; return true;
+    }
+    if(pd.undying && !D.st.undying){ D.st.undying = true; D.hp = Math.max(1, Math.round(D.max * pd.undying)); return true; }
     return false;
   }
   // 자기 턴이 시작될 때: 화상 피해, 회복, 해제 …
   function trTurn(F, n){
     var ev = [], p = trP(F) || {};
+    if(p.immune){ F.st.burn = 0; F.st.stun = 0; F.st.freeze = 0; F.st.weakMul = 1; }
     if(F.st.burn > 0){ var d = Math.max(1, Math.round(F.max * F.st.burnPct)); F.hp = Math.max(0, F.hp - d); F.st.burn--; ev.push({ t:'burnTick', who:F, v:d, txt:'🔥 -' + d, col:[1, 0.35, 0.05] }); }
     if(F.hp <= 0) return ev;
     if(p.regen){ var h = trHeal(F, F.max * p.regen); if(h > 0) ev.push({ t:'heal', who:F, v:h, txt:'🏮 +' + h, col:[0.9, 0.7, 0.2] }); }
@@ -3992,6 +4479,11 @@
   var CHAR_BAL = {'서영준': 1, '마법사 병아리': 0.975, '사무라이 토끼': 1.005, '해적 고양이': 1.008, '번개 여우': 1.003, '로봇 용병': 1.037, '불꽃 정령': 0.991, '프린세스 슬라임': 0.982, '악마 버섯': 1.005, '서리 펭귄': 1.005, '용기사': 0.99, '해골 기사': 1.015, '대천사': 0.987, '왕곰': 0.998, '닌자곰': 0.989, '기사 슬라임': 1.023, '유령 등불지기': 0.949, '판다 파이터': 1.024, '젤리 슬라임': 1.016};
   // ==TRAITS_END==
 
+  // 3D 화면을 닫을 때 브라우저의 그래픽 연결도 같이 풀어줘요 (안 풀면 계속 쌓여서, 나중에 왕국·전투가 흰 화면이 돼요)
+  function releaseGL(renderer){
+    try{ renderer.dispose(); }catch(e){}
+    try{ renderer.forceContextLoss(); }catch(e){}
+  }
   // ---- 부드러운 아우라 그림 (도감과 전투가 같이 써요) ----
   var AURA_TEX = null;
   function auraTex(){
@@ -4851,7 +5343,10 @@
     P0.visScale = 1; P1.visScale = 1;
 
     // ---- 친구 집에 놀러가기: 둘이 같이 놀아요 ----
-    var V = { on:false, token:0, running:false, last:'', idleT:0, spec:null };
+    var V = { on:false, token:0, running:false, last:'', idleT:0, spec:null, props:[] };
+    // 놀이 중에 잠깐 쓰는 물건(공 등)은 놀이가 끊기거나 바뀔 때 반드시 치워요 (안 치우면 공이 허공에 멈춰 남아요)
+    function trackProp(m){ V.props.push(m); return m; }
+    function clearProps(){ V.props.forEach(function(m){ try{ scene.remove(m); }catch(e){} }); V.props = []; }
     function release(){ [P0, P1].forEach(function(A){ A.script = false; A.follow = null; A.target = null; A.mode = 'idle'; A.next = 1.2; A.lean = 0; }); }
     function bump(A, B){
       A.S.sq = 0.6; B.S.sq = 0.6; A.S.wob = 0.1; B.S.wob = 0.1;
@@ -4895,7 +5390,8 @@
         seq([ function(nx){ emote(H, '🏃'); emote(G, '😝'); wait(0.4, tok)(nx); }, function(nx){ round(H, G, nx); }, function(nx){ round(G, H, nx); }], tok, done);
       },
       ball: function(H, G, tok, done){
-        var ball = new T.Mesh(new T.SphereGeometry(0.3, 18, 14), pmat(0xff7aa8, 0.3)); ball.visible = false; ball.castShadow = true; scene.add(ball);
+        clearProps();
+        var ball = new T.Mesh(new T.SphereGeometry(0.3, 18, 14), pmat(0xff7aa8, 0.3)); ball.visible = false; ball.castShadow = true; scene.add(ball); trackProp(ball);
         mesh(ball, gT(0.3, 0.025, 20), pmat(0xffffff, 0.3), 0, 0, 0, 1, 1, 1, Math.PI / 2, 0, 0).castShadow = false;
         function pass(from, to, nx){
           ball.visible = true; var x0 = from.x, z0 = from.z, x1 = to.x, z1 = to.z; aJump(from, 4.4, 0); emote(from, '⚽');
@@ -4908,8 +5404,8 @@
           function(nx){ pass(G, H, nx); }, function(nx){ wait(0.25, tok)(nx); },
           function(nx){ pass(H, G, nx); }, function(nx){ wait(0.25, tok)(nx); },
           function(nx){ pass(G, H, nx); }, function(nx){ wait(0.3, tok)(nx); },
-          function(nx){ scene.remove(ball); aStart(H, 'cheer'); aStart(G, 'cheer'); wait(1.2, tok)(nx); }
-        ], tok, function(){ scene.remove(ball); if(done) done(); });
+          function(nx){ clearProps(); aStart(H, 'cheer'); aStart(G, 'cheer'); wait(1.2, tok)(nx); }
+        ], tok, function(){ clearProps(); if(done) done(); });
       },
       dance: function(H, G, tok, done){
         var steps = [function(nx){ H.script = G.script = true; goTo(G, -0.95, 0.7, null); goTo(H, 0.95, 0.7, nx); }, function(nx){ G.faceTo = 0; H.faceTo = 0; emote(G, '🎵'); emote(H, '🎶'); wait(0.4, tok)(nx); }];
@@ -4935,7 +5431,7 @@
     };
     var ACT_KEYS = ['greet', 'highfive', 'chase', 'ball', 'dance', 'hug', 'peek'];
     function runAct(name){
-      if(!V.on) return; var tok = V.token; V.running = true; V.last = name; release();
+      if(!V.on) return; var tok = V.token; V.running = true; V.last = name; clearProps(); release();
       ACT[name](P1, P0, tok, function(){ if(tok !== V.token) return; V.running = false; release(); V.idleT = 2.2 + Math.random() * 1.5; });
     }
     function visitAuto(dt){
@@ -4945,7 +5441,7 @@
     }
     function visit(spec){
       if(!spec || !spec.host || !spec.guest) return;
-      V.token++; V.on = true; V.spec = spec; V.running = true; V.arriving = true; V.last = ''; var tok = V.token;
+      V.token++; V.on = true; V.spec = spec; V.running = true; V.arriving = true; V.last = ''; var tok = V.token; clearProps();
       setTheme(spec.theme || 'meadow'); deco = (spec.deco || []).slice(); setDeco(deco);
       actorBuild(P1, spec.host.genes); actorBuild(P0, spec.guest.genes);
       petStageApply(P1.slime, spec.host.stage); petStageApply(P0.slime, spec.guest.stage);
@@ -4958,7 +5454,7 @@
       P0.free = true; goTo(P0, -2.4, 0.7, function(){ if(tok !== V.token) return; P0.free = false; V.arriving = false; runAct('greet'); });
     }
     function leave(){
-      V.token++; V.on = false; V.running = false; V.arriving = false; tasks = []; tweens = [];
+      V.token++; V.on = false; V.running = false; V.arriving = false; tasks = []; tweens = []; clearProps();
       P1.rig.visible = false; P1.shadow.visible = false; P0.free = false; P0.x = 0; P0.z = 0; P0.S.y = 0; P0.faceTo = 0; P0.heading = 0; P0.visScale = 1;
       release(); P0.big = Math.max(P0.big, 0.95); P0.born = 0;
     }
@@ -5068,15 +5564,15 @@
     function feedAnim(){ if(apple){ scene.remove(apple); } apple = new T.Group(); var a = new T.Mesh(new T.SphereGeometry(0.28, 14, 12), new T.MeshStandardMaterial({ color:0xff4f4f, roughness:0.3 })); apple.add(a); var lf = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshStandardMaterial({ color:0x58c458 })); lf.scale.set(1.6, 0.4, 0.8); lf.position.set(0.1, 0.3, 0); apple.add(lf); apple.position.set(P0.x, 2.6, P0.z + 0.4); scene.add(apple); P0.S.eat = 1.1; P0.S.happy = 0.8; P0.S.wob = 0.06; }
     function start(){ if(running) return; running = true; clock.getDelta(); resize(); frame(); }
     function stop(){ running = false; }
-    function dispose(){ running = false; window.removeEventListener('resize', onWin); try{ renderer.dispose(); }catch(e){} }
+    function dispose(){ running = false; window.removeEventListener('resize', onWin); releaseGL(renderer); }
     return { setPet:setPet, setStatus:status2, setTimeMode:function(m){ timeMode = m; lastLight = -1e9; lastSky = -1e9; }, act:act, cuddle:function(){ act('cheer'); }, feed:feedAnim, hatch:hatch, start:start, stop:stop, resize:resize, dispose:dispose,
       burst:function(col, n){ puff(P0.x, 1.2, P0.z, col || 0xffe066, n || 12, 2, 4, 0.9); },
-      visit:visit, leave:leave, play:function(name){ if(V.on && ACT[name]){ V.token++; tasks = []; tweens = []; V.arriving = false; runAct(name); } },
-      _dbg:{ start:function(name){ aStart(P0, name, V.on ? P1 : null); }, state:function(){ return { p0:[P0.x, P0.S.y, P0.z], p1:[P1.x, P1.S.y, P1.z], m0:P0.mode, m1:P1.mode, v:V.on, run:V.running }; } } };
+      visit:visit, leave:leave, play:function(name){ if(V.on && ACT[name]){ V.token++; tasks = []; tweens = []; clearProps(); V.arriving = false; runAct(name); } },
+      _dbg:{ start:function(name){ aStart(P0, name, V.on ? P1 : null); }, state:function(){ return { p0:[P0.x, P0.S.y, P0.z], p1:[P1.x, P1.S.y, P1.z], m0:P0.mode, m1:P1.mode, v:V.on, run:V.running, props:V.props.length, kids:scene.children.length }; } } };
   }
 
   // 도감용 썸네일 (한 번에 모두 그려서 사진으로 저장)
-  function makeThumbs(size, filterFn){
+  function makeThumbs(size, filterFn, evoSet){
     var out = {};
     var r2 = new T.WebGLRenderer({ antialias:true, alpha:true, preserveDrawingBuffer:true });
     r2.setPixelRatio(1); r2.setSize(size, size);
@@ -5088,19 +5584,20 @@
     var prevEnv = ENV_CUR; ENV_CUR = makeEnv(r2);
     VARIANTS.forEach(function(v, i){
       if(filterFn && !filterFn(v, i)) return;
-      c2.position.set(0, 2.2, v.mythic ? 12.2 : 9.6); c2.lookAt(0, v.mythic ? 1.8 : 1.5, 0);
-      var m = buildMascot(v); m.rotation.y = -0.4;
+      var bigT = v.mythic || (evoSet && v.star >= 4);
+      c2.position.set(0, 2.2, bigT ? 12.4 : 9.6); c2.lookAt(0, bigT ? 1.9 : 1.5, 0);
+      var m = buildMascot(v, evoSet ? { evo:true } : undefined); m.rotation.y = -0.4;
       s2.add(m);
       r2.render(s2, c2);
       out[v.name] = r2.domElement.toDataURL('image/png');
       s2.remove(m);
     });
     ENV_CUR = prevEnv;
-    r2.dispose();
+    releaseGL(r2);
     return out;
   }
 
-    return { VARIANTS:VARIANTS, buildMascot:buildMascot, makeViewer:makeViewer, makeThumbs:makeThumbs, makeBattle:makeBattle, makeKingdom:makeKingdom, makePet:makePet, TRAIT_INFO:TRAIT_INFO, CHAR_TRAIT:CHAR_TRAIT };
+    return { VARIANTS:VARIANTS, buildMascot:buildMascot, makeViewer:makeViewer, makeThumbs:makeThumbs, makeBattle:makeBattle, makeKingdom:makeKingdom, makePet:makePet, TRAIT_INFO:TRAIT_INFO, CHAR_TRAIT:CHAR_TRAIT, KDECO_IDS:Object.keys(KDECO_BUILD) };
   }
   global.createMascotLib = createMascotLib;
 })(window);
@@ -5198,8 +5695,8 @@ let currentUser = null;
 let unsubscribeSnapshot = null;
 let words = []; // {id, en, ko, date}
 let wordsLoaded = false;   // 서버에서 내 단어를 실제로 받았는지 (받기 전에 저장하면 기존 단어가 지워질 수 있어서 막아요)
-// 새 단어를 저장할 때마다 코인 1~3개를 랜덤으로 받아요 (하루 100단어까지)
-const WORD_COIN_CAP = 100;
+// 새 단어를 저장할 때마다 코인 1~3개를 랜덤으로 받아요 (하루 200단어까지)
+const WORD_COIN_CAP = 200;
 let wordCoinLog = { d:'', n:0 };
 let selMode = false;            // 단어를 꾹 눌러 고르는 중인지
 const selIds = new Set();       // 고른 단어 번호
@@ -5305,7 +5802,7 @@ onAuthStateChanged(auth, (user) => {
     equippedShield = false;
     robotColor = null;
     selectedModel = 'robot'; unlockedModels = ['robot'];
-    charCollection = {}; ownedEver = []; pity5 = 0; pity6 = 0; mainChar = null; btWins = 0; btLosses = 0; btOpp = null; kingdom = null; pet = null; wordCoinLog = { d:'', n:0 };
+    charCollection = {}; ownedEver = []; pity5 = 0; pity6 = 0; pity7 = 0; mainChar = null; btWins = 0; btLosses = 0; btOpp = null; kingdom = null; pet = null; wordCoinLog = { d:'', n:0 };
     charStats = { atk:0, def:0, agi:0, int:0 };
     tickets = 0; totalCorrect = 0; equipment = [];
     charDataLoaded = false; wordsLoaded = false;
@@ -5400,7 +5897,7 @@ function subscribeWords(){
     }
     charCollection = (data.collection && typeof data.collection === 'object') ? data.collection : {};
     if(hubRecover(data) > 0) needEquipReset = true;
-    pity5 = data.pity5 || 0; pity6 = data.pity6 || 0; mainChar = data.mainChar || null;
+    pity5 = data.pity5 || 0; pity6 = data.pity6 || 0; pity7 = data.pity7 || 0; mainChar = data.mainChar || null;
     btWins = data.btWins || 0; btLosses = data.btLosses || 0;
     kingdom = data.kingdom || null; kNorm();
     pet = (data.pet && typeof data.pet === 'object') ? data.pet : null;
@@ -5457,7 +5954,7 @@ async function updateGroupCount(){
   if(!currentUser || !groupCodes.length || !wordsLoaded) return;
   try{
     const hubInfo = (typeof btMyName === 'function' && btMyName())
-      ? { name: btMyName(), lv: Math.max(1, charLevel(btMyName())), lvl: charLvl(btMyName()), kb: Math.round(kBuffPct() * 1000) / 1000, bs: (() => { const b = kBuffs(); return { a: Math.round(b.atk * 1000) / 1000, d: Math.round(b.def * 1000) / 1000, h: Math.round(b.hp * 1000) / 1000, s: Math.round(b.spd * 1000) / 1000 }; })() }
+      ? { name: btMyName(), lv: Math.max(1, charLevel(btMyName())), lvl: charLvl(btMyName()), evo: charEvo(btMyName()), kb: Math.round(kBuffPct() * 1000) / 1000, bs: (() => { const b = kBuffs(); return { a: Math.round(b.atk * 1000) / 1000, d: Math.round(b.def * 1000) / 1000, h: Math.round(b.hp * 1000) / 1000, s: Math.round(b.spd * 1000) / 1000 }; })() }
       : null;
     if(hubInfo && pet && pet.hatched && pet.genes) hubInfo.pet = { g: pet.genes, s: petStage(), n: pet.name || '', d: (pet.deco.on || []).filter(id => (pet.deco.owned || []).includes(id)), t: pet.deco.theme || 'meadow' };
     const payload = { email: currentUser.email, count: words.length, updatedAt: Date.now(), battle: deleteField(), hub: hubInfo };
@@ -6083,7 +6580,7 @@ async function resetAccount(){
     try{ localStorage.removeItem('lx_col_' + currentUser.uid); localStorage.removeItem('kg_char_pos'); }catch(e){}
     // 3) 게임 기록을 서버에서 완전히 지워요
     charCollection = {}; ownedEver = []; wipeCollection = true; wipeKingdom = true;
-    kingdom = null; pet = null; tickets = 0; totalCorrect = 0; pity5 = 0; pity6 = 0; mainChar = null; btWins = 0; btLosses = 0; btOpp = null;
+    kingdom = null; pet = null; tickets = 0; totalCorrect = 0; pity5 = 0; pity6 = 0; pity7 = 0; mainChar = null; btWins = 0; btLosses = 0; btOpp = null;
     wordCoinLog = { d:'', n:0 }; charStats = { atk:0, def:0, agi:0, int:0 }; equipment = []; equippedWeapon = null; equippedEssence = null; equippedShield = false;
     await saveCharacter();
     // 4) 서영준 한 명만 남기고, 처음 시작하는 왕국(코인 0)으로
@@ -6153,7 +6650,7 @@ async function addWord(){
   if(isNew){                                   // 이미 있는 단어를 고쳐 쓸 때는 코인이 없어요
     const r = giveWordCoins(1);
     if(r.total > 0) coinToast(`🪙 코인 +${r.total}`);
-    else if(r.capped) coinToast('오늘은 단어 코인을 다 받았어요 (하루 100단어)');
+    else if(r.capped) coinToast(`오늘은 단어 코인을 다 받았어요 (하루 ${WORD_COIN_CAP}단어)`);
   }
 }
 async function deleteWord(id){
@@ -6820,7 +7317,11 @@ const HUB_CHARS = [
   { name:'기사 슬라임',    star:3, role:'방어' },
   { name:'유령 등불지기',  star:3, role:'마법' },
   { name:'판다 파이터',    star:3, role:'방어' },
-  { name:'젤리 슬라임',    star:3, role:'방어' }
+  { name:'젤리 슬라임',    star:3, role:'방어' },
+  { name:'신기영',         star:2, role:'속도' },
+  { name:'박지용',         star:2, role:'방어' },
+  { name:'서현서',         star:6, role:'방어' },
+  { name:'ERR0R',          star:7, role:'올라운드' }
 ];
 const HUB_BY_NAME = {};
 HUB_CHARS.forEach(c => { HUB_BY_NAME[c.name] = c; });
@@ -6831,15 +7332,21 @@ const HUB_ROLE_W = {
 };
 // 같은 등급끼리 공평하게 싸우도록 맞춘 보정값 (모의 대결 수십만 판으로 맞췄어요)
 const HUB_ROLE_BAL = { '공격':0.91, '방어':1.11, '마법':0.91, '속도':1.09, '올라운드':0.98 };
-const HUB_CHAR_BAL = {"서영준": 1, "마법사 병아리": 0.975, "사무라이 토끼": 1.005, "해적 고양이": 1.008, "번개 여우": 1.003, "로봇 용병": 1.037, "불꽃 정령": 0.991, "프린세스 슬라임": 0.982, "악마 버섯": 1.005, "서리 펭귄": 1.005, "용기사": 0.99, "해골 기사": 1.015, "대천사": 0.987, "왕곰": 0.998, "닌자곰": 0.989, "기사 슬라임": 1.023, "유령 등불지기": 0.949, "판다 파이터": 1.024, "젤리 슬라임": 1.016};
-const HUB_RATES = [[3, 0.669], [4, 0.28], [5, 0.05], [6, 0.001]];
+const HUB_CHAR_BAL = {"서영준": 1, "마법사 병아리": 0.975, "사무라이 토끼": 1.005, "해적 고양이": 1.008, "번개 여우": 1.003, "로봇 용병": 1.037, "불꽃 정령": 0.991, "프린세스 슬라임": 0.982, "악마 버섯": 1.005, "서리 펭귄": 1.005, "용기사": 0.99, "해골 기사": 1.015, "대천사": 0.987, "왕곰": 0.998, "닌자곰": 0.989, "기사 슬라임": 1.023, "유령 등불지기": 0.949, "판다 파이터": 1.024, "젤리 슬라임": 1.016, "신기영": 1.0, "박지용": 0.85, "서현서": 0.79, "ERR0R": 1.0};
+// 2성은 능력치는 낮지만 특성이 아주 강한 숨은 보석, 측정불가는 신화보다 훨씬 희귀해요
+const HUB_RATES = [[2, 0.03], [3, 0.638999], [4, 0.28], [5, 0.05], [6, 0.001], [7, 0.000001]];   // 측정불가 0.0001% (보장 없음)
 const PITY5 = 50, PITY6 = 1000;
 let charCollection = {};              // { 캐릭터이름: { n: 가진 개수 } }
-let pity5 = 0, pity6 = 0, mainChar = null;
-let hubLib = null, hubThumbs = {}, hubLoading = null, hubViewer = null, hubTab = 'col';
+let pity5 = 0, pity6 = 0, pity7 = 0, mainChar = null;
+let hubLib = null, hubThumbs = {}, hubThumbsEvo = {}, hubLoading = null, hubViewer = null, hubTab = 'col';
 const THREE_UMD_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 
-function hubStarText(star){ return star >= 6 ? '신화' : '★'.repeat(star); }
+function hubStarText(star){ return star >= 7 ? '측정불가' : (star >= 6 ? '신화' : '★'.repeat(star)); }
+// ----- 진화 (★4 이상): 승급과 레벨을 채우고 코인을 내면 더 화려한 모습으로 진화해요 -----
+const EVO_RULE = { 4:{ cost:2500, lv:10 }, 5:{ cost:6000, lv:12 }, 6:{ cost:20000, lv:15 }, 7:{ cost:80000, lv:15 } };
+const EVO_MIN_PROMO = 2, EVO_MULT = 1.5, EVO_KINGDOM = 0.3;
+function evoRaw(name){ return (charCollection[name] && charCollection[name].evo) ? 1 : 0; }
+function charEvo(name){ const c = HUB_BY_NAME[name]; return (c && c.star >= 4 && evoRaw(name)) ? 1 : 0; }
 function charLevel(name){
   const n = (charCollection[name] && charCollection[name].n) || 0;
   return Math.min(5, Math.max(0, n));          // 승급 별: 같은 캐릭터를 뽑을 때마다 1개씩, 최대 5개
@@ -6864,7 +7371,7 @@ function hubExchange(name){
 function charLvl(name){ return Math.max(1, (charCollection[name] && charCollection[name].lv) || 1); }
 function charLvlCap(name){ return Math.min(30, 6 + 6 * Math.max(1, charLevel(name))); }
 function lvlCost(name){
-  const c = HUB_BY_NAME[name], m = ({3:1, 4:1.5, 5:2.2, 6:4})[c.star] || 1;
+  const c = HUB_BY_NAME[name], m = ({2:0.8, 3:1, 4:1.5, 5:2.2, 6:4, 7:8})[c.star] || 1;
   return Math.round(50 * Math.pow(1.18, charLvl(name) - 1) * m * (1 - kDiscount()));
 }
 // 왕성 레벨이 주는 전투 보너스 (모든 캐릭터의 공격·방어·체력)
@@ -6874,7 +7381,8 @@ function charStatsOf(name, lvOv, opt, lvlOv){
   const lv = lvOv || Math.max(1, charLevel(name));
   const L = opt ? Math.max(1, opt.lvl || 1) : (lvlOv || charLvl(name));
   const bs = opt ? (opt.bs || { atk:opt.kb || 0, def:opt.kb || 0, hp:opt.kb || 0, spd:0 }) : kBuffs();
-  const total = ({3:100, 4:150, 5:220, 6:400})[c.star] * (1 + 0.18 * (lv - 1)) * (1 + 0.04 * (L - 1)) * (HUB_ROLE_BAL[c.role] || 1) * (HUB_CHAR_BAL[name] || 1);
+  const evoM = (opt ? (opt.evo && c.star >= 4) : charEvo(name)) ? EVO_MULT : 1;
+  const total = ({2:200, 3:100, 4:150, 5:220, 6:400, 7:900})[c.star] * evoM * (1 + 0.18 * (lv - 1)) * (1 + 0.04 * (L - 1)) * (HUB_ROLE_BAL[c.role] || 1) * (HUB_CHAR_BAL[name] || 1);
   const w = HUB_ROLE_W[c.role];
   return { atk:Math.round(total * w.atk * (1 + bs.atk)), def:Math.round(total * w.def * (1 + bs.def)), hp:Math.round(total * w.hp * 4 * (1 + bs.hp)), spd:Math.round(total * w.spd * (1 + bs.spd)) };
 }
@@ -6890,10 +7398,10 @@ function hubPullOne(force4){
   let star;
   if(pity6 >= PITY6) star = 6;
   else if(pity5 >= PITY5) star = hubRoll(5);
-  else star = hubRoll(3);
+  else star = hubRoll(2);
   if(force4 && star < 4) star = 4;
   if(star >= 5) pity5 = 0;
-  if(star === 6) pity6 = 0;
+  if(star >= 6) pity6 = 0;
   const pool = HUB_CHARS.filter(c => c.star === star);
   return { name: pool[Math.floor(Math.random() * pool.length)].name, star };
 }
@@ -6918,8 +7426,8 @@ function hubRecover(data){
         Object.keys(bk).forEach(n => {
           if(!HUB_BY_NAME[n]) return;
           const b = bk[n] || {}, c = charCollection[n];
-          if(!c || !(c.n > 0)){ if(b.n > 0){ charCollection[n] = { n:b.n, lv:b.lv || 1 }; restored++; } }
-          else{ if((b.n || 0) > c.n) c.n = b.n; if((b.lv || 1) > (c.lv || 1)) c.lv = b.lv; }
+          if(!c || !(c.n > 0)){ if(b.n > 0){ charCollection[n] = { n:b.n, lv:b.lv || 1, evo:b.evo ? 1 : 0 }; restored++; } }
+          else{ if((b.n || 0) > c.n) c.n = b.n; if((b.lv || 1) > (c.lv || 1)) c.lv = b.lv; if(b.evo && !c.evo) c.evo = 1; }
         });
       }
     }catch(e){}
@@ -6953,6 +7461,7 @@ async function ensureHubLib(){
     await loadScriptOnce(THREE_UMD_URL);
     hubLib = window.createMascotLib(window.THREE);
     hubThumbs = hubLib.makeThumbs(220);
+    try{ hubThumbsEvo = hubLib.makeThumbs(220, v => v.star >= 4, true); }catch(e){ hubThumbsEvo = {}; }
     return hubLib;
   })().catch(e => { hubLoading = null; throw e; });
   return hubLoading;
@@ -7538,6 +8047,7 @@ function showHubTab(tab){
   const map = { col:'hubColView', gacha:'hubGachaView', battle:'hubBattleView', king:'hubKingView', pet:'hubPetView', master:'hubMasterView' };
   if(tab !== 'king' && typeof kgStop === 'function'){ kgStop(); kClosePanel(); }
   if(tab !== 'pet'){ petStop(); petVisit = null; }
+  if(tab === 'king') kgRetry = 0;
   document.querySelector('.hub-main').classList.toggle('kg-mode', tab === 'king');
   Object.keys(map).forEach(k => document.getElementById(map[k]).classList.toggle('hidden', k !== tab));
   document.querySelectorAll('#hubNav [data-hub]').forEach(b => b.classList.toggle('on', b.dataset.hub === tab));
@@ -7554,9 +8064,11 @@ function hubCardHTML(c, opts){
   opts = opts || {};
   const owned = !!(charCollection[c.name] && charCollection[c.name].n > 0);
   const lv = charLevel(c.name);
-  const img = hubThumbs[c.name] ? `<img alt="" src="${hubThumbs[c.name]}">` : '';
+  const evo = owned && charEvo(c.name), thumb = evo && hubThumbsEvo[c.name] ? hubThumbsEvo[c.name] : hubThumbs[c.name];
+  const img = thumb ? `<img alt="" src="${thumb}">` : '';
   const show = owned || opts.reveal;
-  return `<button type="button" class="hc ${show ? '' : 'locked'} r${c.star}" data-name="${escapeHtml(c.name)}">
+  return `<button type="button" class="hc ${show ? '' : 'locked'} r${c.star}${evo ? ' evo' : ''}" data-name="${escapeHtml(c.name)}">
+    ${evo ? '<span class="hc-evo">✨</span>' : ''}
     <div class="hc-img">${img}</div>
     <div class="hc-star">${hubStarText(c.star)}</div>
     <div class="hc-name">${show ? escapeHtml(c.name) : '???'}</div>
@@ -7600,20 +8112,31 @@ async function openDetail(name, opts){
   const c = HUB_BY_NAME[name], lv = charLevel(name), st = charStatsOf(name);
   const st1 = charStatsOf(name, undefined, undefined, 1);                 // 레벨 1일 때의 숫자 (원래 숫자)
   const pl = { atk:st.atk - st1.atk, def:st.def - st1.def, hp:st.hp - st1.hp, spd:st.spd - st1.spd };   // 레벨업으로 늘어난 만큼
-  const numHTML = (k) => `<div class="dt-num"><b>${st1[k]}</b>${pl[k] > 0 ? `<em class="dt-plus${opts.flash ? ' pop' : ''}">+${pl[k]}</em>` : ''}</div>`;
+  const numHTML = (k) => c.star === 7 ? `<div class="dt-num"><b class="glitch-num">???</b></div>` : `<div class="dt-num"><b>${st1[k]}</b>${pl[k] > 0 ? `<em class="dt-plus${opts.flash ? ' pop' : ''}">+${pl[k]}</em>` : ''}</div>`;
   const L = charLvl(name), cap = charLvlCap(name), cost = lvlCost(name), coins = kingdom ? kingdom.coins : 0, bsT = kBuffs();
   const canLv = L < cap && coins >= cost;
+  const evoNow = charEvo(name), evoRule = EVO_RULE[c.star];
+  const evoOk = !!evoRule && !evoNow && lv >= EVO_MIN_PROMO && L >= evoRule.lv && coins >= evoRule.cost;
+  const evoHTML = !evoRule ? `<div class="hub-sub" style="margin:4px 0 0;">진화는 ★4 이상 캐릭터부터 할 수 있어요</div>`
+    : evoNow ? `<div class="dt-evo done"><b>✨ 진화형</b><span>모든 능력치 ×${EVO_MULT} · 왕국 보너스 +${Math.round(EVO_KINGDOM * 100)}% · 더 화려한 모습이에요</span></div>`
+    : `<div class="dt-evo"><b>✨ 진화할 수 있어요</b>
+        <span class="${lv >= EVO_MIN_PROMO ? 'ok' : 'no'}">${lv >= EVO_MIN_PROMO ? '✔' : '✘'} 승급 ✦${EVO_MIN_PROMO} 이상 (지금 ✦${lv})</span>
+        <span class="${L >= evoRule.lv ? 'ok' : 'no'}">${L >= evoRule.lv ? '✔' : '✘'} 캐릭터 Lv.${evoRule.lv} 이상 (지금 Lv.${L})</span>
+        <span class="${coins >= evoRule.cost ? 'ok' : 'no'}">${coins >= evoRule.cost ? '✔' : '✘'} 코인 ${evoRule.cost.toLocaleString()}개 (보유 ${coins.toLocaleString()})</span>
+        <span style="opacity:.8;">진화하면 모든 능력치 ×${EVO_MULT}, 왕국 보너스 +${Math.round(EVO_KINGDOM * 100)}%, 모습이 훨씬 화려해져요</span>
+        <button type="button" class="hub-btn ${evoOk ? 'b3' : 'dim'} sm" id="dtEvolve">✨ 진화하기 · ${evoRule.cost.toLocaleString()} 코인</button></div>`;
   const need = charNextNeed(name), n = charCollection[name].n, extra = charExtra(name);
   const pct = need ? Math.min(100, Math.round(n / need * 100)) : 100;
   ov.innerHTML = `
-    <div class="rv-star">${hubStarText(c.star)}</div>
-    <div class="rv-name r${c.star}">${escapeHtml(c.name)}</div>
+    <div class="rv-star">${hubStarText(c.star)}${evoNow ? ' · ✨진화형' : ''}</div>
+    <div class="rv-name r${c.star}">${escapeHtml(c.name)}${evoNow ? ' ✨' : ''}</div>
     <div class="hub-sub" style="margin:2px 0 0;">${c.role}형 · 승급 ${'✦'.repeat(lv)}${'✧'.repeat(5 - lv)}${mainChar === name ? ' · 대표' : ''}</div>
     ${(() => { const t = lib.TRAIT_INFO[lib.CHAR_TRAIT[name]]; return t ? `<div class="dt-trait"><b>${t.icon} 고유 특성 · ${t.name} <span style="opacity:.6;font-weight:600;">(${t.kind}형)</span></b><span>${t.desc}</span></div>` : ''; })()}
     <div class="dt-lv"><span class="dt-lv-badge${opts.flash ? ' pop' : ''}">Lv.${L}</span>
       <div class="dt-lv-meter"><div class="dt-lv-bar"><i style="width:${Math.round(L / cap * 100)}%"></i></div>
       <span class="dt-lv-sub">최대 Lv.${cap}${L >= cap ? ' · 승급 ✦를 올리면 더 늘어나요' : ''}</span></div></div>
     ${opts.flash ? `<div class="dt-flash">LEVEL UP!</div>` : ''}
+    ${opts.evolved ? `<div class="dt-flash evo">EVOLUTION!</div>` : ''}
     <canvas class="hv" id="dtCanvas"></canvas>
     <div class="hub-sub" style="margin:2px 0 0;">캐릭터를 톡 누르면 점프해요 · 드래그하면 돌아가요</div>
     <div class="dt-stats">
@@ -7621,6 +8144,7 @@ async function openDetail(name, opts){
       <div class="dt-stat">체력${numHTML('hp')}</div><div class="dt-stat">속도${numHTML('spd')}</div>
     </div>
     ${L > 1 ? `<div class="hub-sub" style="margin:0 0 2px;"><span style="color:#ffd24a;font-weight:800;">노란색 +</span>는 레벨업으로 늘어난 능력치예요</div>` : ''}
+    ${evoHTML}
     <div class="hub-sub" style="margin:2px 0 4px;">${(bsT.atk + bsT.def + bsT.hp + bsT.spd) > 0 ? `왕국 보너스 공+${Math.round(bsT.atk * 100)}% 방+${Math.round(bsT.def * 100)}% 체+${Math.round(bsT.hp * 100)}% 속+${Math.round(bsT.spd * 100)}%` : ''}</div>
     <button class="hub-btn ${canLv ? 'b3' : 'dim'} sm" id="dtLvUp">${L >= cap ? '더 올리려면 승급 ✦가 필요해요' : '레벨업 · ' + cost.toLocaleString() + ' 코인 (보유 ' + coins.toLocaleString() + ')'}</button>
     <div class="hub-sub" style="margin:6px 0 0;">${need ? `다음 승급까지 ${n} / ${need}장` : (extra > 0 ? `승급 최대 · 남은 조각 ${extra}장` : '승급 최대예요')}</div>
@@ -7633,7 +8157,7 @@ async function openDetail(name, opts){
   hubViewerStop();
   const canvas = document.getElementById('dtCanvas');
   hubViewer = lib.makeViewer(canvas, {});
-  hubViewer.setVariant(lib.VARIANTS.findIndex(v => v.name === name), { intro:'cheer' });
+  hubViewer.setVariant(lib.VARIANTS.findIndex(v => v.name === name), { intro:'cheer', evo: evoNow, celebrate: !!opts.evolved });
   hubViewer.start();
   document.getElementById('dtMain').addEventListener('click', () => {
     mainChar = (mainChar === name) ? null : name; saveCharacter(); hubSync(); openDetail(name);
@@ -7650,8 +8174,27 @@ async function openDetail(name, opts){
     saveCharacter(); hubSync(); playFanfare(); if(navigator.vibrate) navigator.vibrate([30, 20, 50]);
     renderCollection(); openDetail(name, { flash:true, delta:{ atk:after.atk - before.atk, def:after.def - before.def, hp:after.hp - before.hp, spd:after.spd - before.spd } });
   });
+  const dtEv = document.getElementById('dtEvolve');
+  if(dtEv) dtEv.addEventListener('click', () => evolveChar(name));
   const dtEx = document.getElementById('dtExchange');
   if(dtEx) dtEx.addEventListener('click', () => { if(!hubReady()) return; const k = hubExchange(name); hubToast(`티켓 ${k}장을 받았어요`); renderCollection(); openDetail(name); });
+}
+function evolveChar(name){
+  if(!hubReady()) return;
+  const c = HUB_BY_NAME[name], rule = c && EVO_RULE[c.star];
+  if(!rule || charEvo(name)) return;
+  if(!kingdom) kNorm();
+  if(charLevel(name) < EVO_MIN_PROMO){ hubToast(`승급 ✦${EVO_MIN_PROMO} 이상이 필요해요`); return; }
+  if(charLvl(name) < rule.lv){ hubToast(`캐릭터 Lv.${rule.lv} 이상이 필요해요`); return; }
+  if(kingdom.coins < rule.cost){ hubToast(`코인이 ${(rule.cost - kingdom.coins).toLocaleString()}개 모자라요`); return; }
+  if(!confirm(`${name}을(를) 진화시킬까요?\n코인 ${rule.cost.toLocaleString()}개를 써요. (되돌릴 수 없어요)`)) return;
+  const before = charStatsOf(name);
+  kingdom.coins -= rule.cost; charCollection[name].evo = 1;
+  const after = charStatsOf(name);
+  saveCharacter(); hubSync(); playFanfare(); if(navigator.vibrate) navigator.vibrate([40, 30, 80, 30, 160]);
+  renderCollection();
+  openDetail(name, { evolved:true, delta:{ atk:after.atk - before.atk, def:after.def - before.def, hp:after.hp - before.hp, spd:after.spd - before.spd } });
+  setTimeout(() => hubToast(`✨ ${name}이(가) 진화했어요!`), 400);
 }
 function closeDetail(){
   hubViewerStop();
@@ -7664,7 +8207,7 @@ function renderGachaView(){
   document.getElementById('pull1Btn').classList.toggle('dim', tickets < 1);
   document.getElementById('pull10Btn').classList.toggle('dim', tickets < 10);
   document.getElementById('hubRates').innerHTML =
-    `신화 0.1% · ★5 5% · ★4 28% · ★3 66.9%<br>10회 뽑기는 ★4 이상 1개 보장<br>` +
+    `측정불가 0.0001% · 신화 0.1% · ★5 5% · ★4 28% · ★3 63.9% · ★2 3%<br>★2는 능력치는 낮아도 특성이 아주 강해요 · 10회 뽑기는 ★4 이상 1개 보장<br>` +
     `같은 캐릭터가 나오면 승급 ✦가 1개씩 올라가고, 5개가 가득 차면 남는 조각을 티켓으로 바꿔요<br>` +
     `★5 보장까지 ${Math.max(0, PITY5 - pity5)}회 · 신화 보장까지 ${Math.max(0, PITY6 - pity6)}회<br>` +
     `티켓은 단어시험에서 5문제 맞힐 때마다 1장씩 얻어요`;
@@ -7680,7 +8223,7 @@ async function runPull(n){
     const force = (n >= 10 && i === n - 1 && !results.some(r => r.star >= 4));
     const r = hubPullOne(force);
     const before = charLevel(r.name), had = (charCollection[r.name] && charCollection[r.name].n) || 0;
-    charCollection[r.name] = { n: had + 1, lv: charLvl(r.name) };
+    charCollection[r.name] = { n: had + 1, lv: charLvl(r.name), evo: evoRaw(r.name) };
     r.isNew = had === 0; r.lvUp = charLevel(r.name) > before && !r.isNew;
     results.push(r);
   }
@@ -7694,9 +8237,11 @@ function showReveal(results, lib, n){
     3:'linear-gradient(160deg,#7fb0ff,#4f86ff 55%,#2a4fb0)',
     4:'linear-gradient(160deg,#d29bff,#b45cff 55%,#6a2fb0)',
     5:'linear-gradient(160deg,#fff0a0,#ffd24a 55%,#d98a00)',
-    6:'linear-gradient(160deg,#ff7ae0,#7a8cff 40%,#5fe0ff 70%,#ffd24a)'
+    2:'linear-gradient(160deg,#c9cfdc,#8c93a8 55%,#565c70)',
+    6:'linear-gradient(160deg,#ff7ae0,#7a8cff 40%,#5fe0ff 70%,#ffd24a)',
+    7:'linear-gradient(160deg,#1a1a24,#050507 55%,#39f0ff)'
   };
-  const DUR = { 3:1100, 4:1600, 5:2400, 6:3600 };                    // 높은 등급일수록 오래 뜸을 들여요
+  const DUR = { 2:900, 3:1100, 4:1600, 5:2400, 6:3600, 7:4800 };                    // 높은 등급일수록 오래 뜸을 들여요
   let idx = 0, alive = true;
   ov.classList.remove('hidden'); ov.onclick = null;
   ov.innerHTML = `<button class="rv-skip" id="rvSkip">건너뛰기 ›</button>
@@ -7725,7 +8270,7 @@ function showReveal(results, lib, n){
       if(fired || !alive) return; fired = true; clearTimeout(timer); ov.onclick = null;
       const fl = document.getElementById('hubFlash'); fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
       if(r.star >= 5) playEssenceChime();
-      if(r.star === 6){ playFanfare(); if(navigator.vibrate) navigator.vibrate([60, 40, 120]); }
+      if(r.star >= 6){ playFanfare(); if(navigator.vibrate) navigator.vibrate(r.star === 7 ? [40, 30, 40, 30, 200] : [60, 40, 120]); }
       else if(r.star >= 4 && navigator.vibrate) navigator.vibrate(40);
       done();
     };
@@ -7773,7 +8318,7 @@ function closeReveal(){
 // ----- 마스터 (내 계정 전용) -----
 function hubGrant(name, k){
   const had = (charCollection[name] && charCollection[name].n) || 0;
-  charCollection[name] = { n: had + k, lv: charLvl(name) };
+  charCollection[name] = { n: had + k, lv: charLvl(name), evo: evoRaw(name) };
   saveCharacter(); renderCollection();
 }
 function renderMasterView(){
@@ -7795,7 +8340,7 @@ function renderMasterView(){
     else if(k === 'max') HUB_CHARS.forEach(c => { charCollection[c.name] = { n: 5, lv: charCollection[c.name] && charCollection[c.name].lv || 1 }; });
     else if(k === 'reset'){
       if(!confirm('도감을 전부 지울까요? 되돌릴 수 없어요.')) return;
-      charCollection = {}; ownedEver = []; pity5 = 0; pity6 = 0; mainChar = null; wipeCollection = true;
+      charCollection = {}; ownedEver = []; pity5 = 0; pity6 = 0; pity7 = 0; mainChar = null; wipeCollection = true;
       try{ localStorage.removeItem('lx_col_' + currentUser.uid); }catch(e){}
     }
     else if(k === 'c10000'){ kNorm(); kingdom.coins += 10000; }
@@ -7833,7 +8378,7 @@ function btMyName(){
 }
 // 친구들이 볼 수 있도록 내 대표 캐릭터를 그룹에 알려요
 function hubSync(){ if(typeof groupCode !== 'undefined' && groupCode && currentUser) updateGroupCount(); }
-function btStars(star){ return star >= 6 ? '신화' : '★'.repeat(star); }
+function btStars(star){ return star >= 7 ? '측정불가' : (star >= 6 ? '신화' : '★'.repeat(star)); }
 function btCardHTML(name, st, label, extra){
   const c = HUB_BY_NAME[name];
   const img = hubThumbs[name] ? `<img alt="" src="${hubThumbs[name]}">` : '';
@@ -7913,7 +8458,7 @@ function btExit(){
 function btStartVs(uid){
   const m = (latestMembers || []).find(x => x.uid === uid);
   if(!m || !m.hub || !HUB_BY_NAME[m.hub.name]){ hubToast('상대의 캐릭터를 찾지 못했어요'); return; }
-  btOpp = { uid, nick: btMemberName(m), name: m.hub.name, lv: Math.max(1, Math.min(5, m.hub.lv || 1)), lvl: Math.max(1, Math.min(30, m.hub.lvl || 1)), kb: Math.max(0, Math.min(0.5, m.hub.kb || 0)),
+  btOpp = { uid, nick: btMemberName(m), name: m.hub.name, evo: (m.hub.evo && HUB_BY_NAME[m.hub.name].star >= 4) ? 1 : 0, lv: Math.max(1, Math.min(5, m.hub.lv || 1)), lvl: Math.max(1, Math.min(30, m.hub.lvl || 1)), kb: Math.max(0, Math.min(0.5, m.hub.kb || 0)),
     pet: petSanitize(m.hub.pet),
     bs: m.hub.bs ? { atk: Math.max(0, Math.min(0.9, m.hub.bs.a || 0)), def: Math.max(0, Math.min(0.9, m.hub.bs.d || 0)), hp: Math.max(0, Math.min(0.9, m.hub.bs.h || 0)), spd: Math.max(0, Math.min(0.9, m.hub.bs.s || 0)) } : null };
   btStart();
@@ -7931,17 +8476,19 @@ async function btStart(){
   document.getElementById('btPops').innerHTML = '';
   const sL = charStatsOf(me), sR = charStatsOf(btOpp.name, btOpp.lv, { lvl: btOpp.lvl, kb: btOpp.kb, bs: btOpp.bs || undefined });
   const trOf = (n) => { const t = lib.TRAIT_INFO[lib.CHAR_TRAIT[n]]; return t ? ` · ${t.icon}${t.name}` : ''; };
-  document.getElementById('btNameL').textContent = `나 · ${me}${trOf(me)}`;
-  document.getElementById('btNameR').textContent = `${btOpp.nick} · ${btOpp.name}${trOf(btOpp.name)}`;
+  document.getElementById('btNameL').textContent = `나 · ${me}${charEvo(me) ? ' ✨' : ''}${trOf(me)}`;
+  document.getElementById('btNameR').textContent = `${btOpp.nick} · ${btOpp.name}${btOpp.evo ? ' ✨' : ''}${trOf(btOpp.name)}`;
   const names = lib.VARIANTS.map(v => v.name);
   const hpEls = { 0:{ bar:document.querySelector('#btL .bt-bar i'), txt:document.querySelector('#btL .bt-hp') }, 1:{ bar:document.querySelector('#btR .bt-bar i'), txt:document.querySelector('#btR .bt-hp') } };
   const banner = document.getElementById('btBanner');
-  btCtl = lib.makeBattle(document.getElementById('btCanvas'), {
+  btCtl = lib.makeBattle(freshCanvas('btCanvas'), {
     left: names.indexOf(me), right: names.indexOf(btOpp.name),
+    leftEvo: charEvo(me), rightEvo: btOpp.evo || 0,
     leftStats: { name:me, atk:sL.atk, def:sL.def, hp:sL.hp, spd:sL.spd },
     rightStats: { name:btOpp.name, atk:sR.atk, def:sR.def, hp:sR.hp, spd:sR.spd },
     leftPet: petBattleSpec(), rightPet: btOpp.pet || null
   }, {
+    onLost(){ hubToast('화면 연결이 끊어졌어요. "다시 싸우기"를 눌러주세요'); },
     onHp(e){ const h = hpEls[e.side]; h.bar.style.width = Math.max(0, e.hp / e.max * 100) + '%'; h.txt.textContent = `${e.hp} / ${e.max}`; },
     onHit(e){
       const p = document.createElement('div');
@@ -8005,7 +8552,7 @@ const K_REGIONS = [
 const K_DURS = [{ h:0.5, label:'30분' }, { h:2, label:'2시간' }, { h:8, label:'8시간' }];
 const K_IDS = ['castle', 'farm', 'mine', 'tower', 'barracks', 'blacksmith', 'church', 'archery', 'market', 'windmill'];
 const K_MAX = 10;
-const K_STAR_BONUS = { 3:0.10, 4:0.20, 5:0.35, 6:0.80 };
+const K_STAR_BONUS = { 2:0.05, 3:0.10, 4:0.20, 5:0.35, 6:0.80, 7:1.5 };
 let kingdom = null, kgCtl = null, kgSel = null, kgTimer = null;
 
 function kDefault(){
@@ -8014,8 +8561,25 @@ function kDefault(){
     castle:{ lv:1, t:now, a:[] }, mine:{ lv:1, t:now, a:[] }, farm:{ lv:0, t:now, a:[] }, tower:{ lv:0, t:now, a:[], exp:null },
     barracks:{ lv:0, t:now, a:[] }, blacksmith:{ lv:0, t:now, a:[] }, church:{ lv:0, t:now, a:[] }, archery:{ lv:0, t:now, a:[] }, market:{ lv:0, t:now, a:[] }, windmill:{ lv:0, t:now, a:[] } } };
 }
+// 코인으로 사는 왕국 장식 (왕성 레벨이 되면 살 수 있어요)
+const KDECO = [
+  { id:'banners',   name:'깃발 거리',          icon:'🚩', cost:800,   need:1, desc:'왕성에서 전망대까지 알록달록 깃발이 펄럭여요' },
+  { id:'lamps',     name:'별빛 가로등 길',     icon:'🏮', cost:1200,  need:2, desc:'길을 따라 따뜻한 가로등이 반짝여요' },
+  { id:'fountain',  name:'황금 분수대',        icon:'⛲', cost:2500,  need:2, desc:'왕국 한가운데서 물줄기가 솟아올라요' },
+  { id:'wall',      name:'웅장한 성벽',        icon:'🧱', cost:3000,  need:3, desc:'성 양옆으로 높은 성벽과 붉은 지붕 탑이 서요' },
+  { id:'cannon',    name:'축포 대포',          icon:'💣', cost:3500,  need:3, desc:'가끔 "펑!" 하고 불꽃과 연기를 내며 축포를 쏴요' },
+  { id:'rose',      name:'장미 정원',          icon:'🌹', cost:1800,  need:4, desc:'장미 아치와 벤치가 있는 아늑한 정원이에요' },
+  { id:'crystal',   name:'마법 수정탑',        icon:'🔮', cost:4000,  need:4, desc:'공중에 뜬 보랏빛 수정이 빛나며 돌아요' },
+  { id:'gate',      name:'황금 대문',          icon:'🚪', cost:5000,  need:5, desc:'왕국의 큰길에 우뚝 선 황금 장식 대문이에요' },
+  { id:'statue',    name:'황금 슬라임 왕 동상', icon:'🗿', cost:6000,  need:5, desc:'왕관을 쓴 황금 슬라임 동상이 반짝여요' },
+  { id:'fireworks', name:'불꽃놀이 광장',      icon:'🎆', cost:7000,  need:6, desc:'하늘 가득 알록달록 불꽃이 터져요' },
+  { id:'balloon',   name:'하늘 열기구',        icon:'🎈', cost:9000,  need:7, desc:'커다란 열기구가 왕국 위를 천천히 돌아요' },
+  { id:'dragon',    name:'불을 뿜는 용 조각상', icon:'🐉', cost:12000, need:8, desc:'날개를 펼친 용이 가끔 불을 뿜어요' }
+];
+const KDECO_IDS = KDECO.map(d => d.id);
 function kNorm(){
   if(!kingdom || typeof kingdom !== 'object' || !kingdom.b) kingdom = kDefault();
+  kingdom.decor = { owned: (kingdom.decor && Array.isArray(kingdom.decor.owned) ? kingdom.decor.owned : []).filter((id, i, a) => KDECO_IDS.includes(id) && a.indexOf(id) === i) };
   const d = kDefault();
   kingdom.coins = Math.max(0, Math.floor(kingdom.coins || 0));
   K_IDS.forEach(id => {
@@ -8037,7 +8601,7 @@ function kBonusOf(id, names){
   let sum = 0;
   names.forEach(n => {
     const c = HUB_BY_NAME[n]; if(!c) return;
-    sum += (K_STAR_BONUS[c.star] || 0) * (1 + 0.1 * (Math.max(1, charLevel(n)) - 1));
+    sum += (K_STAR_BONUS[c.star] || 0) * (1 + 0.1 * (Math.max(1, charLevel(n)) - 1)) * (1 + EVO_KINGDOM * charEvo(n));
     if(c.role === KB[id].role) sum += 0.10;
   });
   return sum;
@@ -8099,7 +8663,7 @@ function kExpDone(){ const e = kingdom.b.tower.exp; return !!(e && Date.now() >=
 function kAway(name){ const e = kingdom.b.tower.exp; return !!(e && Date.now() < e.e && e.a.includes(name)); }
 function kExpBonus(names){
   let sum = 0;
-  names.forEach(n => { const c = HUB_BY_NAME[n]; if(c) sum += (K_STAR_BONUS[c.star] || 0) * (1 + 0.1 * (Math.max(1, charLevel(n)) - 1)); });
+  names.forEach(n => { const c = HUB_BY_NAME[n]; if(c) sum += (K_STAR_BONUS[c.star] || 0) * (1 + 0.1 * (Math.max(1, charLevel(n)) - 1)) * (1 + EVO_KINGDOM * charEvo(n)); });
   const roles = new Set(names.map(n => HUB_BY_NAME[n] && HUB_BY_NAME[n].role));
   if(roles.size >= 3) sum += 0.2; else if(roles.size === 2) sum += 0.08;
   return sum;
@@ -8162,9 +8726,9 @@ function kBuildState(){
   const names = hubLib ? hubLib.VARIANTS.map(v => v.name) : [];
   assigned.concat(rest).forEach(c => {
     const at = kAssignedAt(c.name);
-    chars.push({ name:c.name, idx:names.indexOf(c.name), at, slot: at ? Math.max(0, kingdom.b[at].a.indexOf(c.name)) : 0, busy: !!at });
+    chars.push({ name:c.name, idx:names.indexOf(c.name), evo:charEvo(c.name), at, slot: at ? Math.max(0, kingdom.b[at].a.indexOf(c.name)) : 0, busy: !!at });
   });
-  return { buildings, chars: chars.filter(c => c.idx >= 0) };
+  return { buildings, chars: chars.filter(c => c.idx >= 0), decor: (kingdom.decor && kingdom.decor.owned ? kingdom.decor.owned.slice() : []) };
 }
 function kPendingTotal(){
   let t = 0;
@@ -8194,14 +8758,63 @@ function kRefresh(){
   updateHubTickets();
 }
 function kSave(){ saveCharacter(); }
+function kRenderDecor(){
+  const p = document.getElementById('kgPanel'); p.classList.remove('hidden');
+  const cl = kLv('castle'), owned = kingdom.decor.owned;
+  let html = `<div class="kg-ph"><b>🎨 왕국 꾸미기</b><button class="kg-x" id="kgClose">✕</button></div>
+    <div class="hub-sub" style="margin:2px 0 8px;">코인으로 왕국에 멋진 장식을 놓아요. 산 장식은 바로 왕국에 나타나요. (${owned.length}/${KDECO.length}개)</div><div class="kd-list">`;
+  KDECO.forEach(d => {
+    const has = owned.includes(d.id), locked = cl < d.need, can = !has && !locked && kingdom.coins >= d.cost;
+    html += `<div class="kd-item${has ? ' has' : ''}"><div class="kd-ic">${d.icon}</div>
+      <div class="kd-info"><b>${d.name}</b><span>${d.desc}</span>${locked && !has ? `<span class="kd-need">왕성 Lv.${d.need}이 되면 살 수 있어요</span>` : ''}</div>
+      ${has ? `<button type="button" class="kd-btn go" data-go="${d.id}">보러가기</button>` : `<button type="button" class="kd-btn${can ? '' : ' dim'}" data-buy="${d.id}">${d.cost.toLocaleString()} 코인</button>`}</div>`;
+  });
+  p.innerHTML = html + '</div>';
+  document.getElementById('kgClose').addEventListener('click', kClosePanel);
+  p.querySelectorAll('[data-buy]').forEach(b => b.addEventListener('click', () => kBuyDecor(b.dataset.buy)));
+  p.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { if(kgCtl) kgCtl.focusDecor(b.dataset.go); kClosePanel(); }));
+}
+function kBuyDecor(id){
+  if(!hubReady()) return;
+  const d = KDECO.find(x => x.id === id); if(!d) return;
+  if(kingdom.decor.owned.includes(id)) return;
+  if(kLv('castle') < d.need){ hubToast(`왕성 Lv.${d.need}이 되면 살 수 있어요`); return; }
+  if(kingdom.coins < d.cost){ hubToast(`코인이 ${(d.cost - kingdom.coins).toLocaleString()}개 모자라요`); return; }
+  kingdom.coins -= d.cost; kingdom.decor.owned.push(id); kSave(); playClick();
+  hubToast(`${d.icon} ${d.name}을(를) 놓았어요!`);
+  kRefresh();
+  if(kgCtl) kgCtl.focusDecor(id);
+  kClosePanel();                       // 장식이 땅에서 솟아나는 모습을 바로 보여줘요
+}
 
+// 3D 화면은 열 때마다 새 캔버스에 그려요 (예전 캔버스가 망가져 있으면 흰 화면이 되기 때문이에요)
+function freshCanvas(id){
+  const old = document.getElementById(id);
+  if(!old || !old.parentNode) return old;
+  const c = old.cloneNode(false);
+  old.parentNode.replaceChild(c, old);
+  return c;
+}
+function show3dError(box, msg, retry){
+  if(!box) return;
+  let e = box.querySelector('.err3d'); if(e) e.remove();
+  e = document.createElement('div'); e.className = 'err3d';
+  e.innerHTML = `<b>3D 화면을 열 수 없어요</b><span>${escapeHtml(String(msg || '알 수 없는 오류'))}</span><span>다른 탭을 닫고 다시 시도해 보세요</span><button type="button" class="hub-btn sm">다시 시도</button>`;
+  e.querySelector('button').addEventListener('click', () => { e.remove(); if(retry) retry(); });
+  box.appendChild(e);
+}
+let kgRetry = 0;
 async function kgStart(){
   if(!kingdom) kNorm();
   let lib;
   try{ lib = await ensureHubLib(); }catch(e){ hubToast(e.message); return; }
   if(hubTab !== 'king') return;
   kgStop();
-  kgCtl = lib.makeKingdom(document.getElementById('kgCanvas'), {
+  const kgBox = document.querySelector('#hubKingView .kg-wrap');
+  const oldErr = kgBox && kgBox.querySelector('.err3d'); if(oldErr) oldErr.remove();
+  try{
+  kgCtl = lib.makeKingdom(freshCanvas('kgCanvas'), {
+    onLost(){ if(hubTab === 'king' && kgRetry < 3){ kgRetry++; kgStart(); } else show3dError(kgBox, '그래픽 연결이 끊어졌어요', () => { kgRetry = 0; kgStart(); }); },
     onBubble(id){
       if(!hubReady()) return;
       if(kLv(id) <= 0){ kgSel = id; kRenderPanel(id); return; }   // 망치 말풍선을 누르면 건설 창이 열려요
@@ -8220,8 +8833,14 @@ async function kgStart(){
     onChar(name){ const c = HUB_BY_NAME[name]; hubToast(`${btStars(c.star)} ${name}`); }
   });
   kgCtl.start();
+  }catch(err){
+    console.error('왕국 3D 시작 실패', err); kgStop();
+    show3dError(kgBox, err && err.message, () => { kgRetry = 0; kgStart(); });
+    return;
+  }
   const caBtn = document.getElementById('kgCollectAll'); if(caBtn) caBtn.onclick = kCollectAll;
   document.querySelectorAll('#kgJump [data-j]').forEach(b => { b.onclick = () => { if(!kgCtl) return; if(b.dataset.j === 'all') kgCtl.overview(); else kgCtl.focus(b.dataset.j); }; });
+  const db0 = document.getElementById('kgDecoBtn'); if(db0) db0.onclick = () => { kgSel = null; kRenderDecor(); };
   const cc = document.getElementById('kgCoinChip'); if(cc) cc.onclick = () => hubToast('코인은 건물 레벨업과 캐릭터 레벨업에 써요');
   kRefresh();
   kgTimer = setInterval(kRefresh, 15000);
@@ -9378,7 +9997,7 @@ async function doSaveCharacter(){
   const wipingNow = wipeCollection;
   try{
     await setDoc(doc(db, 'vocab', currentUser.uid), {
-      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: wipeCollection ? deleteField() : charCollection, pity5, pity6, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: wipeKingdom ? deleteField() : (kingdom || null), pet: pet || null, wordCoin: wordCoinLog, ownedEver
+      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: wipeCollection ? deleteField() : charCollection, pity5, pity6, pity7, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: wipeKingdom ? deleteField() : (kingdom || null), pet: pet || null, wordCoin: wordCoinLog, ownedEver
     }, { merge:true });
     if(wipingNow){ wipeCollection = false; wipeKingdom = false; }
   }catch(e){ console.error('캐릭터 저장 실패', e); }
