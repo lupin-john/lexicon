@@ -4188,6 +4188,7 @@
     var lostH = function(e){ if(e && e.preventDefault) e.preventDefault(); if(hooks.onLost) hooks.onLost(); };
     canvas.addEventListener('webglcontextlost', lostH, false);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    if(T.ACESFilmicToneMapping){ renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0; }
     if(renderer.shadowMap){ renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap; }
     var scene = new T.Scene();
     var camera = new T.PerspectiveCamera(40, 1, 0.1, 2600);
@@ -4329,15 +4330,127 @@
     // ---- 건물 ----
     var B = {};
     var kitRef = null;
+    // ---- 건물 디테일: 외부 모델 위에 소품, 깃발, 불빛, 움직이는 부분을 더해요 ----
+    var KD_TEX = {};
+    function kdTex(key, draw, w, h){
+      if(KD_TEX[key]) return KD_TEX[key];
+      var cv = document.createElement('canvas'); cv.width = w; cv.height = h; draw(cv.getContext('2d'), w, h);
+      return (KD_TEX[key] = new T.CanvasTexture(cv));
+    }
+    function kitDetail(id, rg, rm){
+      var bb = new T.Box3().setFromObject(rm);
+      var mn = bb.min, mx = bb.max, W = mx.x - mn.x, D = mx.z - mn.z, H = mx.y - mn.y;
+      var cx = (mn.x + mx.x) / 2, cz = (mn.z + mx.z) / 2, y0 = mn.y, fz = mx.z + 0.05;
+      var g = new T.Group(), A = []; rg.add(g);
+      function M(geo, col, rough, x, y, z, sx, sy, sz, rx, ry, rz){ return mesh(g, geo, pmat(col, rough == null ? 0.8 : rough), x, y, z, sx, sy, sz, rx, ry, rz); }
+      function lamp(x, y, z, col){
+        M(gC(0.03, 0.03, 0.42, 6), 0x3a3a44, 0.6, x, y + 0.21, z);
+        var s = glowSprite(col || 0xffc866, 0.5, 0.9); s.position.set(x, y + 0.5, z); g.add(s);
+        A.push(function(t){ s.material.opacity = 0.7 + Math.sin(t * 9 + x * 3) * 0.2; });
+      }
+      function flag(x, y, z, col){
+        M(gC(0.025, 0.025, 0.8, 6), 0x6b5a48, 0.7, x, y + 0.4, z);
+        var fl = M(gB(0.36, 0.22, 0.02), col, 0.7, x + 0.18, y + 0.66, z);
+        A.push(function(t){ fl.rotation.y = Math.sin(t * 2.4 + x * 2) * 0.28; });
+      }
+      function puffs(x, y, z, n){
+        for(var i = 0; i < n; i++){
+          var sm = new T.Sprite(new T.SpriteMaterial({ map:smokeTex(), color:0xe6e2dc, transparent:true, opacity:0, depthWrite:false }));
+          g.add(sm);
+          (function(sm, i){ A.push(function(t){ var q = (t * 0.3 + i / n) % 1; sm.position.set(x + Math.sin(q * 6 + i) * 0.08, y + q * 1.3, z); var s2 = 0.3 + q * 0.9; sm.scale.set(s2, s2, 1); sm.material.opacity = (1 - q) * 0.5; }); })(sm, i);
+        }
+      }
+      function crate(x, z, s){ M(gB(0.5 * s, 0.5 * s, 0.5 * s), 0xa86f3c, 0.9, x, y0 + 0.25 * s, z, 1, 1, 1, 0, 0.12, 0); M(gB(0.54 * s, 0.07 * s, 0.54 * s), 0x6b4424, 0.9, x, y0 + 0.52 * s, z, 1, 1, 1, 0, 0.12, 0); }
+      function barrel(x, z, s){ M(gC(0.2 * s, 0.22 * s, 0.6 * s, 14), 0x8a5a2b, 0.85, x, y0 + 0.3 * s, z); M(gC(0.225 * s, 0.225 * s, 0.05 * s, 14), 0x3a2a1a, 0.6, x, y0 + 0.14 * s, z); M(gC(0.225 * s, 0.225 * s, 0.05 * s, 14), 0x3a2a1a, 0.6, x, y0 + 0.46 * s, z); }
+
+      // 공통: 건물 앞에 상자와 나무통
+      crate(mn.x + 0.25, fz, 0.9);
+      barrel(mx.x - 0.2, fz, 0.9);
+
+      switch(id){
+        case 'castle':
+          flag(cx - W * 0.3, mx.y, cz - D * 0.3, 0xd8453a);
+          flag(cx + W * 0.3, mx.y, cz - D * 0.3, 0x3a7ad8);
+          lamp(mn.x + 0.2, y0 + 0.4, fz, 0xffb24a); lamp(mx.x - 0.2, y0 + 0.4, fz, 0xffb24a);
+          break;
+        case 'farm':
+          M(gC(0.28, 0.28, 0.5, 16), 0xe8c35a, 0.9, cx - W * 0.2, y0 + 0.28, fz + 0.1, 1, 1, 1, 0, 0, Math.PI / 2);
+          M(gC(0.28, 0.28, 0.5, 16), 0xe8c35a, 0.9, cx - W * 0.2 + 0.52, y0 + 0.28, fz + 0.1, 1, 1, 1, 0, 0, Math.PI / 2);
+          M(gC(0.28, 0.28, 0.5, 16), 0xd9a83e, 0.9, cx - W * 0.2 + 0.26, y0 + 0.58, fz + 0.1, 1, 1, 1, 0, 0, Math.PI / 2);
+          crate(cx + W * 0.25, fz + 0.2, 0.8);
+          break;
+        case 'mine':
+          for(var mk = 0; mk < 6; mk++){ var ma = mk * 1.1; M(gS(0.2 + (mk % 2) * 0.06, 7, 5), 0x6e6872, 0.9, cx + W * 0.3 + Math.cos(ma) * 0.22, y0 + 0.14, fz + 0.2 + Math.sin(ma) * 0.12, 1.1, 0.8, 1); }
+          for(var mg = 0; mg < 4; mg++){ M(gS(0.035, 5, 4), 0xffd24a, 0.3, cx + W * 0.3 + Math.cos(mg * 1.6) * 0.18, y0 + 0.26, fz + 0.2 + Math.sin(mg * 1.6) * 0.1); }
+          M(gB(0.5, 0.25, 0.35), 0x7a5a3a, 0.8, cx - W * 0.3, y0 + 0.25, fz + 0.15);
+          M(gB(0.44, 0.06, 0.3), 0x4a3a2a, 0.8, cx - W * 0.3, y0 + 0.4, fz + 0.15);
+          M(gC(0.07, 0.07, 0.05, 10), 0x222222, 0.6, cx - W * 0.3 - 0.2, y0 + 0.07, fz + 0.15, 1, 1, 1, Math.PI / 2, 0, 0);
+          M(gC(0.07, 0.07, 0.05, 10), 0x222222, 0.6, cx - W * 0.3 + 0.2, y0 + 0.07, fz + 0.15, 1, 1, 1, Math.PI / 2, 0, 0);
+          lamp(mn.x + 0.2, y0 + 0.6, fz, 0xffb86a);
+          break;
+        case 'tower':
+          for(var tw = 0; tw < 3; tw++){
+            var ty = y0 + H * (0.35 + tw * 0.2);
+            M(gB(0.14, 0.26, 0.04), 0x1f2440, 0.4, cx, ty, fz);
+            var tg = glowSprite(0x7fe9ff, 0.35, 0.8); tg.position.set(cx, ty, fz + 0.03); g.add(tg);
+          }
+          flag(cx, mx.y, cz, 0x5aa0ff);
+          break;
+        case 'barracks':
+          for(var bs = 0; bs < 3; bs++){ var bx = cx + W * 0.1 + bs * 0.14; M(gC(0.02, 0.02, 1.2, 6), 0x7a5a3a, 0.7, bx, y0 + 0.6, fz + 0.25); M(gK(0.06, 0.18, 6), 0xcfd6de, 0.3, bx, y0 + 1.3, fz + 0.25); }
+          M(gC(0.04, 0.04, 1, 8), 0x6b4424, 0.8, mn.x + 0.4, y0 + 0.5, fz + 0.5);
+          M(gS(0.18, 12, 10), 0xe04a3a, 0.7, mn.x + 0.4, y0 + 1.0, fz + 0.5);
+          break;
+        case 'blacksmith':
+          M(gB(0.34, 0.16, 0.22), 0x3a3a44, 0.5, cx - W * 0.25, y0 + 0.12, fz + 0.2);
+          M(gB(0.42, 0.1, 0.26), 0x4a4a55, 0.5, cx - W * 0.25, y0 + 0.3, fz + 0.2);
+          var fg = glowSprite(0xff7a2a, 0.8, 0.85); fg.position.set(cx + W * 0.2, y0 + 0.5, fz + 0.1); g.add(fg);
+          A.push(function(t){ fg.material.opacity = 0.7 + Math.sin(t * 7) * 0.2 + Math.sin(t * 13) * 0.08; });
+          puffs(mx.x - 0.3, mx.y, cz - D * 0.2, 3);
+          break;
+        case 'church':
+          M(gB(0.05, 0.36, 0.05), 0xffd65a, 0.3, cx, mx.y + 0.2, cz);
+          M(gB(0.2, 0.05, 0.05), 0xffd65a, 0.3, cx, mx.y + 0.3, cz);
+          var sg = glowSprite(0xffe08a, 0.9, 0.55); sg.position.set(cx, y0 + H * 0.45, fz + 0.04); g.add(sg);
+          A.push(function(t){ sg.material.opacity = 0.45 + Math.sin(t * 1.5) * 0.1; });
+          lamp(mn.x + 0.2, y0 + 0.4, fz, 0xffe08a);
+          break;
+        case 'archery':
+          var tgt = kdTex('target', function(c, w, h){ var rings = ['#ffffff', '#e04a3a', '#ffffff', '#3a7ad8', '#2b2b2b', '#ffd24a']; for(var i = 0; i < rings.length; i++){ c.fillStyle = rings[i]; c.beginPath(); c.arc(w / 2, h / 2, (w / 2) * (1 - i / rings.length), 0, Math.PI * 2); c.fill(); } }, 128, 128);
+          var tm = new T.MeshStandardMaterial({ map:tgt, roughness:0.8, side:T.DoubleSide });
+          [-1, 1].forEach(function(s){
+            var tx = cx + s * W * 0.28;
+            M(gC(0.03, 0.03, 1.0, 6), 0x6b4424, 0.8, tx, y0 + 0.5, fz + 0.12);
+            mesh(g, new T.CircleGeometry(0.34, 28), tm, tx, y0 + 1.0, fz + 0.14);
+            M(gC(0.01, 0.01, 0.45, 4), 0x3a2a1a, 0.6, tx + 0.08, y0 + 1.0, fz + 0.2, 1, 1, 1, Math.PI / 2, 0, 0);
+          });
+          break;
+        case 'market':
+          var aw = kdTex('awning', function(c, w, h){ for(var i = 0; i < 8; i++){ c.fillStyle = i % 2 ? '#ffffff' : '#e8553a'; c.fillRect(i * w / 8, 0, w / 8, h); } }, 128, 16);
+          mesh(g, gB(W * 0.7, 0.06, 0.4), new T.MeshStandardMaterial({ map:aw, roughness:0.8 }), cx, y0 + H * 0.55, fz + 0.2);
+          crate(cx - W * 0.3, fz + 0.3, 0.9);
+          for(var fr = 0; fr < 6; fr++){ M(gS(0.07, 8, 6), fr % 2 ? 0xff5a4a : 0xffa030, 0.5, cx - W * 0.3 + (fr % 3 - 1) * 0.12, y0 + 0.62, fz + 0.3 + (fr < 3 ? 0 : 0.1)); }
+          break;
+        case 'windmill':
+          var wm = new T.Group(); wm.position.set(cx, y0 + H * 0.72, mx.z + 0.15); g.add(wm);
+          for(var wb = 0; wb < 4; wb++){ var arm = new T.Group(); arm.rotation.z = wb * Math.PI / 2; wm.add(arm); mesh(arm, gB(0.12, 1.1, 0.03), pmat(0xf2e6c8, 0.7), 0, 0.55, 0); }
+          mesh(wm, gS(0.08, 8, 6), pmat(0x6b4424, 0.8), 0, 0, 0.03);
+          A.push(function(t){ wm.rotation.z = t * 0.9; });
+          M(gS(0.22, 10, 8), 0xe8dcc0, 0.95, cx + W * 0.3, y0 + 0.18, fz + 0.25, 1, 0.8, 1);
+          break;
+      }
+      return A;
+    }
     function placeBuilding(id, lv){
       var oldBubble = null;
       if(B[id]){ world.remove(B[id].g); oldBubble = B[id].bubble || null; }
       var b = buildBuilding(id, lv);
       if(lv > 0 && kitRef && kitRef[id] && !(id === 'castle' && lv <= 4)){
-        var rm = kitRef[id].clone(true), rs = 1 + 0.04 * lv;
+        var kdA = null, rm = kitRef[id].clone(true), rs = 1 + 0.04 * lv;
         rm.scale.multiplyScalar(rs * 1.5);
         var rg = new T.Group(); rg.add(rm);
         b = { g:rg, A:[], top:kitRef[id].userData.h * rs * 1.5 };
+        try{ kdA = kitDetail(id, rg, rm); }catch(e){ kdA = null; console.warn('detail', id, e); }
         if(id === 'castle' && lv >= 7){
           var ce = castleExtras(lv, kitRef[id].userData.h);
           ce.g.scale.setScalar(rs * 1.5); rg.add(ce.g); b.A = ce.A;
@@ -4355,6 +4468,7 @@
         }
         b.g.scale.multiplyScalar(1.8); b.top *= 1.8;
       }
+      if(kdA) b.A = (b.A || []).concat(kdA);
       b.g.scale.multiplyScalar(BLD_K); b.top *= BLD_K;
       b.g.position.set(BPOS[id][0], 0, BPOS[id][2]);
       b.g.userData.hit = { type:'building', id:id };
@@ -5226,7 +5340,8 @@
       }
       if(kind !== 'snow'){ c.lineWidth = 1; for(var j = 0; j < 500; j++){ c.strokeStyle = 'hsla(' + (hues[0] + Math.random() * 30) + ',50%,' + (22 + Math.random() * 28) + '%,0.5)'; var x = Math.random() * 256, y = Math.random() * 256; c.beginPath(); c.moveTo(x, y); c.lineTo(x + (Math.random() - 0.5) * 4, y - 3 - Math.random() * 6); c.stroke(); } }
       else{ for(var q = 0; q < 120; q++){ c.fillStyle = 'rgba(255,255,255,0.95)'; c.fillRect(Math.random() * 256, Math.random() * 256, 1.5, 1.5); } }
-      var t = new T.CanvasTexture(cv); if(T.RepeatWrapping){ t.wrapS = t.wrapT = T.RepeatWrapping; } t.repeat.set(16, 16); return (TEXC[kind] = t);
+      for(var bl = 0; bl < 40; bl++){ var bx = Math.random() * 256, by = Math.random() * 256, br = 12 + Math.random() * 36; var bgr = c.createRadialGradient(bx, by, 0, bx, by, br); var dk = Math.random() < 0.5; bgr.addColorStop(0, dk ? 'rgba(30,70,20,0.26)' : 'rgba(210,245,150,0.2)'); bgr.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = bgr; c.fillRect(bx - br, by - br, br * 2, br * 2); }
+      var t = new T.CanvasTexture(cv); if(T.RepeatWrapping){ t.wrapS = t.wrapT = T.RepeatWrapping; } t.repeat.set(16, 16); if(t.anisotropy !== undefined) t.anisotropy = 4; return (TEXC[kind] = t);
     }
     var groundMat = new T.MeshStandardMaterial({ color:0xffffff, map:groundTex('grass'), roughness:1 });
     var ground = new T.Mesh(new T.CircleGeometry(80, 64), groundMat); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
@@ -5243,15 +5358,28 @@
     // ---- 먼 풍경: 호수, 언덕, 산 ----
     var lakeMat = new T.MeshBasicMaterial({ color:0xbfe6ff }); lakeMat.fog = false;
     var lake = new T.Mesh(new T.CircleGeometry(1, 40), lakeMat); lake.rotation.x = -Math.PI / 2; lake.scale.set(26, 9, 1); lake.position.set(-18, 0.03, -36); scene.add(lake);
+    function bumpGeo(geo, amt, sd){
+      var p = geo.attributes.position, n = p.count, col = new Float32Array(n * 3);
+      for(var i = 0; i < n; i++){
+        var x = p.getX(i), y = p.getY(i), z = p.getZ(i), L = Math.sqrt(x * x + y * y + z * z) || 1;
+        var nx = x / L, ny = y / L, nz = z / L;
+        var k = 1 + amt * (Math.sin(nx * 5.3 + sd) * 0.5 + Math.sin(nz * 6.1 - sd * 0.7) * 0.4 + Math.sin((nx + nz) * 13.7 + ny * 4.1 + sd) * 0.18);
+        p.setXYZ(i, x * k, y * k, z * k);
+        var sh = 0.55 + 0.45 * Math.max(0, Math.min(1, (ny + 1) / 2));
+        col[i * 3] = sh; col[i * 3 + 1] = sh; col[i * 3 + 2] = sh * 0.96;
+      }
+      geo.setAttribute('color', new T.BufferAttribute(col, 3));
+      geo.computeVertexNormals(); return geo;
+    }
     var hillMats = [];
     [[-26, -26, 14, 3.2, 9, 0x6cb25e], [20, -30, 18, 4.2, 10, 0x5da050], [-4, -36, 24, 3.6, 10, 0x7ac068], [44, -22, 12, 3, 8, 0x66aa58], [-48, -20, 13, 3.4, 8, 0x62a656]].forEach(function(h){
-      var m = new T.MeshStandardMaterial({ color:h[5], roughness:1 }); m.userData = { base:h[5] }; hillMats.push(m);
-      var s2 = new T.Mesh(new T.SphereGeometry(1, 28, 14), m); s2.scale.set(h[2], h[3], h[4]); s2.position.set(h[0], -0.4, h[1]); scene.add(s2);
+      var m = new T.MeshStandardMaterial({ color:h[5], roughness:1, vertexColors:true }); m.userData = { base:h[5] }; hillMats.push(m);
+      var s2 = new T.Mesh(bumpGeo(new T.SphereGeometry(1, 48, 28), 0.1, h[0] * 0.1), m); s2.scale.set(h[2], h[3], h[4]); s2.position.set(h[0], -0.4, h[1]); scene.add(s2);
     });
     var mtnMats = [], capMats = [];
     [[-34, -64, 13, 17], [-8, -72, 17, 22], [24, -68, 14, 18], [50, -60, 12, 15], [-58, -54, 12, 14]].forEach(function(m){
-      var mm = new T.MeshStandardMaterial({ color:0x7d8fb3, roughness:1, flatShading:true }); mtnMats.push(mm);
-      var mt = new T.Mesh(new T.ConeGeometry(m[2], m[3], 9), mm); mt.position.set(m[0], m[3] / 2 - 1, m[1]); scene.add(mt);
+      var mm = new T.MeshStandardMaterial({ color:0x7d8fb3, roughness:0.95, vertexColors:true }); mtnMats.push(mm);
+      var mt = new T.Mesh(bumpGeo(new T.ConeGeometry(m[2], m[3], 24, 10), 0.14, m[0] * 0.07), mm); mt.position.set(m[0], m[3] / 2 - 1, m[1]); scene.add(mt);
       var cm = new T.MeshStandardMaterial({ color:0xf4f8ff, roughness:0.9, flatShading:true }); capMats.push(cm);
       var cap = new T.Mesh(new T.ConeGeometry(m[2] * 0.44, m[3] * 0.36, 9), cm); cap.position.set(m[0], m[3] - m[3] * 0.18 - 1, m[1]); scene.add(cap);
     });
@@ -5344,7 +5472,7 @@
     var cloudG = new T.Group(); scene.add(cloudG); var cloudLight = [], cloudShade = [];
     for(var ci = 0; ci < 11; ci++){
       var cg = new T.Group(), cm1 = new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.95 }), cm2 = new T.MeshBasicMaterial({ color:0xdfe8f4, transparent:true, opacity:0.95 }); cm1.fog = false; cm2.fog = false; cloudLight.push(cm1); cloudShade.push(cm2);
-      for(var cj = 0; cj < 7; cj++){ var cb = new T.Mesh(new T.SphereGeometry(rnd(1.5, 2.8), 12, 9), cj % 2 ? cm1 : cm2); cb.position.set(cj * 1.6 - 5 + rnd(-0.5, 0.5), (cj % 2) * 0.7 + rnd(-0.2, 0.5), rnd(-0.8, 0.8)); cb.scale.y = 0.6; cg.add(cb); }
+      for(var cj = 0; cj < 11; cj++){ var cb = new T.Mesh(new T.SphereGeometry(rnd(1.3, 2.7), 16, 12), cj % 2 ? cm1 : cm2); cb.position.set(cj * 1.0 - 5 + rnd(-0.4, 0.4), (cj % 3 === 0 ? 0.9 : 0) + rnd(-0.2, 0.5), rnd(-0.8, 0.8)); cb.scale.y = 0.6; cg.add(cb); }
       cg.position.set(rnd(-80, 80), rnd(15, 28), rnd(-64, -38)); cg.userData.sp = rnd(0.25, 0.7); cloudG.add(cg);
     }
     // ---- 반딧불, 나비, 날리는 것 ----
