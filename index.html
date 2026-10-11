@@ -1145,14 +1145,6 @@
           <span class="mc-title">마스터피스</span>
           <span class="mc-sub">레벨(스탯)과 장비를 원하는 대로 설정</span>
         </button>
-        <button type="button" id="menuFillBtn" class="menu-choice-btn" style="border-color:#C8B26A;">
-          <span class="mc-title" style="color:#8a6a10;">🎁 내 계정 가득 채우기</span>
-          <span class="mc-sub">모든 캐릭터, 진화, 코인을 한 번에 채워요</span>
-        </button>
-        <button type="button" id="menuResetBtn" class="menu-choice-btn" style="border-color:#C9A0A0;">
-          <span class="mc-title" style="color:#8B3A3A;">🗑️ 처음부터 다시 시작</span>
-          <span class="mc-sub">단어와 게임 기록을 모두 지워요 (되돌릴 수 없어요)</span>
-        </button>
       </div>
     </div>
   </div>
@@ -11340,8 +11332,6 @@ document.getElementById('menuCalBtn').addEventListener('click', () => { closeMen
 document.getElementById('menuCharBtn').addEventListener('click', () => { closeMenu(); openCharacter(); });
 document.getElementById('menuGachaBtn').addEventListener('click', () => { closeMenu(); openGacha(); });
 document.getElementById('menuMasterBtn').addEventListener('click', () => { closeMenu(); openMaster(); });
-document.getElementById('menuResetBtn').addEventListener('click', () => { closeMenu(); resetAccount(); });
-document.getElementById('menuFillBtn').addEventListener('click', () => { closeMenu(); fillAccount(); });
 document.getElementById('closeMasterBtn').addEventListener('click', closeMaster);
 document.getElementById('closeDuelBtn').addEventListener('click', closeDuel);
 document.getElementById('masterOverlay').addEventListener('click', (e) => { if(e.target.id === 'masterOverlay') closeMaster(); });
