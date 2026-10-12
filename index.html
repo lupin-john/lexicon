@@ -6640,7 +6640,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import {
   getFirestore, initializeFirestore, doc, setDoc, getDoc, onSnapshot, collection, deleteDoc,
-  addDoc, query, orderBy, limit, serverTimestamp, deleteField
+  addDoc, query, orderBy, limit, serverTimestamp, deleteField, increment
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 
@@ -6875,7 +6875,7 @@ function subscribeWords(){
   if(unsubscribeSnapshot) unsubscribeSnapshot();
   const ref = doc(db, 'vocab', currentUser.uid);
   wordsLoaded = false;
-  unsubscribeSnapshot = onSnapshot(ref, (snap) => {
+  unsubscribeSnapshot = onSnapshot(ref, function vocabSnap(snap){
     // 인터넷이 없을 때 오는 '비어 있는 임시 응답'은 진짜 내 데이터가 아니라서 무시해요
     if(snap.metadata && snap.metadata.fromCache && !snap.exists()) return;
     wordsLoaded = true;
@@ -6906,13 +6906,20 @@ function subscribeWords(){
     }
     // 내가 방금 바꾼 데이터를 저장하는 중이면, 그 사이에 도착한 (예전 상태의) 서버 응답으로 덮어쓰지 않아요
     if(charDataLoaded && (pendingSaves > 0 || Date.now() - lastSaveDone < 1500)){
+      deferSnap(snap, vocabSnap);   // 버리지 않고, 저장이 끝나면 다시 반영해요 (다른 기기에서 바뀐 내용이 사라지지 않게)
       if(typeof hubOnData === 'function') hubOnData();
       return;
     }
+    deferredSnap = null;
+    // 이 기기에서 아직 저장 안 된 코인·티켓 변화는 서버 값에 더해서 지켜요
+    const syncDelta = charDataLoaded && !wipeCollection && !wipeKingdom;
+    const dTk = (syncDelta && lastSavedTk != null) ? tickets - lastSavedTk : 0;
+    const dCoin = (syncDelta && lastSavedCoin != null && kingdom) ? (kingdom.coins || 0) - lastSavedCoin : 0;
     charStats = data.stats && typeof data.stats === 'object'
       ? { atk:0, def:0, agi:0, int:0, ...data.stats }
       : { atk:0, def:0, agi:0, int:0 };
     tickets = typeof data.tickets === 'number' ? data.tickets : 0;
+    lastSavedTk = tickets; if(dTk) tickets = Math.max(0, tickets + dTk);
     totalCorrect = typeof data.totalCorrect === 'number' ? data.totalCorrect : 0;
     equipment = Array.isArray(data.equipment) ? data.equipment : [];
     if(data.gender && !myGender){
@@ -6945,6 +6952,7 @@ function subscribeWords(){
     pity5 = data.pity5 || 0; pity6 = data.pity6 || 0; pity7 = data.pity7 || 0; mainChar = data.mainChar || null;
     btWins = data.btWins || 0; btLosses = data.btLosses || 0;
     kingdom = data.kingdom || null; kNorm();
+    if(kingdom){ const sc = kingdom.coins || 0; lastSavedCoin = sc; if(dCoin) kingdom.coins = Math.max(0, sc + dCoin); }
     pet = (data.pet && typeof data.pet === 'object') ? data.pet : null;
     wordCoinLog = (data.wordCoin && typeof data.wordCoin === 'object') ? { d:String(data.wordCoin.d || ''), n:Number(data.wordCoin.n) || 0 } : { d:'', n:0 };
     if(data.gameVersion !== 5){ tickets += 10; needEquipReset = true; }   // 새 게임 시작 선물: 티켓 10장
@@ -11193,6 +11201,17 @@ function readCollBackup(uid){
   try{ const raw = localStorage.getItem('lx_col_' + uid); const v = raw ? JSON.parse(raw) : {}; return (v && typeof v === 'object') ? v : {}; }catch(e){ return {}; }
 }
 let collDirty = false, collRetryT = null, collAlerted = false, needFullRestore = false;
+let deferredSnap = null, deferredFn = null, deferredT = null, lastSavedTk = null, lastSavedCoin = null;
+function deferSnap(s, fn){
+  deferredSnap = s; deferredFn = fn;
+  if(deferredT) clearTimeout(deferredT);
+  deferredT = setTimeout(function tryApply(){
+    deferredT = null;
+    if(!deferredSnap) return;
+    if(pendingSaves > 0 || Date.now() - lastSaveDone < 1500){ deferredT = setTimeout(tryApply, 600); return; }
+    const s2 = deferredSnap, f2 = deferredFn; deferredSnap = null; f2(s2);
+  }, 1600);
+}
 function sameColl(a, b){
   const ka = Object.keys(a || {}).filter(n => a[n] && a[n].n > 0).sort();
   const kb = Object.keys(b || {}).filter(n => b[n] && b[n].n > 0).sort();
@@ -11233,9 +11252,15 @@ async function doSaveCharacter(){
     }))); }catch(e){}
   }
   try{
+    const savedTk = tickets, savedCoin = kingdom ? (kingdom.coins || 0) : null;
+    // 티켓·코인은 '바뀐 만큼'만 서버에서 더해요. 다른 기기에서 동시에 바꿔도 둘 다 반영돼요
+    const useInc = !wipingNow && !wipeKingdom && typeof increment === 'function';
+    const tkField = (useInc && lastSavedTk != null) ? increment(savedTk - lastSavedTk) : savedTk;
+    const kgField = wipeKingdom ? deleteField() : (kingdom ? Object.assign({}, kingdom, { coins: (useInc && lastSavedCoin != null) ? increment(savedCoin - lastSavedCoin) : savedCoin }) : null);
     await setDoc(doc(db, 'vocab', currentUser.uid), fsClean({
-      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: wipeCollection ? deleteField() : charCollection, pity5, pity6, pity7, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: wipeKingdom ? deleteField() : (kingdom || null), pet: pet || null, wordCoin: wordCoinLog, ownedEver
+      stats: charStats, tickets: tkField, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: wipeCollection ? deleteField() : charCollection, pity5, pity6, pity7, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: kgField, pet: pet || null, wordCoin: wordCoinLog, ownedEver
     }), { merge:true });
+    lastSavedTk = savedTk; if(savedCoin != null) lastSavedCoin = savedCoin;
     if(wipingNow){ wipeCollection = false; wipeKingdom = false; }
   }catch(e){
     console.error('캐릭터 저장 실패', e);
