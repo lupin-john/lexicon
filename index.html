@@ -1102,7 +1102,7 @@
   .hidden{display:none!important;}
   .tr-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0;}
   .tr-head{text-align:center;}
-  .tr-stage{position:relative;width:100%;max-width:520px;height:340px;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#2a2457 0%,#0b0f22 70%);}
+  .tr-stage{position:relative;width:100%;max-width:560px;height:420px;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#2a2457 0%,#0b0f22 70%);}
   .tr-stage canvas{width:100%;height:100%;display:block;}
   .tr-pop{position:absolute;font-weight:800;font-size:20px;color:#ffd24a;text-shadow:0 2px 6px rgba(0,0,0,.7);pointer-events:none;transform:translate(-50%,0);opacity:1;transition:transform .9s ease-out,opacity .9s;}
   .tr-actions{width:100%;max-width:520px;display:flex;justify-content:center;}
@@ -2243,7 +2243,7 @@
       });
     }
     // ---- 진화형 효과 ----
-    if(v.evoFx){
+    if(v.evoFx && !(opts && opts.noFx)){
       var ec = v.fx != null ? v.fx : 0xffd24a, bigE = v.star >= 6, wideE = Math.max(1, bs[0]);
       if(!v.glitch){ body.material.emissive = new T.Color(ec); body.material.emissiveIntensity = 0.2; }
       var erings = [];
@@ -4915,7 +4915,7 @@
     blessing: { name:'천사의 축복',   icon:'😇', kind:'회복', desc:'내 턴 3번마다 최대 체력의 2.5%를 회복해요', p:{ heal3:0.025 } },
     reign:    { name:'왕의 군림',     icon:'🐻', kind:'방해', desc:'전투 시작 때 상대의 공격력을 5% 깎아요', p:{ intimidate:0.05 } },
     timestop:  { name:'시간 정지',     icon:'⏳', kind:'방해', desc:'공격하면 45% 확률로 상대의 시간이 멈춰 한 턴을 쉬어요. 30% 확률로 순식간에 두 번 때려요(피해 2배). 15% 확률로 공격을 피해요', p:{ stun:0.45, double:0.3, dodge:0.15 } },
-    dragonwill:{ name:'불굴의 용',     icon:'🐲', kind:'방어', desc:'쓰러져도 두 번 다시 일어나요(체력 60%로). 받는 피해가 20% 줄고, 입힌 피해의 15%를 체력으로 되찾아요', p:{ revive:{ n:2, hp:0.6 }, reduce:0.2, lifesteal:0.15 } },
+    dragonwill:{ name:'불굴의 용',     icon:'🐲', kind:'방어', desc:'쓰러져도 세 번 다시 일어나요(체력 80%로). 전투 시작 체력 +30%, 받는 피해 30% 감소, 입힌 피해의 25%를 흡수, 체력이 낮을수록 공격력이 최대 50% 올라요. 치명타 확률 +15%p, 공격하면 용의 불꽃으로 화상을 입혀요', p:{ revive:{ n:3, hp:0.8 }, bulk:0.3, reduce:0.3, lifesteal:0.25, rage:0.5, crit:0.15, burn:0.015 } },
     inhale:    { name:'흡입하기', icon:'🌀', kind:'방해', desc:'내 턴 두 번마다 바람으로 상대를 빨아들여 내 쪽으로 끌어와요. 전투 시작 때 체력이 20% 늘어나고, 받는 피해 10% 감소, 내 턴마다 체력 1.5% 회복, 상대 방어력의 15%를 무시해요', p:{ bulk:0.2, reduce:0.1, regen:0.015, pierce:0.15 } },
     kingbody:  { name:'대왕의 풍채',   icon:'👑', kind:'방어', desc:'전투 시작 때 체력이 20% 늘어나요. 받는 피해 10% 감소, 내 턴마다 체력 1.5% 회복, 상대 방어력의 15%를 무시해요', p:{ bulk:0.2, reduce:0.1, regen:0.015, pierce:0.15 } },
     glitch:    { name:'치명적 오류',   icon:'☠️', kind:'공격', desc:'존재 자체가 버그예요. 해로운 효과를 받지 않고 30% 확률로 공격을 피해요. 공격하면 20% 확률로 피해 3배, 12% 확률로 상대 체력의 30%를 삭제하고, 상대 방어력의 40%를 무시해요. 한 번 쓰러져도 체력 60%로 복구돼요', p:{ immune:true, dodge:0.3, x3:0.2, del:0.12, delPct:0.3, pierce:0.4, revive:{ n:1, hp:0.6 } } },
@@ -5380,6 +5380,7 @@
     var renderer = new T.WebGLRenderer({ canvas:canvas, antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     if(renderer.shadowMap){ renderer.shadowMap.enabled = true; if(T.PCFSoftShadowMap) renderer.shadowMap.type = T.PCFSoftShadowMap; }
+    if(T.ACESFilmicToneMapping){ renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.12; }
     var scene = new T.Scene();
     var camera = new T.PerspectiveCamera(40, 1, 0.1, 400);
     camera.position.set(0, 2.5, 9.4); camera.lookAt(0, 1.5, 0);
@@ -5443,7 +5444,10 @@
       var t = new T.CanvasTexture(cv); if(T.RepeatWrapping){ t.wrapS = t.wrapT = T.RepeatWrapping; } t.repeat.set(16, 16); if(t.anisotropy !== undefined) t.anisotropy = 4; return (TEXC[kind] = t);
     }
     var groundMat = new T.MeshStandardMaterial({ color:0xffffff, map:groundTex('grass'), roughness:1 });
-    var ground = new T.Mesh(new T.CircleGeometry(80, 64), groundMat); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+    var groundGeo = new T.PlaneGeometry(170, 170, 90, 90), ggp = groundGeo.attributes.position, ggc = new Float32Array(ggp.count * 3);
+    for(var gq = 0; gq < ggp.count; gq++){ var gx = ggp.getX(gq), gy = ggp.getY(gq); var gv = 0.84 + 0.16 * (0.5 + 0.5 * Math.sin(gx * 0.19 + Math.sin(gy * 0.13) * 2)) - 0.08 * (0.5 + 0.5 * Math.sin(gx * 0.7 + gy * 0.55)); ggc[gq * 3] = gv; ggc[gq * 3 + 1] = gv; ggc[gq * 3 + 2] = gv * 0.97; }
+    groundGeo.setAttribute('color', new T.BufferAttribute(ggc, 3)); groundMat.vertexColors = true;
+    var ground = new T.Mesh(groundGeo, groundMat); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
     function lawnTex(){
       var cv = document.createElement('canvas'); cv.width = 256; cv.height = 256; var c = cv.getContext('2d');
       var g = c.createRadialGradient(128, 128, 10, 128, 128, 128); g.addColorStop(0, 'rgba(160,225,120,0.95)'); g.addColorStop(0.65, 'rgba(140,210,105,0.7)'); g.addColorStop(1, 'rgba(120,200,90,0)');
@@ -5457,6 +5461,7 @@
     // ---- 먼 풍경: 호수, 언덕, 산 ----
     var lakeMat = new T.MeshBasicMaterial({ color:0xbfe6ff }); lakeMat.fog = false;
     var lake = new T.Mesh(new T.CircleGeometry(1, 40), lakeMat); lake.rotation.x = -Math.PI / 2; lake.scale.set(26, 9, 1); lake.position.set(-18, 0.03, -36); scene.add(lake);
+    var shore = new T.Mesh(new T.CircleGeometry(1, 40), new T.MeshStandardMaterial({ color:0xd8c79a, roughness:1 })); shore.rotation.x = -Math.PI / 2; shore.scale.set(28, 10.5, 1); shore.position.set(-18, 0.02, -36); scene.add(shore);
     function bumpGeo(geo, amt, sd){
       var p = geo.attributes.position, n = p.count, col = new Float32Array(n * 3);
       for(var i = 0; i < n; i++){
@@ -5470,6 +5475,61 @@
       geo.setAttribute('color', new T.BufferAttribute(col, 3));
       geo.computeVertexNormals(); return geo;
     }
+    // ---- 자연스러운 모양을 만드는 도우미 (도형 느낌 대신 울퉁불퉁하고, 아래쪽은 그늘져요) ----
+    function nz3(x, y, z, s){ return Math.sin(x * 3.1 + s) * Math.sin(y * 2.7 - s * 1.3) * Math.sin(z * 3.7 + s * 0.7) + 0.5 * Math.sin(x * 7.3 + y * 5.1 + s) * Math.sin(z * 6.9 - s); }
+    function blobGeo(r, sd, rough, flat){
+      var g = new T.SphereGeometry(1, 30, 22), p = g.attributes.position, n = p.count, col = new Float32Array(n * 3);
+      rough = rough == null ? 0.24 : rough;
+      for(var i = 0; i < n; i++){
+        var x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+        var k = 1 + rough * nz3(x, y, z, sd) + 0.07 * Math.sin(x * 17 + z * 13 + y * 11 + sd);
+        p.setXYZ(i, x * k * r, y * k * r * (flat || 0.9), z * k * r);
+        var sh = 0.42 + 0.58 * Math.max(0, Math.min(1, (y + 1) / 2));
+        sh *= 0.88 + 0.12 * Math.sin(x * 23 + y * 19 + z * 29 + sd);
+        col[i * 3] = sh; col[i * 3 + 1] = sh; col[i * 3 + 2] = sh * 0.94;
+      }
+      g.setAttribute('color', new T.BufferAttribute(col, 3)); g.computeVertexNormals(); return g;
+    }
+    function pineGeo(r, h, sd){
+      var g = new T.ConeGeometry(r, h, 20, 5), p = g.attributes.position, n = p.count, col = new Float32Array(n * 3);
+      for(var i = 0; i < n; i++){
+        var x = p.getX(i), y = p.getY(i), z = p.getZ(i), a = Math.atan2(z, x), t = (y + h / 2) / h;
+        var rim = Math.max(0, 1 - t * 3);
+        var rr = 1 + 0.16 * Math.sin(a * 9 + sd) * (1 - t) + 0.06 * Math.sin(a * 23 + sd * 2);
+        p.setXYZ(i, x * rr, y - rim * h * 0.12 * (0.6 + 0.4 * Math.sin(a * 9 + sd)), z * rr);
+        var sh = 0.38 + 0.62 * Math.min(1, t * 1.2 + 0.1); sh *= 0.9 + 0.1 * Math.sin(a * 31 + y * 9);
+        col[i * 3] = sh; col[i * 3 + 1] = sh; col[i * 3 + 2] = sh * 0.95;
+      }
+      g.setAttribute('color', new T.BufferAttribute(col, 3)); g.computeVertexNormals(); return g;
+    }
+    function tuftGeo(){
+      var pos = [], col = [], idx = [], vi = 0;
+      for(var b = 0; b < 4; b++){
+        var a = b / 4 * Math.PI * 2 + 0.4, w = 0.03, h = 0.32 + (b % 2) * 0.1, bend = 0.1 + b * 0.03, dx = Math.cos(a), dz = Math.sin(a);
+        for(var s = 0; s <= 3; s++){
+          var t = s / 3, ww = w * (1 - t * 0.92), y = h * t, off = bend * t * t;
+          pos.push(dx * off - dz * ww, y, dz * off + dx * ww, dx * off + dz * ww, y, dz * off - dx * ww);
+          var c = 0.4 + 0.6 * t; col.push(c, c, c * 0.88, c, c, c * 0.88);
+          if(s > 0) idx.push(vi - 2, vi - 1, vi, vi - 1, vi + 1, vi);
+          vi += 2;
+        }
+      }
+      var g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new T.Float32BufferAttribute(col, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+    }
+    function mergeParts(parts){
+      var pos = [], nor = [], col = [];
+      parts.forEach(function(P){
+        var g = P[0].index ? P[0].toNonIndexed() : P[0], pa = g.attributes.position, na = g.attributes.normal;
+        for(var i = 0; i < pa.count; i++){ pos.push(pa.getX(i) * P[4] + P[1], pa.getY(i) * P[5] + P[2], pa.getZ(i) * P[6] + P[3]); nor.push(na.getX(i), na.getY(i), na.getZ(i)); col.push(P[7], P[8], P[9]); }
+      });
+      var g2 = new T.BufferGeometry(); g2.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g2.setAttribute('normal', new T.Float32BufferAttribute(nor, 3)); g2.setAttribute('color', new T.Float32BufferAttribute(col, 3)); return g2;
+    }
+    function flowerGeo(){
+      var parts = [[new T.CylinderGeometry(0.008, 0.01, 0.16, 5), 0, 0.08, 0, 1, 1, 1, 0.55, 0.85, 0.45]];
+      for(var k = 0; k < 5; k++){ var a = k / 5 * Math.PI * 2; parts.push([new T.SphereGeometry(0.05, 8, 6), Math.cos(a) * 0.055, 0.17, Math.sin(a) * 0.055, 1, 0.3, 1, 1, 1, 1]); }
+      parts.push([new T.SphereGeometry(0.032, 8, 6), 0, 0.18, 0, 1, 0.6, 1, 1, 0.85, 0.35]);
+      return mergeParts(parts);
+    }
     var hillMats = [];
     [[-26, -26, 14, 3.2, 9, 0x6cb25e], [20, -30, 18, 4.2, 10, 0x5da050], [-4, -36, 24, 3.6, 10, 0x7ac068], [44, -22, 12, 3, 8, 0x66aa58], [-48, -20, 13, 3.4, 8, 0x62a656]].forEach(function(h){
       var m = new T.MeshStandardMaterial({ color:h[5], roughness:1, vertexColors:true }); m.userData = { base:h[5] }; hillMats.push(m);
@@ -5479,42 +5539,51 @@
     [[-34, -64, 13, 17], [-8, -72, 17, 22], [24, -68, 14, 18], [50, -60, 12, 15], [-58, -54, 12, 14]].forEach(function(m){
       var mm = new T.MeshStandardMaterial({ color:0x7d8fb3, roughness:0.95, vertexColors:true }); mtnMats.push(mm);
       var mt = new T.Mesh(bumpGeo(new T.ConeGeometry(m[2], m[3], 24, 10), 0.14, m[0] * 0.07), mm); mt.position.set(m[0], m[3] / 2 - 1, m[1]); scene.add(mt);
-      var cm = new T.MeshStandardMaterial({ color:0xf4f8ff, roughness:0.9, flatShading:true }); capMats.push(cm);
-      var cap = new T.Mesh(new T.ConeGeometry(m[2] * 0.44, m[3] * 0.36, 9), cm); cap.position.set(m[0], m[3] - m[3] * 0.18 - 1, m[1]); scene.add(cap);
+      var cm = new T.MeshStandardMaterial({ color:0xf4f8ff, roughness:0.9, vertexColors:true }); capMats.push(cm);
+      var cap = new T.Mesh(bumpGeo(new T.ConeGeometry(m[2] * 0.44, m[3] * 0.36, 24, 6), 0.12, m[0] * 0.07), cm); cap.position.set(m[0], m[3] - m[3] * 0.18 - 1, m[1]); scene.add(cap);
     });
 
     // ---- 나무 (활엽수는 겨울에 앙상해지고, 침엽수는 눈을 이고 있어요) ----
-    var leafMats = [0, 1, 2].map(function(i){ return new T.MeshStandardMaterial({ color:SEASONS.meadow.leaves[i], roughness:0.85 }); });
-    var trunkMat = new T.MeshStandardMaterial({ color:0x7e5a3c, roughness:1 });
+    var leafMats = [0, 1, 2].map(function(i){ return new T.MeshStandardMaterial({ color:SEASONS.meadow.leaves[i], roughness:0.8, vertexColors:true }); });
+    var trunkMat = new T.MeshStandardMaterial({ color:0x6e4e34, roughness:1, map:(function(){ var cv = document.createElement('canvas'); cv.width = 64; cv.height = 128; var c = cv.getContext('2d'); c.fillStyle = '#8a6a4c'; c.fillRect(0, 0, 64, 128); for(var i = 0; i < 40; i++){ c.strokeStyle = 'rgba(40,24,12,' + (0.2 + Math.random() * 0.35) + ')'; c.lineWidth = 1 + Math.random() * 2; var x = Math.random() * 64; c.beginPath(); c.moveTo(x, 0); c.bezierCurveTo(x + 4, 40, x - 4, 80, x + 2, 128); c.stroke(); } return new T.CanvasTexture(cv); })() });
     var trees = [], snowWhite = new T.MeshStandardMaterial({ color:0xffffff, roughness:1 });
     function makeTree(x, z, s, kind){
       var g = new T.Group(); g.position.set(x, 0, z); g.scale.setScalar(s); g.rotation.y = rnd(0, 6);
       var rec = { g:g, kind:kind, leaves:new T.Group(), snow:new T.Group() };
       var m1 = mesh(g, gC(0.15, 0.3, 1.8, 10), trunkMat, 0, 0.9, 0); m1.castShadow = true;
       if(kind === 1){
-        [[1.15, 1.5, 1.9], [0.9, 1.35, 2.7], [0.65, 1.15, 3.45], [0.4, 0.9, 4.1]].forEach(function(c, i){ mesh(rec.leaves, gK(c[0], c[1], 10), leafMats[i % 3], 0, c[2], 0); var sc3 = mesh(rec.snow, gK(c[0] * 0.78, c[1] * 0.42, 10), snowWhite, 0, c[2] + c[1] * 0.28, 0); sc3.castShadow = false; });
+        [[1.15, 1.5, 1.9], [0.9, 1.35, 2.7], [0.65, 1.15, 3.45], [0.4, 0.9, 4.1]].forEach(function(c, i){ mesh(rec.leaves, pineGeo(c[0] * 1.1, c[1] * 1.1, x + i), leafMats[i % 3], 0, c[2], 0).castShadow = true; var sc3 = mesh(rec.snow, gK(c[0] * 0.78, c[1] * 0.42, 10), snowWhite, 0, c[2] + c[1] * 0.28, 0); sc3.castShadow = false; });
       }else{
         [[0.5, 1.7, 0.2, 0.7], [-0.45, 1.9, -0.2, -0.6], [0.05, 2.1, -0.45, 0.2]].forEach(function(b){ mesh(g, gC(0.05, 0.1, 0.9, 6), trunkMat, b[0], b[1], b[2], 1, 1, 1, b[2] * 0.7, 0, -b[3]).castShadow = false; });
         [[0, 2.45, 0, 1.2], [-0.85, 1.95, 0.2, 0.85], [0.9, 2.0, -0.2, 0.9], [0.1, 3.2, 0.15, 0.8], [-0.5, 2.8, -0.55, 0.72], [0.65, 2.8, 0.55, 0.7], [-0.2, 2.0, 0.85, 0.65]].forEach(function(b, i){
-          mesh(rec.leaves, gS(b[3], 16, 12), leafMats[i % 3], b[0], b[1], b[2]);
+          mesh(rec.leaves, blobGeo(b[3] * 1.08, x * 3 + i), leafMats[i % 3], b[0], b[1], b[2]).castShadow = true; if(i < 4) mesh(rec.leaves, blobGeo(b[3] * 0.55, x * 5 + i + 9, 0.3), leafMats[(i + 1) % 3], b[0] + (i % 2 ? 0.55 : -0.5) * b[3], b[1] - b[3] * 0.45, b[2] + 0.3 * b[3]);
           if(i === 0 || i === 3 || i === 1){ var sc4 = mesh(rec.snow, new T.SphereGeometry(b[3] * 0.82, 12, 8, 0, Math.PI * 2, 0, 0.9), snowWhite, b[0], b[1] + b[3] * 0.2, b[2]); sc4.castShadow = false; }
         });
       }
       rec.snow.visible = false; g.add(rec.leaves); g.add(rec.snow); scene.add(g); trees.push(rec); return rec;
     }
     [[-7, -3], [-9, -9], [-12, -14], [-5.5, -12], [8, -4], [10.5, -10], [6, -13], [13, -16], [-16, -6], [17, -8], [-3, -17], [3, -19], [-20, -18], [21, -17], [-8.5, 2.5], [9.5, 2], [0, -26], [-14, -24], [15, -25], [-24, -8], [25, -4], [-6, -24], [6, -29], [-11, -30]].forEach(function(p, i){ makeTree(p[0] + rnd(-0.6, 0.6), p[1] + rnd(-0.6, 0.6), rnd(0.95, 1.7), i % 4 === 1 ? 1 : 0); });
-    var bushMat = new T.MeshStandardMaterial({ color:0x4aa046, roughness:1 }), bushSnow = [];
-    for(var bi = 0; bi < 16; bi++){ var bx = rnd(-14, 14), bz = rnd(-14, 1); if(Math.hypot(bx, bz) < 5.8) continue; var bsz = rnd(0.4, 0.75), bsh = mesh(scene, gS(bsz, 12, 9), bushMat, bx, bsz * 0.6, bz, 1, 0.8, 1); var bsn = mesh(scene, new T.SphereGeometry(bsz * 0.8, 10, 6, 0, Math.PI * 2, 0, 1.0), snowWhite, bx, bsz * 0.75, bz, 1, 0.8, 1); bsn.visible = false; bsn.castShadow = false; bushSnow.push(bsn); }
-    var rockMat = new T.MeshStandardMaterial({ color:0x9a9aa4, roughness:1, flatShading:true });
-    for(var ri = 0; ri < 9; ri++){ var rx = rnd(-12, 12), rz = rnd(-10, 0); if(Math.hypot(rx, rz) < 6) continue; var rk = mesh(scene, new T.DodecahedronGeometry(rnd(0.25, 0.65), 0), rockMat, rx, 0.15, rz, 1, 0.7, 1, rnd(0, 3), rnd(0, 3), 0); }
+    var bushMat = new T.MeshStandardMaterial({ color:0x4aa046, roughness:0.9, vertexColors:true }), bushSnow = [];
+    for(var bi = 0; bi < 16; bi++){ var bx = rnd(-14, 14), bz = rnd(-14, 1); if(Math.hypot(bx, bz) < 5.8) continue; var bsz = rnd(0.4, 0.75), bsh = mesh(scene, blobGeo(bsz, bx * 7, 0.3, 0.75), bushMat, bx, bsz * 0.55, bz); mesh(scene, blobGeo(bsz * 0.6, bz * 7, 0.3, 0.75), bushMat, bx + bsz * 0.7, bsz * 0.35, bz + 0.2); var bsn = mesh(scene, new T.SphereGeometry(bsz * 0.8, 10, 6, 0, Math.PI * 2, 0, 1.0), snowWhite, bx, bsz * 0.75, bz, 1, 0.8, 1); bsn.visible = false; bsn.castShadow = false; bushSnow.push(bsn); }
+    var rockMat = new T.MeshStandardMaterial({ color:0x9a9aa4, roughness:0.95, vertexColors:true });
+    for(var ri = 0; ri < 9; ri++){ var rx = rnd(-12, 12), rz = rnd(-10, 0); if(Math.hypot(rx, rz) < 6) continue; var rk = mesh(scene, blobGeo(rnd(0.3, 0.7), rx * 11, 0.32, 0.6), rockMat, rx, 0.1, rz, 1, 1, 1, 0, rnd(0, 6), 0); }
 
+    var farPineMat = new T.MeshStandardMaterial({ color:0x2f6a3e, roughness:0.9, vertexColors:true });
+    var farPines = new T.InstancedMesh(pineGeo(1.1, 3.4, 2), farPineMat, 150), fdm = new T.Object3D(), fcol = new T.Color();
+    for(var fp2 = 0, fk = 0; fp2 < 400 && fk < 150; fp2++){
+      var fa2 = -Math.PI + Math.random() * Math.PI, fr2 = 27 + Math.random() * 14, fx = Math.cos(fa2) * fr2, fz = Math.sin(fa2) * fr2 - 4;
+      if(Math.hypot((fx + 18) / 30, (fz + 36) / 12) < 1) continue;
+      var fs = 0.8 + Math.random() * 1.1; fdm.position.set(fx, 1.7 * fs - 0.1, fz); fdm.rotation.set(0, Math.random() * 6, 0); fdm.scale.set(fs, fs * (0.9 + Math.random() * 0.4), fs); fdm.updateMatrix();
+      farPines.setMatrixAt(fk, fdm.matrix); if(farPines.setColorAt) farPines.setColorAt(fk, fcol.setHSL(0.36 + Math.random() * 0.05, 0.42, 0.24 + Math.random() * 0.1)); fk++;
+    }
+    farPines.count = fk; scene.add(farPines);
     // ---- 풀, 꽃 (계절마다 색이 바뀌어요) ----
-    var grassMat = new T.MeshStandardMaterial({ color:0xffffff, roughness:1 });
-    var GN = 1500, grassI = new T.InstancedMesh(new T.ConeGeometry(0.05, 0.42, 4), grassMat, GN), dm = new T.Object3D();
-    for(var gi = 0; gi < GN; gi++){ var ga = Math.random() * 6.283, gr = 1.8 + Math.pow(Math.random(), 0.7) * 19; dm.position.set(Math.cos(ga) * gr, 0.19, Math.sin(ga) * gr - 2); dm.rotation.set(rnd(-0.2, 0.2), rnd(0, 6), rnd(-0.28, 0.28)); dm.scale.setScalar(rnd(0.7, 1.8)); dm.updateMatrix(); grassI.setMatrixAt(gi, dm.matrix); }
+    var grassMat = new T.MeshStandardMaterial({ color:0xffffff, roughness:0.9, vertexColors:true, side:T.DoubleSide });
+    var GN = 2600, grassI = new T.InstancedMesh(tuftGeo(), grassMat, GN), dm = new T.Object3D();
+    for(var gi = 0; gi < GN; gi++){ var ga = Math.random() * 6.283, gr = 1.8 + Math.pow(Math.random(), 0.7) * 19; dm.position.set(Math.cos(ga) * gr, 0, Math.sin(ga) * gr - 2); dm.rotation.set(rnd(-0.12, 0.12), rnd(0, 6), rnd(-0.12, 0.12)); dm.scale.setScalar(rnd(0.8, 1.9)); dm.updateMatrix(); grassI.setMatrixAt(gi, dm.matrix); }
     scene.add(grassI);
-    var FN = 260, flowerI = new T.InstancedMesh(new T.SphereGeometry(0.08, 7, 6), new T.MeshStandardMaterial({ color:0xffffff, roughness:0.6 }), FN);
-    for(var fi = 0; fi < FN; fi++){ var fa = Math.random() * 6.283, fr = 3.2 + Math.sqrt(Math.random()) * 16; dm.position.set(Math.cos(fa) * fr, 0.3, Math.sin(fa) * fr - 2); dm.rotation.set(0, 0, 0); dm.scale.setScalar(rnd(0.8, 1.6)); dm.updateMatrix(); flowerI.setMatrixAt(fi, dm.matrix); }
+    var FN = 260, flowerI = new T.InstancedMesh(flowerGeo(), new T.MeshStandardMaterial({ color:0xffffff, roughness:0.6, vertexColors:true }), FN);
+    for(var fi = 0; fi < FN; fi++){ var fa = Math.random() * 6.283, fr = 3.2 + Math.sqrt(Math.random()) * 16; dm.position.set(Math.cos(fa) * fr, 0, Math.sin(fa) * fr - 2); dm.rotation.set(0, rnd(0, 6), 0); dm.scale.setScalar(rnd(1.0, 1.8)); dm.updateMatrix(); flowerI.setMatrixAt(fi, dm.matrix); }
     scene.add(flowerI);
 
     // ---- 계절 소품 ----
@@ -5569,9 +5638,12 @@
     }catch(e){ starPts = null; }
     var shoot = new T.Mesh(new T.SphereGeometry(0.25, 6, 6), new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0 })); shoot.material.fog = false; scene.add(shoot); var shootT = -1;
     var cloudG = new T.Group(); scene.add(cloudG); var cloudLight = [], cloudShade = [];
+    var cloudTex = (function(){ var cv = document.createElement('canvas'); cv.width = 128; cv.height = 128; var c = cv.getContext('2d');
+      for(var i = 0; i < 16; i++){ var x = 34 + Math.random() * 60, y = 50 + Math.random() * 28, r = 16 + Math.random() * 26; var gr = c.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(255,255,255,0.85)'); gr.addColorStop(0.6, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.beginPath(); c.arc(x, y, r, 0, 6.3); c.fill(); }
+      return new T.CanvasTexture(cv); })();
     for(var ci = 0; ci < 11; ci++){
-      var cg = new T.Group(), cm1 = new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.95 }), cm2 = new T.MeshBasicMaterial({ color:0xdfe8f4, transparent:true, opacity:0.95 }); cm1.fog = false; cm2.fog = false; cloudLight.push(cm1); cloudShade.push(cm2);
-      for(var cj = 0; cj < 11; cj++){ var cb = new T.Mesh(new T.SphereGeometry(rnd(1.3, 2.7), 16, 12), cj % 2 ? cm1 : cm2); cb.position.set(cj * 1.0 - 5 + rnd(-0.4, 0.4), (cj % 3 === 0 ? 0.9 : 0) + rnd(-0.2, 0.5), rnd(-0.8, 0.8)); cb.scale.y = 0.6; cg.add(cb); }
+      var cg = new T.Group(), cm1 = new T.SpriteMaterial({ map:cloudTex, color:0xffffff, transparent:true, opacity:0.95, depthWrite:false }), cm2 = new T.SpriteMaterial({ map:cloudTex, color:0xdfe8f4, transparent:true, opacity:0.9, depthWrite:false }); cm1.fog = false; cm2.fog = false; cloudLight.push(cm1); cloudShade.push(cm2);
+      for(var cj = 0; cj < 9; cj++){ var low = cj % 3 === 0, cs = new T.Sprite(low ? cm2 : cm1), csz = rnd(5, 9); cs.scale.set(csz, csz * 0.62, 1); cs.position.set(cj * 1.3 - 5.5 + rnd(-0.5, 0.5), low ? -0.7 : rnd(0, 1.4), rnd(-1, 1)); cg.add(cs); }
       cg.position.set(rnd(-80, 80), rnd(15, 28), rnd(-64, -38)); cg.userData.sp = rnd(0.25, 0.7); cloudG.add(cg);
     }
     // ---- 반딧불, 나비, 날리는 것 ----
@@ -6168,156 +6240,330 @@
     return out;
   }
 
-    // ---- 트램펄린: 키우기 화면의 배경(펫 장면) 안에서 대표 슬라임이 튀어 올라요 (8단계) ----
+    // ---- 트램펄린: 키우기 화면 배경 안에서 대표 슬라임이 튀어 올라요 (8단계, 단계마다 더 화려해져요) ----
     var TR_PAL = ['#f5d26b', '#8fe3ff', '#ffb3e1', '#a6f0a0', '#ffa64d', '#c9b6ff', '#ffd86b', '#ff6b9a'];
+    var TR_THEMES = [
+      { frame:0x8a5a2e, metal:0.05, rough:0.7,  padA:0xf2c14e, padB:0xd9822b, spring:0xa8acb4, mat:'#26262e', band:'#f2c14e', skirt:null },
+      { frame:0x8c939c, metal:0.1,  rough:0.85, padA:0x8fe3ff, padB:0x4aa8e0, spring:0xb8bcc4, mat:'#22252c', band:'#8fe3ff', skirt:['#8fe3ff', '#4aa8e0'] },
+      { frame:0xb9c3cf, metal:0.8,  rough:0.3,  padA:0xff8fc8, padB:0xe0569c, spring:0xd8dde4, mat:'#1f1f28', band:'#ff8fc8', skirt:['#ff8fc8', '#ffffff'] },
+      { frame:0xe8eef6, metal:0.95, rough:0.18, padA:0x9be89a, padB:0x4fbf68, spring:0xf0f4fa, mat:'#1c2230', band:'#a6f0a0', skirt:['#a6f0a0', '#ffffff'] },
+      { frame:0xf2c94c, metal:1.0,  rough:0.2,  padA:0xffa64d, padB:0xff6a1a, spring:0xffd86b, mat:'#2a1c10', band:'#ffd24a', skirt:['#ffa64d', '#ffd24a'] },
+      { frame:0xd8344c, metal:0.7,  rough:0.2,  padA:0xffd1e0, padB:0xff4f7a, spring:0xffd86b, mat:'#2a0f18', band:'#ff4f7a', skirt:['#d8344c', '#ffd24a'] },
+      { frame:0x2f6fe0, metal:0.75, rough:0.18, padA:0xaee4ff, padB:0x3a7ad8, spring:0xe8f4ff, mat:'#0c1a33', band:'#6ec8ff', skirt:['#2f6fe0', '#aee4ff'] },
+      { frame:0xf4f4ff, metal:0.85, rough:0.15, padA:0xffffff, padB:0xffffff, spring:0xffffff, mat:'#1a1030', band:'rainbow', skirt:'rainbow' }
+    ];
+    var TR_NAMES = ['나무', '돌', '철', '은', '황금', '루비', '사파이어', '무지개'];
     function makeTrampoline(canvas, cfg, hooks){
       hooks = hooks || {};
-      var ti = Math.max(0, Math.min(7, (cfg.tier | 0) - 1));
+      var ti = Math.max(0, Math.min(7, (cfg.tier | 0) - 1)), TH = TR_THEMES[ti], RAIN = ti === 7;
       var spd = cfg.speed || 1;
       var tr = null;
       var pv = makePet(canvas, { onFrame: function(dt){ if(tr) tr.tick(dt); } });
       pv.hideActors(true);
       var scene = pv.scene, camera = pv.camera, renderer = pv.renderer;
       var envTex = makeEnv(renderer); ENV_CUR = envTex;
-      var palN = parseInt(TR_PAL[ti].slice(1), 16);
-      var key = new T.PointLight(palN, 1.4 + ti * 0.25, 24); key.position.set(0, 1.6, 4.5); scene.add(key);
+      var accent = parseInt(TR_PAL[ti].slice(1), 16);
+      var rimA = new T.PointLight(0xfff2d8, 0.9 + ti * 0.1, 18); rimA.position.set(-4, 4, 4); scene.add(rimA);
+      var rimB = new T.PointLight(accent, 0.8 + ti * 0.15, 18); rimB.position.set(4, 3, 3); scene.add(rimB);
+      function hsl(h, s, l){ var c = new T.Color(); c.setHSL(((h % 1) + 1) % 1, s, l); return c; }
+      function cvTex(w, h, draw){ var cv = document.createElement('canvas'); cv.width = w; cv.height = h; draw(cv.getContext('2d'), w, h); var tx = new T.CanvasTexture(cv); if(tx.anisotropy !== undefined) tx.anisotropy = 4; return tx; }
 
-      // 틀 (단계가 높을수록 기둥이 많고 금속이 반짝여요)
-      var R = 1.9 + ti * 0.16, H = 0.9 + ti * 0.06, MR = R - 0.15;
-      var frameColor = ti < 2 ? 0x9a6a3a : (ti < 4 ? 0xbfc8d6 : (ti < 6 ? 0xd9b24a : 0xf0d060));
-      var frameMat = new T.MeshStandardMaterial({ color:frameColor, roughness:0.32, metalness: ti >= 2 ? 0.6 : 0.1, envMap:envTex, envMapIntensity:1.1 });
-      var accentMat = new T.MeshStandardMaterial({ color:palN, emissive:palN, emissiveIntensity:0.5, roughness:0.25, envMap:envTex, envMapIntensity:0.8 });
-      var trim = new T.Group(); scene.add(trim);
-      var flags = [];
-      var legN = ti < 2 ? 4 : (ti < 4 ? 6 : 8);
+      var R = 2.0 + ti * 0.14, H = 0.95 + ti * 0.05, MR = R - 0.4;
+      var metalMat = new T.MeshStandardMaterial({ color:TH.frame, roughness:TH.rough, metalness:TH.metal, envMap:envTex, envMapIntensity:1.2 });
+      var darkMat = new T.MeshStandardMaterial({ color:0x2a2f3a, roughness:0.6, metalness:0.4, envMap:envTex, envMapIntensity:0.6 });
+      var root = new T.Group(); scene.add(root);
+
+      // 땅 그림자
+      var gsh = new T.Mesh(new T.CircleGeometry(R + 0.7, 48), new T.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.22, depthWrite:false }));
+      gsh.rotation.x = -Math.PI / 2; gsh.position.y = 0.02; root.add(gsh);
+
+      // 다리 + 바닥 고리 + 볼트
+      var legN = ti < 2 ? 6 : 8, legTops = [];
       for(var l = 0; l < legN; l++){
-        var a = l / legN * Math.PI * 2, px = Math.cos(a) * R, pz = Math.sin(a) * R;
-        var leg = new T.Mesh(new T.CylinderGeometry(0.08 + ti * 0.006, 0.12 + ti * 0.006, H, 16), frameMat);
-        leg.position.set(px, H / 2, pz); trim.add(leg);
-        var foot = new T.Mesh(new T.CylinderGeometry(0.2 + ti * 0.012, 0.22 + ti * 0.012, 0.1, 16), frameMat);
-        foot.position.set(px, 0.05, pz); trim.add(foot);
-        var ball = new T.Mesh(new T.SphereGeometry(0.14 + ti * 0.012, 16, 12), accentMat);
-        ball.position.set(px, H + 0.06, pz); trim.add(ball);
-        if(ti >= 2){
-          var ph = 1.1 + ti * 0.14;
-          var post = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, ph, 10), frameMat);
-          post.position.set(px, H + ph / 2 + 0.05, pz); trim.add(post);
-          var fl = new T.Mesh(new T.PlaneGeometry(0.5, 0.3, 8, 4), new T.MeshStandardMaterial({ color:palN, emissive:palN, emissiveIntensity:0.35, side:T.DoubleSide }));
-          fl.position.set(px, H + ph - 0.12, pz); trim.add(fl);
-          flags.push({ m:fl, a:a, i:l });
-        }
+        var la = l / legN * Math.PI * 2 + 0.2, lx = Math.sin(la) * (R - 0.02), lz = Math.cos(la) * (R - 0.02);
+        var leg = new T.Mesh(new T.CylinderGeometry(0.06 + ti * 0.004, 0.08 + ti * 0.004, H, 14), metalMat); leg.position.set(lx, H / 2, lz); root.add(leg);
+        var ft = new T.Mesh(new T.CylinderGeometry(0.17, 0.2, 0.08, 14), darkMat); ft.position.set(lx, 0.04, lz); root.add(ft);
+        var bolt = new T.Mesh(new T.SphereGeometry(0.05, 10, 8), darkMat); bolt.position.set(lx * 1.02, H * 0.55, lz * 1.02); root.add(bolt);
+        legTops.push({ x:lx, z:lz, a:la });
       }
-      var rim = new T.Mesh(new T.TorusGeometry(R, 0.11 + ti * 0.012, 16, 96), frameMat);
-      rim.rotation.x = Math.PI / 2; rim.position.y = H; trim.add(rim);
-      var rimGlow = new T.Mesh(new T.TorusGeometry(R, 0.05, 8, 96), accentMat);
-      rimGlow.rotation.x = Math.PI / 2; rimGlow.position.y = H + 0.1; trim.add(rimGlow);
-      var base = new T.Mesh(new T.CylinderGeometry(R + 0.25, R + 0.4, 0.26, 64), new T.MeshStandardMaterial({ color:0x2a3350, roughness:0.7, metalness:0.2, envMap:envTex, envMapIntensity:0.6 }));
-      base.position.y = 0.13; trim.add(base);
-      if(ti >= 6){
-        for(var c = 0; c < 10; c++){
-          var ca = c / 10 * Math.PI * 2;
-          var sp = new T.Mesh(new T.ConeGeometry(0.12, 0.6, 8), frameMat);
-          sp.position.set(Math.cos(ca) * (R + 0.02), H + 0.4, Math.sin(ca) * (R + 0.02)); trim.add(sp);
-        }
+      var gring = new T.Mesh(new T.TorusGeometry(R - 0.02, 0.045, 10, 96), metalMat); gring.rotation.x = Math.PI / 2; gring.position.y = 0.08; root.add(gring);
+
+      // 치마(단계 2부터): 알록달록 세로 줄무늬
+      if(TH.skirt){
+        var skTex = cvTex(512, 64, function(c, w, h){
+          var N = 32;
+          for(var s = 0; s < N; s++){ c.fillStyle = TH.skirt === 'rainbow' ? 'hsl(' + (s / N * 360) + ',85%,62%)' : TH.skirt[s % 2]; c.fillRect(s * w / N, 0, w / N + 1, h); }
+          c.fillStyle = 'rgba(255,255,255,0.35)'; c.fillRect(0, 0, w, 5);
+          c.fillStyle = 'rgba(0,0,0,0.25)'; for(var k = 0; k < 64; k++){ c.beginPath(); c.arc((k + 0.5) * w / 64, h, w / 128, Math.PI, 0); c.fill(); }
+        });
+        if(skTex.wrapS !== undefined && T.RepeatWrapping){ skTex.wrapS = T.RepeatWrapping; }
+        var skirt = new T.Mesh(new T.CylinderGeometry(R + 0.05, R + 0.12, H - 0.14, 96, 1, true), new T.MeshStandardMaterial({ map:skTex, roughness:0.8, side:T.DoubleSide }));
+        skirt.position.y = (H - 0.14) / 2 + 0.06; root.add(skirt);
       }
 
-      // 방수포(매트): 줄무늬, 가운데가 꺼졌다 튕겨요
-      var matTex = (function(){
-        var cv = document.createElement('canvas'); cv.width = 256; cv.height = 256; var c2 = cv.getContext('2d'), N = 16;
-        for(var s = 0; s < N; s++){ c2.fillStyle = s % 2 ? '#fff8e6' : TR_PAL[ti]; c2.beginPath(); c2.moveTo(128, 128); c2.arc(128, 128, 128, s / N * Math.PI * 2, (s + 1) / N * Math.PI * 2); c2.closePath(); c2.fill(); }
-        return new T.CanvasTexture(cv);
+      // 위쪽 강철 고리
+      var topRing = new T.Mesh(new T.TorusGeometry(R, 0.075 + ti * 0.006, 16, 128), metalMat);
+      topRing.rotation.x = Math.PI / 2; topRing.position.y = H; root.add(topRing);
+
+      // 폭신한 안전 패드(색이 번갈아요)
+      var padN = 16, pads = [];
+      for(var p = 0; p < padN; p++){
+        var pm = new T.MeshStandardMaterial({ color: RAIN ? hsl(p / padN, 0.85, 0.6) : (p % 2 ? TH.padB : TH.padA), roughness:0.55, envMap:envTex, envMapIntensity:0.5 });
+        var pad = new T.Mesh(new T.TorusGeometry(R + 0.14, 0.14 + ti * 0.008, 12, 10, Math.PI * 2 / padN * 0.94), pm);
+        pad.rotation.x = Math.PI / 2; pad.rotation.z = p / padN * Math.PI * 2; pad.position.y = H + 0.04; root.add(pad); pads.push(pm);
+      }
+
+      // 매트: 촘촘한 직물 + 테두리 띠 + 가운데 별 문양. 가운데가 실제로 움푹 꺼져요
+      var matTex = cvTex(512, 512, function(c, w, h){
+        var cx = w / 2, cy = h / 2, rr = w / 2;
+        c.fillStyle = TH.mat; c.fillRect(0, 0, w, h);
+        c.strokeStyle = 'rgba(255,255,255,0.07)'; c.lineWidth = 1;
+        for(var g = 0; g < w; g += 4){ c.beginPath(); c.moveTo(g, 0); c.lineTo(g, h); c.stroke(); c.beginPath(); c.moveTo(0, g); c.lineTo(w, g); c.stroke(); }
+        var bandIn = rr * 0.86;
+        if(TH.band === 'rainbow'){ for(var s = 0; s < 72; s++){ c.fillStyle = 'hsl(' + (s * 5) + ',90%,60%)'; c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, rr, s / 72 * Math.PI * 2, (s + 1.2) / 72 * Math.PI * 2); c.closePath(); c.fill(); } }
+        else { c.fillStyle = TH.band; c.beginPath(); c.arc(cx, cy, rr, 0, Math.PI * 2); c.fill(); }
+        c.fillStyle = TH.mat; c.beginPath(); c.arc(cx, cy, bandIn, 0, Math.PI * 2); c.fill();
+        c.save(); c.beginPath(); c.arc(cx, cy, bandIn, 0, Math.PI * 2); c.clip();
+        c.strokeStyle = 'rgba(255,255,255,0.08)'; for(var g2 = 0; g2 < w; g2 += 4){ c.beginPath(); c.moveTo(g2, 0); c.lineTo(g2, h); c.stroke(); c.beginPath(); c.moveTo(0, g2); c.lineTo(w, g2); c.stroke(); }
+        c.restore();
+        c.strokeStyle = 'rgba(255,255,255,0.75)'; c.lineWidth = 4; c.beginPath(); c.arc(cx, cy, bandIn - 6, 0, Math.PI * 2); c.stroke();
+        for(var dd = 0; dd < 48; dd++){ var aa = dd / 48 * Math.PI * 2; c.fillStyle = '#e8e8f0'; c.beginPath(); c.arc(cx + Math.cos(aa) * (rr - 8), cy + Math.sin(aa) * (rr - 8), 4, 0, Math.PI * 2); c.fill(); }
+        var sr = rr * 0.2; c.fillStyle = TH.band === 'rainbow' ? '#ffffff' : TH.band; c.globalAlpha = 0.9; c.beginPath();
+        for(var k = 0; k < 10; k++){ var r2 = k % 2 ? sr * 0.45 : sr, a2 = -Math.PI / 2 + k * Math.PI / 5; c.lineTo(cx + Math.cos(a2) * r2, cy + Math.sin(a2) * r2); }
+        c.closePath(); c.fill(); c.globalAlpha = 1;
+        c.strokeStyle = 'rgba(255,255,255,0.5)'; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, sr * 1.35, 0, Math.PI * 2); c.stroke();
+      });
+      var matGeo = new T.RingGeometry(0.02, MR, 72, 14);
+      var mPos = matGeo.attributes.position, mOrig = mPos.array.slice();
+      var matMesh = new T.Mesh(matGeo, new T.MeshStandardMaterial({ map:matTex, roughness:0.5, metalness:0.05, side:T.DoubleSide, envMap:envTex, envMapIntensity:0.35 }));
+      matMesh.rotation.x = -Math.PI / 2; matMesh.position.y = H; root.add(matMesh);
+      function prof(r){ var q = Math.min(1, r / MR); return 1 - 0.82 * q * q; }
+      function deformMat(d){
+        for(var i = 0; i < mPos.count; i++){ var x = mOrig[i * 3], y = mOrig[i * 3 + 1]; mPos.setZ(i, d * prof(Math.sqrt(x * x + y * y))); }
+        mPos.needsUpdate = true; matGeo.computeVertexNormals();
+      }
+      // 슬라임 그림자: 매트 모양을 따라 휘어요
+      var shGeo = new T.RingGeometry(0.001, 1, 32, 3), shPos = shGeo.attributes.position, shOrig = shPos.array.slice();
+      var shMesh = new T.Mesh(shGeo, new T.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2 }));
+      matMesh.add(shMesh);
+      function deformShadow(d, s){
+        for(var i = 0; i < shPos.count; i++){ var x = shOrig[i * 3] * s, y = shOrig[i * 3 + 1] * s; shPos.setXYZ(i, x, y, d * prof(Math.sqrt(x * x + y * y)) + 0.02); }
+        shPos.needsUpdate = true;
+      }
+
+      // 스프링: 진짜 용수철 모양. 매트가 꺼지면 늘어났다 줄어요
+      var springGeo = (function(){
+        var pts = [], turns = 9, N = turns * 14;
+        for(var i = 0; i <= N; i++){ var t = i / N, a = t * turns * Math.PI * 2; pts.push(new T.Vector3(Math.cos(a) * 0.045, t - 0.5, Math.sin(a) * 0.045)); }
+        return new T.TubeGeometry(new T.CatmullRomCurve3(pts), N, 0.012, 5, false);
       })();
-      var mat = new T.Mesh(new T.CircleGeometry(MR, 64), new T.MeshStandardMaterial({ map:matTex, roughness:0.55, side:T.DoubleSide, envMap:envTex, envMapIntensity:0.4 }));
-      mat.rotation.x = -Math.PI / 2; scene.add(mat);
-      var matY = H, matV = 0;
-
-      // 고무줄: 틀과 매트를 잇는 굵은 줄 (매트가 출렁이면 같이 늘었다 줄어요)
-      var BN = 32, bands = [];
-      var bandGeo = new T.CylinderGeometry(0.03, 0.03, 1, 6, 1);
-      var bandMat = new T.MeshStandardMaterial({ color:palN, emissive:palN, emissiveIntensity:0.25, roughness:0.4 });
-      for(var b = 0; b < BN; b++){ var bm = new T.Mesh(bandGeo, bandMat); scene.add(bm); bands.push(bm); }
-      var upV = new T.Vector3(0, 1, 0), pA = new T.Vector3(), pB = new T.Vector3(), dV = new T.Vector3(), mV = new T.Vector3();
-      function updBands(){
-        for(var k = 0; k < BN; k++){
-          var ang = k / BN * Math.PI * 2, c3 = Math.cos(ang), s3 = Math.sin(ang);
-          pA.set(c3 * (R + 0.08), H + 0.02, s3 * (R + 0.08));
-          pB.set(c3 * MR, matY + 0.02, s3 * MR);
+      var springN = 28 + ti * 2, springs = [], springMats = [];
+      var hookGeo = new T.SphereGeometry(0.035, 8, 6);
+      for(var sp = 0; sp < springN; sp++){
+        var smat = new T.MeshStandardMaterial({ color: RAIN ? hsl(sp / springN, 0.8, 0.65) : TH.spring, roughness:0.25, metalness:0.9, envMap:envTex, envMapIntensity:1.2 });
+        springMats.push(smat);
+        var sm = new T.Mesh(springGeo, smat); root.add(sm);
+        var hk = new T.Mesh(hookGeo, darkMat); root.add(hk);
+        springs.push({ m:sm, hk:hk, a:sp / springN * Math.PI * 2 });
+      }
+      var upV = new T.Vector3(0, 1, 0), pA = new T.Vector3(), pB = new T.Vector3(), dV = new T.Vector3();
+      function updSprings(d){
+        var edgeY = H + d * prof(MR);
+        for(var k = 0; k < springs.length; k++){
+          var S = springs[k], c3 = Math.sin(S.a), s3 = Math.cos(S.a);
+          pA.set(c3 * (R - 0.06), H, s3 * (R - 0.06)); pB.set(c3 * MR, edgeY, s3 * MR);
           dV.subVectors(pB, pA); var len = Math.max(0.01, dV.length());
-          mV.addVectors(pA, pB).multiplyScalar(0.5);
-          var m = bands[k]; m.position.copy(mV); m.scale.set(1, len, 1);
-          m.quaternion.setFromUnitVectors(upV, dV.normalize());
+          S.m.position.addVectors(pA, pB).multiplyScalar(0.5); S.m.scale.set(1, len, 1);
+          S.m.quaternion.setFromUnitVectors(upV, dV.normalize());
+          S.hk.position.copy(pB);
         }
       }
 
-      // 단계별 장식: 빛 고리, 반짝이
-      var ringG = null;
+      // 다리 위 장식: 단계가 높으면 회전하는 보석
+      var gems = [];
+      legTops.forEach(function(L, i){
+        if(ti >= 4){
+          var gm = new T.Mesh(new T.OctahedronGeometry(0.16 + ti * 0.01, 0), new T.MeshStandardMaterial({ color: RAIN ? hsl(i / legTops.length, 0.9, 0.6) : accent, emissive: RAIN ? hsl(i / legTops.length, 0.9, 0.4) : accent, emissiveIntensity:0.6, roughness:0.1, metalness:0.3, envMap:envTex, envMapIntensity:1.5 }));
+          gm.position.set(L.x * 1.07, H + 0.42, L.z * 1.07); root.add(gm); gems.push(gm);
+        } else {
+          var kb = new T.Mesh(new T.SphereGeometry(0.1 + ti * 0.012, 14, 10), new T.MeshStandardMaterial({ color:accent, roughness:0.3, envMap:envTex, envMapIntensity:0.8 }));
+          kb.position.set(L.x * 1.07, H + 0.28, L.z * 1.07); root.add(kb);
+        }
+      });
+
+      // 반짝이는 전구 줄(단계 4부터): 차례로 깜빡여요
+      var bulbs = [];
       if(ti >= 3){
-        ringG = new T.Mesh(new T.TorusGeometry(R + 0.45, 0.045, 8, 72), new T.MeshBasicMaterial({ color:palN, transparent:true, opacity:0.75, blending:T.AdditiveBlending, depthWrite:false }));
-        ringG.rotation.x = Math.PI / 2; scene.add(ringG);
+        var BN2 = 16 + ti * 3, gTex = glowTex();
+        for(var b = 0; b < BN2; b++){
+          var ba = b / BN2 * Math.PI * 2, bx = Math.sin(ba) * (R + 0.14), bz = Math.cos(ba) * (R + 0.14), by = H + 0.2 + ti * 0.008;
+          var bm = new T.Mesh(new T.SphereGeometry(0.045, 8, 6), new T.MeshBasicMaterial({ color:0xffffff }));
+          bm.position.set(bx, by, bz); root.add(bm);
+          var bg = new T.Sprite(new T.SpriteMaterial({ map:gTex, color:accent, transparent:true, opacity:0.6, blending:T.AdditiveBlending, depthWrite:false }));
+          bg.scale.set(0.42, 0.42, 1); bg.position.set(bx, by, bz); root.add(bg);
+          bulbs.push({ m:bm, g:bg, i:b, n:BN2 });
+        }
       }
-      var sparks = null, spN = 0, sd = [];
-      if(ti >= 5){
-        spN = 48;
-        var sp2 = new Float32Array(spN * 3);
-        sparks = new T.Points(new T.BufferGeometry(), new T.PointsMaterial({ color:palN, size:0.14, transparent:true, opacity:0.9, depthWrite:false }));
-        sparks.geometry.setAttribute('position', new T.BufferAttribute(sp2, 3)); scene.add(sparks);
-        for(var q = 0; q < spN; q++) sd.push(Math.random() * 6.283, 0.8 + Math.random() * 2.6, Math.random());
-        sparks.userData.p = sp2;
+
+      // 안전 그물과 기둥(단계 5부터, 뒤쪽 반만 둘러서 슬라임이 잘 보여요)
+      var flags = [];
+      if(ti >= 4){
+        var netH = 1.9 + ti * 0.08, th0 = Math.PI * 0.45, thL = Math.PI * 1.1;
+        var netTex = cvTex(128, 128, function(c, w, h){ c.clearRect(0, 0, w, h); c.strokeStyle = 'rgba(255,255,255,0.85)'; c.lineWidth = 3; c.beginPath(); c.moveTo(0, 0); c.lineTo(w, h); c.moveTo(w, 0); c.lineTo(0, h); c.stroke(); });
+        if(T.RepeatWrapping){ netTex.wrapS = netTex.wrapT = T.RepeatWrapping; } netTex.repeat.set(26, 4);
+        var net = new T.Mesh(new T.CylinderGeometry(R + 0.02, R + 0.02, netH, 72, 1, true, th0, thL), new T.MeshBasicMaterial({ map:netTex, transparent:true, opacity:0.45, side:T.DoubleSide, depthWrite:false }));
+        net.position.y = H + netH / 2 + 0.05; root.add(net);
+        var poleN = 6, topPts = [];
+        for(var q = 0; q <= 24; q++){ var tq = th0 + thL * q / 24; topPts.push(new T.Vector3(Math.sin(tq) * (R + 0.02), H + netH + 0.05, Math.cos(tq) * (R + 0.02))); }
+        var topTube = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(topPts), 48, 0.07, 10, false), new T.MeshStandardMaterial({ color:TH.padA, roughness:0.5, envMap:envTex, envMapIntensity:0.5 }));
+        root.add(topTube);
+        for(var pp = 0; pp < poleN; pp++){
+          var tp = th0 + thL * pp / (poleN - 1), px2 = Math.sin(tp) * (R + 0.02), pz2 = Math.cos(tp) * (R + 0.02);
+          var pole = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, netH, 12), metalMat); pole.position.set(px2, H + netH / 2 + 0.05, pz2); root.add(pole);
+          var sleeve = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, netH * 0.8, 12), new T.MeshStandardMaterial({ color: RAIN ? hsl(pp / poleN, 0.85, 0.6) : TH.padB, roughness:0.6 }));
+          sleeve.position.set(px2, H + netH * 0.45, pz2); root.add(sleeve);
+          var fl = new T.Mesh(new T.PlaneGeometry(0.55, 0.32, 10, 3), new T.MeshStandardMaterial({ color: RAIN ? hsl(pp / poleN + 0.3, 0.9, 0.6) : accent, emissive:accent, emissiveIntensity:0.25, side:T.DoubleSide, roughness:0.6 }));
+          fl.position.set(px2 + 0.28, H + netH + 0.45, pz2); root.add(fl);
+          var fpole = new T.Mesh(new T.CylinderGeometry(0.02, 0.02, 0.6, 8), metalMat); fpole.position.set(px2, H + netH + 0.35, pz2); root.add(fpole);
+          var fPos = fl.geometry.attributes.position; flags.push({ m:fl, i:pp, pos:fPos, org:fPos.array.slice() });
+        }
+      }
+
+      // 아치 간판(단계 7부터)
+      var archBulbs = [];
+      if(ti >= 6){
+        var az = -(R + 1.1), aw = R + 0.5, ah = H + 2.6;
+        [-1, 1].forEach(function(sx){
+          var pil = new T.Mesh(new T.CylinderGeometry(0.16, 0.2, ah, 16), metalMat); pil.position.set(sx * aw, ah / 2, az); root.add(pil);
+          var cap = new T.Mesh(new T.SphereGeometry(0.24, 16, 12), new T.MeshStandardMaterial({ color:accent, emissive:accent, emissiveIntensity:0.5, roughness:0.2 })); cap.position.set(sx * aw, ah + 0.05, az); root.add(cap);
+        });
+        var arc = new T.Mesh(new T.TorusGeometry(aw, 0.13, 12, 64, Math.PI), metalMat); arc.scale.y = 0.42; arc.position.set(0, ah, az); root.add(arc);
+        var sign = cvTex(512, 128, function(c, w, h){
+          var g = c.createLinearGradient(0, 0, w, 0);
+          if(RAIN){ for(var s = 0; s <= 6; s++) g.addColorStop(s / 6, 'hsl(' + (s * 60) + ',90%,55%)'); } else { g.addColorStop(0, TR_PAL[ti]); g.addColorStop(1, '#ffffff'); }
+          c.fillStyle = '#1a1030'; c.fillRect(0, 0, w, h); c.fillStyle = g; c.fillRect(6, 6, w - 12, h - 12);
+          c.fillStyle = '#1a1030'; c.font = 'bold 64px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('★ ' + TR_NAMES[ti] + ' ★', w / 2, h / 2 + 4);
+        });
+        var signM = new T.Mesh(new T.PlaneGeometry(2.6, 0.65), new T.MeshBasicMaterial({ map:sign, side:T.DoubleSide })); signM.position.set(0, ah + 0.42, az + 0.05); root.add(signM);
+        for(var ab = 0; ab < 22; ab++){ var aa2 = ab / 21 * Math.PI, abm = new T.Mesh(new T.SphereGeometry(0.06, 8, 6), new T.MeshBasicMaterial({ color:0xffffff })); abm.position.set(Math.cos(aa2) * aw, ah + Math.sin(aa2) * aw * 0.42, az + 0.15); root.add(abm); archBulbs.push(abm); }
+      }
+
+      // 꽃가루(단계 8): 알록달록 종이가 계속 흩날려요
+      var confetti = [];
+      if(ti >= 7){
+        var cGeo = new T.PlaneGeometry(0.1, 0.16);
+        for(var cf = 0; cf < 46; cf++){
+          var cm = new T.Mesh(cGeo, new T.MeshBasicMaterial({ color:hsl(Math.random(), 0.9, 0.6), side:T.DoubleSide }));
+          cm.position.set((Math.random() - 0.5) * 9, Math.random() * 6, (Math.random() - 0.5) * 5 - 1); root.add(cm);
+          confetti.push({ m:cm, vy:0.5 + Math.random() * 0.8, sw:Math.random() * 6, rs:1 + Math.random() * 3 });
+        }
+      }
+
+      // 착지 효과: 퍼지는 고리 + 튀는 반짝이 / 코인 효과: 금화가 빙글 돌며 떠올라요
+      var shocks = [], sparks = [], coins3 = [];
+      for(var sh2 = 0; sh2 < 3; sh2++){ var shm = new T.Mesh(new T.TorusGeometry(1, 0.03, 6, 48), new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0, depthWrite:false })); shm.rotation.x = Math.PI / 2; shm.visible = false; root.add(shm); shocks.push({ m:shm, t:9 }); }
+      var spGeo = new T.SphereGeometry(0.05, 6, 5);
+      for(var sk = 0; sk < 36; sk++){ var skm = new T.Mesh(spGeo, new T.MeshBasicMaterial({ color:accent, transparent:true, opacity:1, blending:T.AdditiveBlending, depthWrite:false })); skm.visible = false; root.add(skm); sparks.push({ m:skm, t:9, life:1, vx:0, vy:0, vz:0 }); }
+      var coinMat = new T.MeshStandardMaterial({ color:0xffd24a, metalness:1, roughness:0.25, emissive:0x8a5a00, emissiveIntensity:0.3, envMap:envTex, envMapIntensity:1.5 });
+      var coinGeo = new T.CylinderGeometry(0.22, 0.22, 0.05, 24);
+      for(var co = 0; co < 8; co++){ var cmm = new T.Mesh(coinGeo, coinMat); cmm.rotation.x = Math.PI / 2; cmm.visible = false; root.add(cmm); coins3.push({ m:cmm, t:9, x:0 }); }
+      function spawnLandFx(y){
+        for(var i = 0; i < shocks.length; i++){ if(shocks[i].t >= 0.6){ shocks[i].t = 0; shocks[i].m.position.y = y; shocks[i].m.visible = true; break; } }
+        var n = 0;
+        for(var j = 0; j < sparks.length && n < 7 + ti; j++){
+          var P = sparks[j]; if(P.t < P.life) continue;
+          var a = Math.random() * Math.PI * 2, s = 1.5 + Math.random() * 2.5;
+          P.t = 0; P.life = 0.5 + Math.random() * 0.4; P.vx = Math.cos(a) * s; P.vz = Math.sin(a) * s; P.vy = 2 + Math.random() * 3;
+          P.m.position.set(0, y + 0.1, 0); P.m.visible = true;
+          if(RAIN) P.m.material.color.copy(hsl(Math.random(), 0.9, 0.6)); n++;
+        }
+      }
+      function spawnCoin(y){
+        for(var i = 0; i < coins3.length; i++){ var C = coins3[i]; if(C.t >= 1.1){ C.t = 0; C.x = (Math.random() - 0.5) * 1.2; C.y0 = y; C.m.visible = true; return; } }
       }
 
       // 대표 슬라임
       ENV_CUR = envTex;
-      var slime = buildMascot(cfg.v, cfg.evo ? { evo:true } : undefined);
-      scene.add(slime);
-      var SB = 0.9; slime.scale.setScalar(SB);
-      var shadow = new T.Mesh(new T.CircleGeometry(0.9, 32), new T.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35 }));
-      shadow.rotation.x = -Math.PI / 2; shadow.position.y = H + 0.01; scene.add(shadow);
+      var slime = buildMascot(cfg.v, { battle:true, noFx:true, evo:!!cfg.evo });
+      var SB = 0.9, bodyBox = new T.Box3().setFromObject(slime), bodyC = Math.max(0.6, (bodyBox.max.y - bodyBox.min.y) * 0.45) || 1;
+      var holder = new T.Group(), pivot = new T.Group(); root.add(holder); holder.add(pivot); pivot.add(slime);
+      pivot.position.y = bodyC * SB; slime.position.y = -bodyC; holder.scale.setScalar(SB); slime.scale.setScalar(1);
+      var sU = slime.userData || {};
+      // 공중 기술: 뛸 때마다 무작위로 골라요
+      var TRICKS = [['none', 2], ['front', 3], ['back', 3], ['sideL', 2], ['sideR', 2], ['spin', 2], ['twist', 2], ['double', 1], ['roll', 2]];
+      var trick = 'none', tAir = 0, tFlight = 1, tx0 = 0, tz0 = 0, tx1 = 0, tz1 = 0, lean = 0;
+      function pickTrick(){
+        var tot = 0; TRICKS.forEach(function(k){ tot += k[1]; }); var r = Math.random() * tot;
+        for(var i = 0; i < TRICKS.length; i++){ r -= TRICKS[i][1]; if(r <= 0) return TRICKS[i][0]; }
+        return 'front';
+      }
+      function easeIO(p){ return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
 
-      // 물리: 매트 스프링 + 슬라임 점프 + 출렁이는 찌그러짐
+      // 물리: 매트 스프링 + 점프 + 출렁이는 찌그러짐
       var GRAV = 9.0, HB = 1.7 + ti * 0.12, VY = Math.sqrt(2 * GRAV * HB);
-      var K = 46 + ti * 3, C = 2.8;
-      var air = 0, vy = VY, sq = 0, sqV = 0;
-      var KQ = 95, CQ = 6.5;
+      var K = 46 + ti * 3, CD = 2.8, matY = H, matV = 0, air = 0, vy = VY, sq = 0, sqV = 0, KQ = 95, CQ = 6.5;
       var coinChance = 0.22 + ti * 0.02;
       function land(imp){
-        sqV += Math.min(14, imp * 1.1);           // 철푸덕
-        matV = -Math.min(3.2, imp * 0.22);        // 매트가 쑥 꺼졌다 튕겨요
+        sqV += Math.min(14, imp * 1.1);
+        matV = -Math.min(3.4, imp * 0.24);
+        spawnLandFx(matY);
         if(hooks.onLand) hooks.onLand();
-        if(Math.random() < coinChance && hooks.onCoin){
-          hooks.onCoin((2 + ti * 2 + Math.floor(Math.random() * (3 + ti))) * 5);
-        }
+        // 착지할 때마다 코인이 나와요 (한 번에 받는 양은 확률을 곱한 만큼이라 전체 수입은 그대로예요)
+        spawnCoin(matY + 1);
+        if(hooks.onCoin) hooks.onCoin(Math.max(1, Math.round(coinChance * (2 + ti * 2 + Math.random() * (3 + ti)) * 5)));
       }
       function step(dt){
-        matV += (-K * (matY - H) - C * matV) * dt; matY += matV * dt;
+        matV += (-K * (matY - H) - CD * matV) * dt; matY += matV * dt;
         vy -= GRAV * dt; air += vy * dt;
-        if(air <= 0 && vy < 0){ var imp = -vy; air = 0; vy = VY; land(imp); }
-        sqV += (-KQ * sq - CQ * sqV) * dt; sq += sqV * dt;
-        sq = Math.max(-0.55, Math.min(0.75, sq));
-        slime.position.set(0, matY + air, 0);
-        slime.scale.set(SB * (1 + sq * 0.32), SB * (1 - sq * 0.42), SB * (1 + sq * 0.32));
-        var pool = 1 + Math.max(0, sq) * 0.35;
-        shadow.scale.set(pool, 1, pool);
-        mat.position.y = matY;
+        if(air <= 0 && vy < 0){
+          var imp = -vy; air = 0; vy = VY * (0.9 + Math.random() * 0.2); land(imp);
+          trick = pickTrick(); tAir = 0; tFlight = 2 * vy / GRAV;
+          tx0 = tx1; tz0 = tz1; var ra = Math.random() * Math.PI * 2, rd = Math.random() * 0.45; tx1 = Math.cos(ra) * rd; tz1 = Math.sin(ra) * rd * 0.6;
+          lean = (Math.random() - 0.5) * 0.5;
+        }
+        sqV += (-KQ * sq - CQ * sqV) * dt; sq += sqV * dt; sq = Math.max(-0.55, Math.min(0.75, sq));
+        tAir += dt; var p = Math.min(1, tAir / Math.max(0.2, tFlight)), e = easeIO(p), F = Math.PI * 2;
+        var hx = tx0 + (tx1 - tx0) * p, hz = tz0 + (tz1 - tz0) * p;
+        holder.position.set(hx, matY + air, hz);
+        holder.scale.set(SB * (1 + sq * 0.32), SB * (1 - sq * 0.42), SB * (1 + sq * 0.32));
+        var rx = 0, ry = 0, rz = 0;
+        if(trick === 'front') rx = e * F; else if(trick === 'back') rx = -e * F;
+        else if(trick === 'sideL') rz = e * F; else if(trick === 'sideR') rz = -e * F;
+        else if(trick === 'spin') ry = e * F; else if(trick === 'twist'){ rx = e * F; ry = e * F; }
+        else if(trick === 'double') rx = e * F * 2; else if(trick === 'roll'){ rz = e * F; ry = -e * F; }
+        else { rz = Math.sin(p * Math.PI) * lean; rx = Math.sin(p * Math.PI * 2) * 0.15; }
+        pivot.rotation.set(rx + (tx1 - tx0) * 0.4 * Math.sin(p * Math.PI), ry, rz - (tx1 - tx0) * 0.5 * Math.sin(p * Math.PI));
       }
 
       var tt = 0;
       tr = {
         tick: function(dt){
           tt += dt;
-          camera.position.set(0, 3.6 + ti * 0.05, 11.5 - ti * 0.1); camera.lookAt(0, 1.4, 0);
-          step(dt * spd);
-          flags.forEach(function(f){ f.m.rotation.y = -f.a + Math.sin(tt * 3 + f.i) * 0.35; });
-          if(ringG){ ringG.position.y = H + 0.4 + Math.sin(tt * 2) * 0.1; ringG.rotation.z = tt * 0.6; }
-          if(sparks){
-            var P = sparks.userData.p;
-            for(var k = 0; k < spN; k++){
-              var ang2 = sd[k * 3] + tt * (0.5 + sd[k * 3 + 2]), rr = R + 0.5 + Math.sin(tt + k) * 0.2;
-              P[k * 3] = Math.cos(ang2) * rr; P[k * 3 + 1] = sd[k * 3 + 1] + Math.sin(tt * 2 + k) * 0.2; P[k * 3 + 2] = Math.sin(ang2) * rr;
-            }
-            sparks.geometry.attributes.position.needsUpdate = true;
-          }
-          if(ti === 7){ key.color.setHSL((tt * 0.12) % 1, 0.9, 0.6); }
-          updBands();
+          camera.position.set(Math.sin(tt * 0.12) * 0.8, 3.7 + ti * 0.08, 11.8 - ti * 0.05); camera.lookAt(0, 1.6 + ti * 0.04, 0);
+          var sdt = dt * spd;
+          step(sdt);
+          if(sU.anims) sU.anims.forEach(function(f){ try{ f(tt); }catch(e){} });
+          var d = matY - H;
+          deformMat(d); updSprings(d);
+          var hi = Math.min(1, air / (HB + 0.01));
+          deformShadow(d, 0.85 * (1 + Math.max(0, sq) * 0.35) * (1 - hi * 0.35)); shMesh.position.set(holder.position.x, -holder.position.z, 0);
+          shMesh.material.opacity = 0.38 * (1 - hi * 0.6);
+          gems.forEach(function(g, i){ g.rotation.y = tt * 1.5 + i; g.position.y = H + 0.42 + Math.sin(tt * 2 + i) * 0.06; });
+          bulbs.forEach(function(B){
+            var on = ((B.i + Math.floor(tt * 9)) % 3) === 0;
+            var col = RAIN ? hsl(B.i / B.n + tt * 0.25, 0.95, on ? 0.65 : 0.3) : (on ? new T.Color(0xffffff) : new T.Color(accent).multiplyScalar(0.5));
+            B.m.material.color.copy(col); B.g.material.opacity = on ? 0.9 : 0.15; if(RAIN) B.g.material.color.copy(col);
+          });
+          archBulbs.forEach(function(m, i){ var on = ((i + Math.floor(tt * 7)) % 2) === 0; m.material.color.copy(RAIN ? hsl(i / 22 + tt * 0.3, 0.95, on ? 0.7 : 0.35) : (on ? new T.Color(0xffffff) : new T.Color(accent).multiplyScalar(0.4))); });
+          flags.forEach(function(F){
+            for(var v = 0; v < F.pos.count; v++){ var x = F.org[v * 3]; F.pos.setZ(v, Math.sin(tt * 6 + x * 9 + F.i) * 0.06 * (x + 0.28)); }
+            F.pos.needsUpdate = true;
+          });
+          if(RAIN){ pads.forEach(function(pm, i){ pm.color.copy(hsl(i / pads.length + tt * 0.08, 0.85, 0.6)); }); rimB.color.copy(hsl(tt * 0.12, 0.9, 0.6)); }
+          confetti.forEach(function(C){ C.m.position.y -= C.vy * dt; C.m.position.x += Math.sin(tt * 2 + C.sw) * 0.01; C.m.rotation.x += C.rs * dt; C.m.rotation.y += C.rs * 0.7 * dt; if(C.m.position.y < 0.05){ C.m.position.y = 6 + Math.random() * 1.5; C.m.position.x = (Math.random() - 0.5) * 9; } });
+          shocks.forEach(function(S){ if(S.t >= 0.6){ S.m.visible = false; return; } S.t += dt; var k = S.t / 0.6, r = 0.5 + k * (MR - 0.3); S.m.scale.set(r, r, 1); S.m.material.opacity = 0.7 * (1 - k); });
+          sparks.forEach(function(P){ if(P.t >= P.life){ P.m.visible = false; return; } P.t += dt; P.vy -= 9 * dt; P.m.position.x += P.vx * dt; P.m.position.y += P.vy * dt; P.m.position.z += P.vz * dt; P.m.material.opacity = 1 - P.t / P.life; });
+          coins3.forEach(function(C){ if(C.t >= 1.1){ C.m.visible = false; return; } C.t += dt; var k = C.t / 1.1; C.m.position.set(C.x, C.y0 + k * 1.8, 0.4); C.m.rotation.z = tt * 10; var s2 = k < 0.15 ? k / 0.15 : (k > 0.8 ? (1 - k) / 0.2 : 1); C.m.scale.setScalar(Math.max(0.01, s2)); });
         }
       };
       return { start: function(){ pv.start(); }, stop: function(){ pv.stop(); }, dispose: function(){ tr = null; pv.dispose(); } };
@@ -8107,7 +8353,7 @@ const HUB_ROLE_W = {
 };
 // 같은 등급끼리 공평하게 싸우도록 맞춘 보정값 (모의 대결 수십만 판으로 맞췄어요)
 const HUB_ROLE_BAL = { '공격':0.91, '방어':1.11, '마법':0.91, '속도':1.09, '올라운드':0.98 };
-const HUB_CHAR_BAL = {"서영준": 1, "마법사 병아리": 0.975, "사무라이 토끼": 1.005, "해적 고양이": 1.008, "번개 여우": 1.003, "로봇 용병": 1.037, "불꽃 정령": 0.991, "프린세스 슬라임": 0.982, "악마 버섯": 1.005, "서리 펭귄": 1.005, "용기사": 0.99, "해골 기사": 1.015, "대천사": 0.987, "왕곰": 0.998, "닌자곰": 0.989, "기사 슬라임": 1.023, "유령 등불지기": 0.949, "판다 파이터": 1.024, "젤리 슬라임": 1.016, "신기영": 1.0, "박지용": 0.85, "서현서": 0.79, "ERR0R": 1.0};
+const HUB_CHAR_BAL = {"서영준": 1, "마법사 병아리": 0.975, "사무라이 토끼": 1.005, "해적 고양이": 1.008, "번개 여우": 1.003, "로봇 용병": 1.037, "불꽃 정령": 0.991, "프린세스 슬라임": 0.982, "악마 버섯": 1.005, "서리 펭귄": 1.005, "용기사": 0.99, "해골 기사": 1.015, "대천사": 0.987, "왕곰": 0.998, "닌자곰": 0.989, "기사 슬라임": 1.023, "유령 등불지기": 0.949, "판다 파이터": 1.024, "젤리 슬라임": 1.016, "신기영": 1.0, "박지용": 1.6, "서현서": 0.79, "ERR0R": 1.0};
 // 2성은 능력치는 낮지만 특성이 아주 강한 숨은 보석, 측정불가는 신화보다 훨씬 희귀해요
 const HUB_RATES = [[2, 0.03], [3, 0.638999], [4, 0.28], [5, 0.05], [6, 0.001], [7, 0.000001]];   // 측정불가 0.0001% (보장 없음)
 const PITY5 = 50, PITY6 = 1000;
