@@ -6632,7 +6632,8 @@ function subscribeWords(){
     // 서버, 화면에 있던 값, 이 기기 백업을 모두 합쳐요. 하나라도 가지고 있던 캐릭터는 절대 사라지지 않아요.
     const serverColl = (data.collection && typeof data.collection === 'object') ? data.collection : {};
     const memColl = charDataLoaded ? (charCollection || {}) : {};
-    const bkColl = (uid && !wipeCollection) ? readCollBackup(uid) : {};
+    const myUid = currentUser ? currentUser.uid : null;
+    const bkColl = (myUid && !wipeCollection) ? readCollBackup(myUid) : {};
     charCollection = wipeCollection ? serverColl : mergeColl(serverColl, mergeColl(memColl, bkColl));
     const fullNow = needFullRestore; needFullRestore = false;
     if(!sameColl(charCollection, serverColl) || fullNow) needEquipReset = true;   // 합쳐진 것이 있을 때만 서버에 다시 저장
