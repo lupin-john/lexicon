@@ -1305,7 +1305,7 @@
     <div class="bt-banner" id="btBanner"></div>
     <div id="btPops"></div>
     <button class="rv-skip" id="btExitBtn" style="top:auto;bottom:calc(14px + env(safe-area-inset-bottom,0px));">나가기</button>
-    <button type="button" id="battleSpeedBtn" style="position:absolute;left:50%;transform:translateX(-50%);top:calc(176px + env(safe-area-inset-top,0px));z-index:500;font:inherit;font-size:14px;padding:10px 16px;border-radius:999px;border:1px solid #7fdcff;background:rgba(10,20,40,0.85);color:#bfefff;cursor:pointer;box-shadow:0 0 12px rgba(127,220,255,0.35);">⏩ 빨리 감기 1x</button>
+    <button type="button" id="battleSpeedBtn" style="position:absolute;right:132px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:500;font:inherit;font-size:14px;padding:10px 16px;border-radius:999px;border:1px solid #7fdcff;background:rgba(10,20,40,0.85);color:#bfefff;cursor:pointer;box-shadow:0 0 12px rgba(127,220,255,0.35);">⏩ 빨리 감기 1x</button>
     <div class="bt-result hidden" id="btResult"></div>
   </div>
   <div id="hubDetail" class="hub-ov hidden"></div>
@@ -2854,13 +2854,102 @@
         after(0.9, nextTurn); return;
       }
       var go = function(){
-        attack(a, d, special, function(ko){
-          if(ko) finish(a, d);
-          else after(0.4, nextTurn);
-        });
+        var strike = function(){
+          attack(a, d, special, function(ko){
+            if(ko) finish(a, d);
+            else after(0.4, nextTurn);
+          });
+        };
+        if(a.tr === 'inhale' && a.turns % 2 === 0) inhale(a, d, strike); else strike();
       };
       var as = petAssistFor(a);
       if(as) doAssist(a, as, go); else go();
+    }
+    // 흡입하기(서현서): 입이 크게 벌어지고, 바람과 상대 슬라임이 입 속으로 빨려 들어가요
+    function inhale(A, D, done){
+      var sc = toScreen(A.x, 2.6, 0);
+      pop(hooks.onAssist, { side:A.side, kind:'trait', text:'🌀 흡입하기!', x:sc.x, y:sc.y });
+      A.gl = 1; A.glc = [0.6, 0.95, 1];
+      var x0 = D.x, tx = A.x + A.dir * 1.5;
+      var mx = A.x + A.dir * 0.95, my = 1.0;                    // 입 위치
+      var TOT = 1.5, gulped = false;
+      function mouthAmt(t){
+        if(t < 0.35) return t / 0.35;                           // 쫙 벌어짐
+        if(t < 0.85) return 1;
+        if(t < 1.0) return 1 - (t - 0.85) / 0.15 * 0.4;         // 꿀꺽
+        if(t < 1.2) return 0.6 - (t - 1.0) / 0.2 * 0.6;         // 닫힘
+        return 0;
+      }
+      // 입
+      var mouth = new T.Group(); mouth.position.set(mx, my, 0.05); scene.add(mouth);
+      var inside = new T.Mesh(new T.SphereGeometry(1, 24, 18), new T.MeshBasicMaterial({ color:0x2a0614 }));
+      inside.scale.set(0.55, 0.7, 0.2); mouth.add(inside);
+      var rim = new T.Mesh(new T.TorusGeometry(0.55, 0.07, 8, 28), new T.MeshBasicMaterial({ color:0xff6b9a }));
+      rim.scale.set(1, 1.3, 1); rim.position.z = 0.05; mouth.add(rim);
+      // 바람 기둥(입 쪽으로 좁아지는 소용돌이)
+      var funnel = new T.Group(); funnel.position.copy(mouth.position); scene.add(funnel);
+      var ringMat = new T.MeshBasicMaterial({ color:0xcff9ff, transparent:true, opacity:0.55 });
+      for(var k = 0; k < 7; k++){
+        var ring = new T.Mesh(new T.TorusGeometry(0.3 + k * 0.22, 0.035, 6, 28), ringMat);
+        ring.rotation.y = Math.PI / 2; ring.position.x = A.dir * (0.5 + k * 0.4); funnel.add(ring);
+      }
+      // 빨려 들어가는 입자
+      var parts = [];
+      for(var i = 0; i < 40; i++){
+        var m = new T.Mesh(new T.BoxGeometry(0.04, 0.22, 0.04), new T.MeshBasicMaterial({ color: i % 3 ? 0xdffbff : 0xffffff, transparent:true, opacity:0.9 }));
+        scene.add(m);
+        parts.push({ m:m, a:Math.random() * Math.PI * 2, r:1.4 + Math.random() * 1.6, h:Math.random() * 2.2, s:0.8 + Math.random() * 0.6, d:Math.random() * 0.25 });
+      }
+      function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+      anim(TOT, function(p){
+        var t = p * TOT, amt = mouthAmt(t);
+        mouth.scale.set(amt, amt, amt);
+        mouth.visible = amt > 0.01;
+        funnel.visible = amt > 0.01;
+        funnel.scale.setScalar(Math.max(0.01, amt));
+        funnel.rotation.x = p * Math.PI * 12;
+        ringMat.opacity = 0.55 * amt;
+        if(t >= 0.2 && !gulped && t < 0.85) shake = Math.max(shake, 0.35);
+
+        // 바람 입자: 입 주위에서 소용돌이치며 입 속으로 빨려들어요
+        parts.forEach(function(q){
+          var s = clamp01((t - 0.1 - q.d) / 0.6), ang = q.a + s * 14 * q.s, rr = q.r * (1 - s);
+          q.m.position.set(mx + Math.cos(ang) * rr * 0.6 * (1 - s) + (1 - s) * 0.2, my + Math.sin(ang) * rr * 0.5 * (1 - s) + q.h * (1 - s) * 0.4, Math.sin(ang) * rr * 0.4 * (1 - s));
+          q.m.rotation.z = ang;
+          q.m.material.opacity = 0.9 * (1 - clamp01((s - 0.8) / 0.2));
+        });
+
+        // 상대 슬라임: 빙글 돌며 입 쪽으로 빨려 들어가 작아져요
+        var s2 = clamp01((t - 0.35) / 0.5), e2 = s2 * s2;
+        if(t < 0.85){
+          D.root.visible = true;
+          D.x = x0 + (mx - x0) * e2;
+          D.y = 0.6 * Math.sin(s2 * Math.PI);
+          D.z = 0;
+          D.yaw = s2 * Math.PI * 8;
+          D.ex = -1.2 * s2; D.ey = -1.2 * s2;
+          D.gl = Math.max(D.gl || 0, 0.6); D.glc = [0.6, 0.95, 1];
+        } else if(t < 1.1){
+          D.root.visible = false;
+          if(!gulped){ gulped = true; shake = Math.max(shake, 0.9); }
+        } else {
+          // 입에서 다시 뱉어져요
+          D.root.visible = true;
+          var s3 = clamp01((t - 1.1) / 0.4), e3 = 1 - Math.pow(1 - s3, 3);
+          D.x = mx + (tx - mx) * e3;
+          D.y = 0.5 * Math.sin(s3 * Math.PI);
+          D.yaw = (1 - s3) * Math.PI * 4;
+          D.ex = -1.2 * (1 - s3); D.ey = -1.2 * (1 - s3);
+        }
+      }, function(){
+        D.root.visible = true;
+        D.y = 0; D.z = 0; D.ex = 0; D.ey = 0; D.yaw = 0; D.x = tx;
+        scene.remove(mouth); mouth.traverse(function(o){ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); });
+        scene.remove(funnel); funnel.traverse(function(o){ if(o.geometry) o.geometry.dispose(); });
+        ringMat.dispose();
+        parts.forEach(function(q){ scene.remove(q.m); q.m.geometry.dispose(); q.m.material.dispose(); });
+        after(0.1, done);
+      });
     }
     function intro(){
       // 위에서 툭 떨어지며 등장
@@ -4788,7 +4877,7 @@
     '닌자곰':'shadow', '기사 슬라임':'ironwall', '유령 등불지기':'lantern', '판다 파이터':'bamboo', '젤리 슬라임':'bounce',
     '마법사 병아리':'spark', '사무라이 토끼':'iai', '해적 고양이':'plunder', '번개 여우':'thunder', '로봇 용병':'pierce', '불꽃 정령':'ember', '프린세스 슬라임':'crown',
     '악마 버섯':'spore', '서리 펭귄':'frost', '용기사':'dragonrage', '해골 기사':'reaper', '대천사':'blessing', '왕곰':'reign',
-    '서영준':'rainbow', '신기영':'timestop', '박지용':'dragonwill', '서현서':'kingbody', 'ERR0R':'glitch'
+    '서영준':'rainbow', '신기영':'timestop', '박지용':'dragonwill', '서현서':'inhale', 'ERR0R':'glitch'
   };
   var TRAIT_INFO = {
     shadow:   { name:'그림자 걸음',   icon:'🌑', kind:'방어', desc:'적의 공격을 6% 확률로 완전히 피해요', p:{ dodge:0.06 } },
@@ -4811,6 +4900,7 @@
     reign:    { name:'왕의 군림',     icon:'🐻', kind:'방해', desc:'전투 시작 때 상대의 공격력을 5% 깎아요', p:{ intimidate:0.05 } },
     timestop:  { name:'시간 정지',     icon:'⏳', kind:'방해', desc:'공격하면 45% 확률로 상대의 시간이 멈춰 한 턴을 쉬어요. 30% 확률로 순식간에 두 번 때려요(피해 2배). 15% 확률로 공격을 피해요', p:{ stun:0.45, double:0.3, dodge:0.15 } },
     dragonwill:{ name:'불굴의 용',     icon:'🐲', kind:'방어', desc:'쓰러져도 두 번 다시 일어나요(체력 60%로). 받는 피해가 20% 줄고, 입힌 피해의 15%를 체력으로 되찾아요', p:{ revive:{ n:2, hp:0.6 }, reduce:0.2, lifesteal:0.15 } },
+    inhale:    { name:'흡입하기', icon:'🌀', kind:'방해', desc:'내 턴 두 번마다 바람으로 상대를 빨아들여 내 쪽으로 끌어와요. 전투 시작 때 체력이 20% 늘어나고, 받는 피해 10% 감소, 내 턴마다 체력 1.5% 회복, 상대 방어력의 15%를 무시해요', p:{ bulk:0.2, reduce:0.1, regen:0.015, pierce:0.15 } },
     kingbody:  { name:'대왕의 풍채',   icon:'👑', kind:'방어', desc:'전투 시작 때 체력이 20% 늘어나요. 받는 피해 10% 감소, 내 턴마다 체력 1.5% 회복, 상대 방어력의 15%를 무시해요', p:{ bulk:0.2, reduce:0.1, regen:0.015, pierce:0.15 } },
     glitch:    { name:'치명적 오류',   icon:'☠️', kind:'공격', desc:'존재 자체가 버그예요. 해로운 효과를 받지 않고 30% 확률로 공격을 피해요. 공격하면 20% 확률로 피해 3배, 12% 확률로 상대 체력의 30%를 삭제하고, 상대 방어력의 40%를 무시해요. 한 번 쓰러져도 체력 60%로 복구돼요', p:{ immune:true, dodge:0.3, x3:0.2, del:0.12, delPct:0.3, pierce:0.4, revive:{ n:1, hp:0.6 } } },
     rainbow:  { name:'무지개의 은총', icon:'🌈', kind:'회복', desc:'내 턴 4번마다 체력 2.2% 회복, 나쁜 효과 해제, 다음 공격 +4.8%', p:{ rainbow:0.022, rbuff:0.048 } }
@@ -7882,7 +7972,7 @@ function charStatsOf(name, lvOv, opt, lvlOv){
   const evoM = (opt ? (opt.evo && c.star >= 4) : charEvo(name)) ? EVO_MULT : 1;
   const total = ({2:200, 3:100, 4:150, 5:220, 6:400, 7:900})[c.star] * evoM * (1 + 0.18 * (lv - 1)) * (1 + 0.04 * (L - 1)) * (HUB_ROLE_BAL[c.role] || 1) * (HUB_CHAR_BAL[name] || 1);
   const w = HUB_ROLE_W[c.role];
-  return { atk:Math.round(total * w.atk * (1 + bs.atk)), def:Math.round(total * w.def * (1 + bs.def)), hp:Math.round(total * w.hp * 4 * (1 + bs.hp)), spd:Math.round(total * w.spd * (1 + bs.spd)) };
+  return { atk:Math.round(total * w.atk * (1 + bs.atk)), def:Math.round(total * w.def * (1 + bs.def)), hp:Math.round(total * w.hp * 4 * (1 + bs.hp) * (name === '서현서' ? 2.5 : 1)), spd:Math.round(total * w.spd * (1 + bs.spd)) };
 }
 function hubRoll(min){
   const rates = HUB_RATES.filter(r => r[0] >= min);
