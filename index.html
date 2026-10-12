@@ -6620,7 +6620,12 @@ function subscribeWords(){
       equipment = []; equippedWeapon = null; equippedEssence = null; equippedShield = false;
       needEquipReset = true;
     }
-    charCollection = (data.collection && typeof data.collection === 'object') ? data.collection : {};
+    // 서버, 화면에 있던 값, 이 기기 백업을 모두 합쳐요. 하나라도 가지고 있던 캐릭터는 절대 사라지지 않아요.
+    const serverColl = (data.collection && typeof data.collection === 'object') ? data.collection : {};
+    const memColl = charDataLoaded ? (charCollection || {}) : {};
+    const bkColl = (uid && !wipeCollection) ? readCollBackup(uid) : {};
+    charCollection = wipeCollection ? serverColl : mergeColl(serverColl, mergeColl(memColl, bkColl));
+    if(JSON.stringify(charCollection) !== JSON.stringify(serverColl)) needEquipReset = true;   // 합쳐진 것이 있으면 서버에도 다시 저장
     if(hubRecover(data) > 0) needEquipReset = true;
     pity5 = data.pity5 || 0; pity6 = data.pity6 || 0; pity7 = data.pity7 || 0; mainChar = data.mainChar || null;
     btWins = data.btWins || 0; btLosses = data.btLosses || 0;
@@ -10847,9 +10852,35 @@ function saveCharacter(){
   // 저장 요청이 겹쳐서 순서가 뒤바뀌면 최신 데이터가 예전 데이터에 덮어써질 수 있어서,
   // 한 번에 하나씩, 호출된 순서대로만 서버에 보내도록 줄 세워요. 응답이 멈춰도 다음 저장이 막히지 않게 시간 제한을 둬요.
   pendingSaves++;
-  saveCharacterQueue = saveCharacterQueue.then(() => withTimeout(doSaveCharacter(), 8000, '캐릭터 저장').catch(() => {})).finally(() => { pendingSaves = Math.max(0, pendingSaves - 1); lastSaveDone = Date.now(); });
+  saveCharacterQueue = saveCharacterQueue.then(() => withTimeout(doSaveCharacter(), 8000, '캐릭터 저장').catch(() => { scheduleCollRetry(); })).finally(() => { pendingSaves = Math.max(0, pendingSaves - 1); lastSaveDone = Date.now(); });
   return saveCharacterQueue;
 }
+function mergeColl(base, extra){
+  const out = {};
+  const add = (from) => {
+    Object.keys(from || {}).forEach(n => {
+      const s = from[n];
+      if(!s || !(s.n > 0)) return;
+      const o = out[n];
+      if(!o || s.n > o.n){ out[n] = { n:s.n, lv:s.lv || 1, evo:s.evo ? 1 : 0 }; }
+      else { if((s.lv || 1) > (o.lv || 1)) o.lv = s.lv; if(s.evo) o.evo = 1; }
+    });
+  };
+  add(base); add(extra);
+  return out;
+}
+function readCollBackup(uid){
+  try{ const raw = localStorage.getItem('lx_col_' + uid); const v = raw ? JSON.parse(raw) : {}; return (v && typeof v === 'object') ? v : {}; }catch(e){ return {}; }
+}
+let collDirty = false, collRetryT = null, collAlerted = false;
+function scheduleCollRetry(){
+  collDirty = true;
+  if(collRetryT) return;
+  collRetryT = setTimeout(() => { collRetryT = null; if(collDirty && currentUser) saveCharacter(); }, 8000);
+}
+window.addEventListener('beforeunload', () => {
+  if(currentUser && charDataLoaded){ try{ localStorage.setItem('lx_col_' + currentUser.uid, JSON.stringify(charCollection)); }catch(e){} }
+});
 function fsClean(v){
   if(v === undefined) return null;
   if(Array.isArray(v)) return v.map(fsClean);
@@ -10872,7 +10903,13 @@ async function doSaveCharacter(){
       stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: wipeCollection ? deleteField() : charCollection, pity5, pity6, pity7, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: wipeKingdom ? deleteField() : (kingdom || null), pet: pet || null, wordCoin: wordCoinLog, ownedEver
     }), { merge:true });
     if(wipingNow){ wipeCollection = false; wipeKingdom = false; }
-  }catch(e){ console.error('캐릭터 저장 실패', e); }
+  }catch(e){
+    console.error('캐릭터 저장 실패', e);
+    scheduleCollRetry();
+    if(!collAlerted){ collAlerted = true; alert('캐릭터 저장이 잠시 실패했어요. 자동으로 다시 저장할게요. (기기에는 그대로 남아 있어요)'); }
+    return;
+  }
+  collDirty = false; collAlerted = false;
   updateGroupCount();
 }
 
