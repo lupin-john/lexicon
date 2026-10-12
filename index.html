@@ -1640,9 +1640,11 @@
     { name:'프린세스 슬라임', star:4, gel:true, shape:[1.12, 0.95, 1.06], body:0xff9bd0, belly:null, ears:'none', cheek:0xff6f9f, arm:0.7, eyes:'round', fx:0xff9bd0, aura:true,
       gear:[['crown',0xffd24a],['scarf',0xffffff]] },
     { name:'신기영', star:2, body:0x5b6bff, belly:0xdfe6ff, ears:'round', cheek:0xff9ac0, arm:1.0, eyes:'sharp', fx:0x7fe9ff, aura:true,
-      gear:[['halo',0x7fe9ff],['goggles',0x2a2a3a],['scarf',0x9fe3ff]] },
+      gear:[['halo',0x7fe9ff],['goggles',0x2a2a3a],['scarf',0x9fe3ff]],
+      evoLook:{ body:0x3d4dff, belly:0xeaf2ff, cheek:0xff9ad8, fx:0x8ff4ff, gear:[['mythcrown',0xffd24a],['goggles',0x1a1a2a],['scarf',0xffd24a],['cape',0x141a5a],['lightwings',0x8ff4ff],['clockring',0xffd24a]] } },
     { name:'박지용', star:2, body:0xff6a4a, belly:0xffd9b0, ears:'tri', cheek:0xffb07a, arm:1.1, eyes:'sharp', fx:0xffb03a, aura:true,
-      gear:[['wings',0x8a1f2f],['tail',0xffd9b0],['flamehair',0xffd24a]] },
+      gear:[['wings',0x8a1f2f],['tail',0xffd9b0],['flamehair',0xffd24a]],
+      evoLook:{ body:0xe8283a, belly:0xffe2b8, cheek:0xffb07a, fx:0xff8a1a, gear:[['dragonhelm',0xffd24a],['wings',0x5a0a18],['tail',0xffd9b0],['pauldrons',0xffd24a],['cape',0x7a0f1a],['greatsword',0xffd24a],['dragonlord',0xff7a1a]] } },
     { name:'서현서', star:6, mythic:true, shape:[1.8, 0.95, 1.55], faceFit:true, body:0xffe3b0, belly:0xfff6dc, ears:'round', cheek:0xff8aa8, arm:1.25, eyes:'round', fx:0xffd24a, aura:true,
       gear:[['mandala',0xffd24a],['lightwings',0xfff1b0],['mythcrown',0xffd24a],['halo',0xfff1b0]] },
     { name:'ERR0R', star:7, glitch:true, body:0x050507, belly:null, ears:'none', cheek:0x39f0ff, arm:1.0, eyes:'none', fx:0x2a56c8, aura:true, gear:[] }
@@ -1733,6 +1735,7 @@
   }
   // 진화형: 원래 모습에 화려한 장비를 더해요 (★4 이상부터)
   function evoVariant(v){
+    if(v.evoLook) return Object.assign({}, v, v.evoLook, { evoFx:true, aura:true });   // 전용 진화 외형
     if(v.glitch) return Object.assign({}, v, { glitchEvo:true });     // 측정불가는 장식 없이 아우라만 더 세져요
     var g = v.gear.slice(), col = v.fx != null ? v.fx : 0xffd24a;
     function has(k){ return g.some(function(x){ return x[0] === k; }); }
@@ -1747,7 +1750,7 @@
     return nv;
   }
   function buildMascot(v, opts){
-    if(opts && opts.evo && v.star >= 4) v = evoVariant(v);
+    if(opts && opts.evo && (v.star >= 4 || v.evoLook)) v = evoVariant(v);
     var root = new T.Group();
     var rig = new T.Group();
     root.add(rig);
@@ -2100,6 +2103,59 @@
         var mgem = part(rig, new T.OctahedronGeometry(0.17, 0), 0xff4fd8, [0, 2.75, 0], [1, 1.5, 1], { outline:false, glow:0xff4fd8, gi:1.8 });
         var mga = new T.Mesh(smallG, glowMat(0xff4fd8, 0.3)); mga.position.set(0, 2.75, 0); mga.scale.setScalar(0.35); rig.add(mga);
         U.anims.push(function(t){ mgem.rotation.y = t * 2; mgem.position.y = 2.75 + Math.sin(t * 2.5) * 0.06; mga.position.y = mgem.position.y; mga.scale.setScalar(0.35 + Math.sin(t * 5) * 0.05); });
+      }else if(k === 'clockring'){
+        // 신기영 진화: 몸 뒤에서 도는 황금 시계판 (바늘이 돌다가 멈춰요 = 시간 정지) + 주위를 도는 모래시계
+        var ckG = new T.Group(), zb = -1.25 - (v.faceFit ? bs[2] - 0.95 : 0);
+        var ckRim = new T.Mesh(new T.TorusGeometry(1.5, 0.07, 10, 72), glowMat(0xffd24a, 0.95)); ckG.add(ckRim);
+        var ckRim2 = new T.Mesh(new T.TorusGeometry(1.34, 0.025, 8, 72), glowMat(0xfff1b0, 0.8)); ckG.add(ckRim2);
+        var ckFace = new T.Mesh(new T.CircleGeometry(1.32, 64), glowMat(0x2a3aa8, 0.35)); ckFace.position.z = -0.02; ckG.add(ckFace);
+        for(var ck = 0; ck < 12; ck++){ var cka = ck / 12 * Math.PI * 2, big = ck % 3 === 0; var tk = part(ckG, new T.BoxGeometry(1, 1, 1), 0xffd24a, [Math.sin(cka) * 1.2, Math.cos(cka) * 1.2, 0.02], [big ? 0.09 : 0.05, big ? 0.26 : 0.14, 0.03], { outline:false, glow:0xffd24a, gi:1.5 }); tk.rotation.z = -cka; }
+        var hHour = new T.Group(), hMin = new T.Group(); ckG.add(hHour); ckG.add(hMin);
+        part(hHour, new T.BoxGeometry(1, 1, 1), 0xfff1b0, [0, 0.38, 0.05], [0.08, 0.76, 0.03], { outline:false, glow:0xfff1b0, gi:1.6 });
+        part(hMin, new T.BoxGeometry(1, 1, 1), 0x8ff4ff, [0, 0.55, 0.06], [0.05, 1.1, 0.03], { outline:false, glow:0x8ff4ff, gi:1.8 });
+        part(ckG, new T.SphereGeometry(0.1, 12, 10), 0xffd24a, [0, 0, 0.08], [1, 1, 1], { outline:false, glow:0xffd24a, gi:1.8 });
+        ckG.position.set(0, 1.45, zb); rig.add(ckG);
+        var hgs = [];
+        if(!(opts && opts.noFx)){
+          for(var hgI = 0; hgI < 3; hgI++){
+            var hg = new T.Group();
+            part(hg, new T.ConeGeometry(0.13, 0.2, 12), 0x9ff4ff, [0, 0.1, 0], [1, 1, 1], { outline:false, glow:0x9ff4ff, gi:1.2 }).rotation.x = Math.PI;
+            part(hg, new T.ConeGeometry(0.13, 0.2, 12), 0x9ff4ff, [0, -0.1, 0], [1, 1, 1], { outline:false, glow:0x9ff4ff, gi:1.2 });
+            part(hg, new T.CylinderGeometry(0.16, 0.16, 0.04, 14), 0xffd24a, [0, 0.21, 0], [1, 1, 1], { outline:false, metal:0.9, rough:0.2 });
+            part(hg, new T.CylinderGeometry(0.16, 0.16, 0.04, 14), 0xffd24a, [0, -0.21, 0], [1, 1, 1], { outline:false, metal:0.9, rough:0.2 });
+            hg.userData.ph = hgI / 3 * Math.PI * 2; rig.add(hg); hgs.push(hg);
+          }
+        }
+        U.anims.push(function(t){
+          var cyc = t % 4, run = cyc < 3 ? cyc : 3;                 // 3초 돌고 1초 멈춰요
+          hMin.rotation.z = -(Math.floor(t / 4) * 3 + run) * 2.2; hHour.rotation.z = hMin.rotation.z / 12;
+          ckRim.material.opacity = cyc < 3 ? 0.9 : 0.6 + Math.sin(t * 30) * 0.3;
+          ckG.rotation.y = Math.sin(t * 0.6) * 0.12;
+          hgs.forEach(function(hg){ var a = t * 0.9 + hg.userData.ph; hg.position.set(Math.cos(a) * 1.7, 1.3 + Math.sin(t * 1.6 + hg.userData.ph) * 0.35, Math.sin(a) * 1.1); hg.rotation.z = Math.floor((t + hg.userData.ph) / 2) % 2 ? Math.PI : 0; hg.rotation.y = t; });
+        });
+      }else if(k === 'dragonlord'){
+        // 박지용 진화: 휘어진 황금 뿔 + 몸 주위를 도는 불꽃 구슬 고리
+        [-1, 1].forEach(function(s){
+          var hornPts = [];
+          for(var hp = 0; hp <= 8; hp++){ var ht = hp / 8; hornPts.push(new T.Vector3(s * (0.42 + ht * 0.55 - ht * ht * 0.25), 1.7 + ht * 0.9, -0.1 - ht * 0.45 + ht * ht * 0.25)); }
+          var hc = new T.CatmullRomCurve3(hornPts);
+          for(var hs = 0; hs < 8; hs++){
+            var p0 = hc.getPoint(hs / 8), p1 = hc.getPoint((hs + 1) / 8), r0 = 0.13 * (1 - hs / 8) + 0.015, r1 = 0.13 * (1 - (hs + 1) / 8) + 0.01;
+            var seg = new T.Mesh(new T.CylinderGeometry(r1, r0, p0.distanceTo(p1) * 1.08, 12), new T.MeshStandardMaterial({ color: hs % 2 ? 0xffd24a : 0xf2b82a, metalness:0.9, roughness:0.25, envMap:ENV_CUR || null, envMapIntensity:1.3 }));
+            seg.position.copy(p0).add(p1).multiplyScalar(0.5); seg.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), p1.clone().sub(p0).normalize()); rig.add(seg);
+          }
+        });
+        var orbs = [];
+        if(!(opts && opts.noFx)){
+          for(var ob = 0; ob < 10; ob++){
+            var om = new T.Mesh(smallG, glowMat(ob % 2 ? 0xff7a1a : 0xffd24a, 0.95)); om.scale.setScalar(0.11); rig.add(om);
+            var oh = new T.Mesh(smallG, glowMat(0xff5a1a, 0.3)); oh.scale.setScalar(0.24); om.add(oh); oh.scale.setScalar(2.2);
+            orbs.push({ m:om, ph:ob / 10 * Math.PI * 2 });
+          }
+        }
+        U.anims.push(function(t){
+          orbs.forEach(function(o, i){ var a = t * 1.3 + o.ph; o.m.position.set(Math.cos(a) * 1.65, 1.1 + Math.sin(a * 2 + i) * 0.25, Math.sin(a) * 1.2); o.m.material.opacity = 0.75 + Math.sin(t * 12 + i) * 0.2; });
+        });
       }else if(k === 'mandala' && !(opts && opts.battle)){
         var mg = new T.Group();
         [[1.45, 0.04, 0xffd24a], [1.22, 0.03, 0xfff1b0], [1.0, 0.03, 0xff8ad8]].forEach(function(r, ri){
@@ -2340,7 +2396,7 @@
     curIndex = i;
     var v = VARIANTS[i];
     ENV_CUR = envTex;
-    var evoV = !!(opts && opts.evo && v.star >= 4), bigV = v.mythic || evoV;
+    var evoV = !!(opts && opts.evo && (v.star >= 4 || v.evoLook)), bigV = v.mythic || evoV;
     current = buildMascot(v, evoV ? { evo:true } : undefined);
     scene.add(current);
     camera.position.set(0, bigV ? 2.6 : 2.3, bigV ? 11.4 : 9.4); camera.lookAt(0, bigV ? 1.8 : 1.55, 0);
@@ -2639,7 +2695,7 @@
       sh.rotation.x = -Math.PI / 2; sh.position.y = 0.012; scene.add(sh);
       var F = { side:side, v:v, root:root, U:U, shadow:sh, dir: side === 0 ? 1 : -1, home: side === 0 ? -HOME : HOME,
         x: side === 0 ? -HOME : HOME, y: 0, z: 0, tilt: 0, yaw: 0, ex: 0, vex: 0, exT: 0, ey: 0, vey: 0, eyT: 0,
-        hp: st.hp, max: st.hp, atk: st.atk, def: st.def, spd: st.spd, name: st.name || v.name, flash: 0, hurt: 0, ko: false,
+        evo: !!evo, hp: st.hp, max: st.hp, atk: st.atk, def: st.def, spd: st.spd, name: st.name || v.name, flash: 0, hurt: 0, ko: false,
         gl: 0, glc: [0, 0.6, 0.3], shield: 0, atkBuff: 1, pet: null, aura: null, shieldM: null, tr: CHAR_TRAIT[v.name] || null, st: null,
         armUp: 0, swing: 0, nextBlink: 1.5 + side, turns: 0, py: 0, vy: 0, wRate: 0, attacking: false, hide: true };
       root.visible = false; sh.visible = false;
@@ -2853,7 +2909,7 @@
       var a = F[order[ti % 2]], d = F[order[(ti + 1) % 2]];
       ti++;
       var special = (a.turns % 3 === 2); a.turns++;
-      if(FA.turns + FB.turns > 60){ var w = FA.hp >= FB.hp ? FA : FB; finish(w, w === FA ? FB : FA); return; }
+      if(FA.turns + FB.turns > 60){ var w = (FA.hp / FA.max) >= (FB.hp / FB.max) ? FA : FB; finish(w, w === FA ? FB : FA); return; }
       var tev = trTurn(a, a.turns);                      // 화상 피해, 등불/축복/무지개 회복 …
       if(tev.length) showTrait(tev);
       if(a.hp <= 0){ if(trLethal(a)){ setHp(a); a.gl = 1; a.glc = [1, 0.9, 0.3]; } else{ finish(d, a); return; } }
@@ -4914,14 +4970,16 @@
     reaper:   { name:'저승의 처형',   icon:'💀', kind:'공격', desc:'상대 체력이 30% 이하일 때 입히는 피해가 38% 늘어요', p:{ execute:0.38, thr:0.3 } },
     blessing: { name:'천사의 축복',   icon:'😇', kind:'회복', desc:'내 턴 3번마다 최대 체력의 2.5%를 회복해요', p:{ heal3:0.025 } },
     reign:    { name:'왕의 군림',     icon:'🐻', kind:'방해', desc:'전투 시작 때 상대의 공격력을 5% 깎아요', p:{ intimidate:0.05 } },
-    timestop:  { name:'시간 정지',     icon:'⏳', kind:'방해', desc:'공격하면 45% 확률로 상대의 시간이 멈춰 한 턴을 쉬어요. 30% 확률로 순식간에 두 번 때려요(피해 2배). 15% 확률로 공격을 피해요', p:{ stun:0.45, double:0.3, dodge:0.15 } },
+    timestop:  { name:'시간 정지', icon:'⏳', kind:'방해', desc:'공격하면 53% 확률로 상대의 시간이 멈춰 한 턴을 쉬어요. 37% 확률로 두 번 때리고, 21% 확률로 공격을 피해요. 상대 방어력의 82%를 무시하고, 쓰러지면 한 번 시간을 되감아 일어나요(체력 60%)', p:{ stun:0.53, double:0.37, dodge:0.21, pierce:0.82, revive:{ n:1, hp:0.6 } } },
+    timestop_evo:{ name:'시간의 지배자', icon:'⏳', kind:'방해', desc:'공격하면 50% 확률로 시간을 멈춰요. 35% 확률로 두 번, 10% 확률로 세 번 때려요. 회피 20%, 치명타 +10%p, 상대 방어력의 86%를 무시하고, 쓰러지면 두 번 시간을 되감아 일어나요(체력 45%)', p:{ stun:0.5, double:0.35, x3:0.1, dodge:0.2, crit:0.1, pierce:0.86, revive:{ n:2, hp:0.45 } } },
+    dragonwill_evo:{ name:'용왕의 각성', icon:'🐉', kind:'방어', desc:'쓰러져도 세 번 다시 일어나요(체력 80%로). 시작 체력 +50%, 받는 피해 32% 감소, 피해의 25% 흡수, 체력이 낮을수록 공격력 최대 +80%, 치명타 +25%p, 방어 20% 관통, 강한 용의 불꽃 화상', p:{ revive:{ n:3, hp:0.8 }, bulk:0.5, reduce:0.32, lifesteal:0.25, rage:0.8, crit:0.25, pierce:0.2, burn:0.03 } },
     dragonwill:{ name:'불굴의 용',     icon:'🐲', kind:'방어', desc:'쓰러져도 세 번 다시 일어나요(체력 80%로). 전투 시작 체력 +30%, 받는 피해 30% 감소, 입힌 피해의 25%를 흡수, 체력이 낮을수록 공격력이 최대 50% 올라요. 치명타 확률 +15%p, 공격하면 용의 불꽃으로 화상을 입혀요', p:{ revive:{ n:3, hp:0.8 }, bulk:0.3, reduce:0.3, lifesteal:0.25, rage:0.5, crit:0.15, burn:0.015 } },
     inhale:    { name:'흡입하기', icon:'🌀', kind:'방해', desc:'내 턴 두 번마다 바람으로 상대를 빨아들여 내 쪽으로 끌어와요. 전투 시작 때 체력이 20% 늘어나고, 받는 피해 10% 감소, 내 턴마다 체력 1.5% 회복, 상대 방어력의 15%를 무시해요', p:{ bulk:0.2, reduce:0.1, regen:0.015, pierce:0.15 } },
     kingbody:  { name:'대왕의 풍채',   icon:'👑', kind:'방어', desc:'전투 시작 때 체력이 20% 늘어나요. 받는 피해 10% 감소, 내 턴마다 체력 1.5% 회복, 상대 방어력의 15%를 무시해요', p:{ bulk:0.2, reduce:0.1, regen:0.015, pierce:0.15 } },
     glitch:    { name:'치명적 오류',   icon:'☠️', kind:'공격', desc:'존재 자체가 버그예요. 해로운 효과를 받지 않고 30% 확률로 공격을 피해요. 공격하면 20% 확률로 피해 3배, 12% 확률로 상대 체력의 30%를 삭제하고, 상대 방어력의 40%를 무시해요. 한 번 쓰러져도 체력 60%로 복구돼요', p:{ immune:true, dodge:0.3, x3:0.2, del:0.12, delPct:0.3, pierce:0.4, revive:{ n:1, hp:0.6 } } },
     rainbow:  { name:'무지개의 은총', icon:'🌈', kind:'회복', desc:'내 턴 4번마다 체력 2.2% 회복, 나쁜 효과 해제, 다음 공격 +4.8%', p:{ rainbow:0.022, rbuff:0.048 } }
   };
-  function trP(F){ var t = F && F.tr ? TRAIT_INFO[F.tr] : null; return t ? t.p : null; }
+  function trP(F){ var t = F && F.tr ? ((F.evo && TRAIT_INFO[F.tr + '_evo']) || TRAIT_INFO[F.tr]) : null; return t ? t.p : null; }
   function trHeal(F, v){ var h = Math.max(0, Math.min(F.max - F.hp, Math.round(v))); F.hp += h; return h; }
   function trInit(F){ F.st = { burn:0, burnPct:0, stun:0, freeze:0, weakMul:1, shield:0, bamboo:false, undying:false, buff:1, rev:0 }; var p = trP(F); if(p && p.bulk){ F.max = Math.round(F.max * (1 + p.bulk)); F.hp = F.max; } if(p && p.startShield) F.st.shield = Math.round(F.max * p.startShield); }
   function trIntimidate(F, E){ var p = trP(F); if(p && p.intimidate) E.atk = E.atk * (1 - p.intimidate); }
@@ -4948,7 +5006,7 @@
   function trAfter(A, D, r){
     var ev = [], pa = trP(A) || {}, pd = trP(D) || {}, imm = !!pd.immune;
     if(r.dbl) ev.push({ t:'dbl', who:A, txt:'⏳ 연타!', col:[0.5, 0.9, 1] });
-    if(r.x3) ev.push({ t:'x3', who:A, txt:'⚠ 오버플로우 ×3', col:[1, 0.2, 0.5] });
+    if(r.x3) ev.push({ t:'x3', who:A, txt:(A.tr === 'timestop' ? '⏳ 삼연타!' : '⚠ 오버플로우 ×3'), col:[1, 0.2, 0.5] });
     if(pa.lifesteal && r.dmg > 0){ var h = trHeal(A, r.dmg * pa.lifesteal); if(h > 0) ev.push({ t:'heal', who:A, v:h, txt:'💗 흡수 +' + h, col:[0.9, 0.3, 0.6] }); }
     if(D.hp > 0){
       if(!imm){
@@ -6224,7 +6282,7 @@
     var prevEnv = ENV_CUR; ENV_CUR = makeEnv(r2);
     VARIANTS.forEach(function(v, i){
       if(filterFn && !filterFn(v, i)) return;
-      var bigT = v.mythic || (evoSet && v.star >= 4);
+      var bigT = v.mythic || (evoSet && (v.star >= 4 || v.evoLook));
       c2.position.set(0, 2.2, bigT ? 12.4 : 9.6); c2.lookAt(0, bigT ? 1.9 : 1.5, 0);
       var m = null;
       try{
@@ -7574,7 +7632,7 @@ function fillAccount(){
   try{
     HUB_CHARS.forEach(c => {
       const had = (charCollection[c.name] && charCollection[c.name].n) || 0;
-      charCollection[c.name] = { n: Math.max(5, had), lv: 30, evo: c.star >= 4 ? 1 : 0 };
+      charCollection[c.name] = { n: Math.max(5, had), lv: 30, evo: canEvo(c.name) ? 1 : 0 };
     });
     if(!kingdom) kNorm();
     kingdom.coins = Math.max(kingdom.coins || 0, FILL_COINS);
@@ -8353,7 +8411,7 @@ const HUB_ROLE_W = {
 };
 // 같은 등급끼리 공평하게 싸우도록 맞춘 보정값 (모의 대결 수십만 판으로 맞췄어요)
 const HUB_ROLE_BAL = { '공격':0.91, '방어':1.11, '마법':0.91, '속도':1.09, '올라운드':0.98 };
-const HUB_CHAR_BAL = {"서영준": 1, "마법사 병아리": 0.975, "사무라이 토끼": 1.005, "해적 고양이": 1.008, "번개 여우": 1.003, "로봇 용병": 1.037, "불꽃 정령": 0.991, "프린세스 슬라임": 0.982, "악마 버섯": 1.005, "서리 펭귄": 1.005, "용기사": 0.99, "해골 기사": 1.015, "대천사": 0.987, "왕곰": 0.998, "닌자곰": 0.989, "기사 슬라임": 1.023, "유령 등불지기": 0.949, "판다 파이터": 1.024, "젤리 슬라임": 1.016, "신기영": 1.0, "박지용": 1.6, "서현서": 0.79, "ERR0R": 1.0};
+const HUB_CHAR_BAL = {"서영준": 1, "마법사 병아리": 0.975, "사무라이 토끼": 1.005, "해적 고양이": 1.008, "번개 여우": 1.003, "로봇 용병": 1.037, "불꽃 정령": 0.991, "프린세스 슬라임": 0.982, "악마 버섯": 1.005, "서리 펭귄": 1.005, "용기사": 0.99, "해골 기사": 1.015, "대천사": 0.987, "왕곰": 0.998, "닌자곰": 0.989, "기사 슬라임": 1.023, "유령 등불지기": 0.949, "판다 파이터": 1.024, "젤리 슬라임": 1.016, "신기영": 1.88, "박지용": 1.6, "서현서": 0.79, "ERR0R": 1.0};
 // 2성은 능력치는 낮지만 특성이 아주 강한 숨은 보석, 측정불가는 신화보다 훨씬 희귀해요
 const HUB_RATES = [[2, 0.03], [3, 0.638999], [4, 0.28], [5, 0.05], [6, 0.001], [7, 0.000001]];   // 측정불가 0.0001% (보장 없음)
 const PITY5 = 50, PITY6 = 1000;
@@ -8364,10 +8422,15 @@ const THREE_UMD_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/thre
 
 function hubStarText(star){ return star >= 7 ? '측정불가' : (star >= 6 ? '신화' : '★'.repeat(star)); }
 // ----- 진화 (★4 이상): 승급과 레벨을 채우고 코인을 내면 더 화려한 모습으로 진화해요 -----
+const EVO_SPECIAL = { '신기영':{ cost:150000, lv:1 }, '박지용':{ cost:150000, lv:1 } };
+function canEvo(name){ const c = HUB_BY_NAME[name]; return !!(c && (c.star >= 4 || EVO_SPECIAL[name])); }
+function evoRuleOf(name){ const c = HUB_BY_NAME[name]; return c ? (EVO_SPECIAL[name] || EVO_RULE[c.star]) : null; }
+function traitOf(name, evo){ const k = TRAIT_KEY(name); const T0 = hubLib && hubLib.TRAIT_INFO; if(!T0 || !k) return null; return (evo && T0[k + '_evo']) || T0[k]; }
+function TRAIT_KEY(name){ return hubLib && hubLib.CHAR_TRAIT ? hubLib.CHAR_TRAIT[name] : null; }
 const EVO_RULE = { 4:{ cost:25000, lv:1 }, 5:{ cost:60000, lv:1 }, 6:{ cost:200000, lv:1 }, 7:{ cost:800000, lv:1 } };
 const EVO_MIN_PROMO = 1, EVO_MULT = 1.5, EVO_KINGDOM = 0.3;
 function evoRaw(name){ return (charCollection[name] && charCollection[name].evo) ? 1 : 0; }
-function charEvo(name){ const c = HUB_BY_NAME[name]; return (c && c.star >= 4 && evoRaw(name)) ? 1 : 0; }
+function charEvo(name){ return (canEvo(name) && evoRaw(name)) ? 1 : 0; }
 function charLevel(name){
   const n = (charCollection[name] && charCollection[name].n) || 0;
   return Math.min(5, Math.max(0, n));          // 승급 별: 같은 캐릭터를 뽑을 때마다 1개씩, 최대 5개
@@ -8402,7 +8465,7 @@ function charStatsOf(name, lvOv, opt, lvlOv){
   const lv = lvOv || Math.max(1, charLevel(name));
   const L = opt ? Math.max(1, opt.lvl || 1) : (lvlOv || charLvl(name));
   const bs = opt ? (opt.bs || { atk:opt.kb || 0, def:opt.kb || 0, hp:opt.kb || 0, spd:0 }) : kBuffs();
-  const evoM = (opt ? (opt.evo && c.star >= 4) : charEvo(name)) ? EVO_MULT : 1;
+  const evoM = (opt ? (opt.evo && canEvo(name)) : charEvo(name)) ? EVO_MULT : 1;
   const total = ({2:200, 3:100, 4:150, 5:220, 6:400, 7:900})[c.star] * evoM * (1 + 0.18 * (lv - 1)) * (1 + 0.04 * (L - 1)) * (HUB_ROLE_BAL[c.role] || 1) * (HUB_CHAR_BAL[name] || 1);
   const w = HUB_ROLE_W[c.role];
   return { atk:Math.round(total * w.atk * (1 + bs.atk)), def:Math.round(total * w.def * (1 + bs.def)), hp:Math.round(total * w.hp * 4 * (1 + bs.hp) * (name === '서현서' ? 2.5 : 1)), spd:Math.round(total * w.spd * (1 + bs.spd)) };
@@ -8482,7 +8545,7 @@ async function ensureHubLib(){
     await loadScriptOnce(THREE_UMD_URL);
     hubLib = window.createMascotLib(window.THREE);
     hubThumbs = hubLib.makeThumbs(220);
-    try{ hubThumbsEvo = hubLib.makeThumbs(220, v => v.star >= 4, true); }catch(e){ hubThumbsEvo = {}; }
+    try{ hubThumbsEvo = hubLib.makeThumbs(220, v => v.star >= 4 || !!v.evoLook, true); }catch(e){ hubThumbsEvo = {}; }
     return hubLib;
   })().catch(e => { hubLoading = null; throw e; });
   return hubLoading;
@@ -9212,7 +9275,7 @@ async function openDetail(name, opts){
   const numHTML = (k) => c.star === 7 ? `<div class="dt-num"><b class="glitch-num">???</b></div>` : `<div class="dt-num"><b>${st1[k]}</b>${pl[k] > 0 ? `<em class="dt-plus${opts.flash ? ' pop' : ''}">+${pl[k]}</em>` : ''}</div>`;
   const L = charLvl(name), cap = charLvlCap(name), cost = lvlCost(name), coins = kingdom ? kingdom.coins : 0, bsT = kBuffs();
   const canLv = L < cap && coins >= cost;
-  const evoNow = charEvo(name), evoRule = EVO_RULE[c.star];
+  const evoNow = charEvo(name), evoRule = evoRuleOf(name);
   const evoOk = !!evoRule && !evoNow && lv >= EVO_MIN_PROMO && L >= evoRule.lv && coins >= evoRule.cost;
   const evoHTML = (!evoRule || evoNow) ? '' : `<button type="button" class="hub-btn ${evoOk ? 'b3' : 'dim'} sm" id="dtEvolve" style="margin-top:8px;">✨ 진화 · ${evoRule.cost.toLocaleString()} 코인</button>`;
   const need = charNextNeed(name), n = charCollection[name].n, extra = charExtra(name);
@@ -9221,7 +9284,7 @@ async function openDetail(name, opts){
     <div class="rv-star">${hubStarText(c.star)}</div>
     <div class="rv-name r${c.star}">${escapeHtml(c.name)}${evoNow ? ' ✨' : ''}</div>
     <div class="hub-sub" style="margin:2px 0 0;">${c.role}형 · 승급 ${'✦'.repeat(lv)}${'✧'.repeat(5 - lv)}${mainChar === name ? ' · 대표' : ''}</div>
-    ${(() => { const t = lib.TRAIT_INFO[lib.CHAR_TRAIT[name]]; return t ? `<div class="dt-trait"><b>${t.icon} 고유 특성 · ${t.name} <span style="opacity:.6;font-weight:600;">(${t.kind}형)</span></b><span>${t.desc}</span></div>` : ''; })()}
+    ${(() => { const t = traitOf(name, charEvo(name)); return t ? `<div class="dt-trait"><b>${t.icon} 고유 특성 · ${t.name} <span style="opacity:.6;font-weight:600;">(${t.kind}형)</span></b><span>${t.desc}</span></div>` : ''; })()}
     <div class="dt-lv"><span class="dt-lv-badge${opts.flash ? ' pop' : ''}">Lv.${L}</span>
       <div class="dt-lv-meter"><div class="dt-lv-bar"><i style="width:${Math.round(L / cap * 100)}%"></i></div>
       <span class="dt-lv-sub">최대 Lv.${cap}${L >= cap ? ' · 승급 ✦를 올리면 더 늘어나요' : ''}</span></div></div>
@@ -9271,7 +9334,7 @@ async function openDetail(name, opts){
 }
 function evolveChar(name){
   if(!hubReady()) return;
-  const c = HUB_BY_NAME[name], rule = c && EVO_RULE[c.star];
+  const c = HUB_BY_NAME[name], rule = c && evoRuleOf(name);
   if(!rule || charEvo(name)) return;
   if(!kingdom) kNorm();
   if(charLevel(name) < EVO_MIN_PROMO){ hubToast(`승급 ✦${EVO_MIN_PROMO} 이상이 필요해요`); return; }
@@ -9413,7 +9476,7 @@ function hubGrant(name, k){
 }
 function masterAction(k){
   if(!isMaster() || !hubReady()) return;
-  const hi = HUB_CHARS.filter(c => c.star >= 4);
+  const hi = HUB_CHARS.filter(c => canEvo(c.name));
   if(k === 't10') tickets += 10; else if(k === 't100') tickets += 100; else if(k === 't1000') tickets += 1000;
   else if(k === 'all') HUB_CHARS.forEach(c => { if(!(charCollection[c.name] && charCollection[c.name].n)) charCollection[c.name] = { n: 1, lv: 1, evo: 0 }; });
   else if(k === 'max') HUB_CHARS.forEach(c => { charCollection[c.name] = { n: Math.max(5, (charCollection[c.name] && charCollection[c.name].n) || 0), lv: charLvl(c.name), evo: evoRaw(c.name) }; });
@@ -9421,7 +9484,7 @@ function masterAction(k){
   else if(k === 'evoAll') hi.forEach(c => { if(charCollection[c.name] && charCollection[c.name].n > 0) charCollection[c.name].evo = 1; });
   else if(k === 'evoOff') hi.forEach(c => { if(charCollection[c.name]) charCollection[c.name].evo = 0; });
   else if(k === 'full'){
-    HUB_CHARS.forEach(c => { const had = (charCollection[c.name] && charCollection[c.name].n) || 0; charCollection[c.name] = { n: Math.max(5, had), lv: 30, evo: c.star >= 4 ? 1 : 0 }; });
+    HUB_CHARS.forEach(c => { const had = (charCollection[c.name] && charCollection[c.name].n) || 0; charCollection[c.name] = { n: Math.max(5, had), lv: 30, evo: canEvo(c.name) ? 1 : 0 }; });
     kNorm(); kingdom.coins = Math.max(kingdom.coins, 99999999); tickets = Math.max(tickets, 999);
     K_IDS.forEach(id => { kingdom.b[id].lv = K_MAX; }); kingdom.decor = { owned: KDECO_IDS.slice() }; kNorm();
   }
@@ -9467,7 +9530,7 @@ function renderMasterView(){
     <div class="pull-row" style="margin-bottom:12px;">${B('kb5', '건물 전부 Lv5', 'b3')}${B('kb10', '건물 전부 Lv10', 'b2')}${B('decorAll', '장식 전부', 'b3')}${B('decorOff', '장식 치우기')}${B('kt8', '생산 8시간 앞당기기')}${B('petMax', '슬라임 초월 단계', 'b2')}</div>
     <div class="hub-sub" style="margin:8px 0 4px;color:#ffd24a;">캐릭터별 (+1장 · 진화 켜기/끄기)</div>
     ${HUB_CHARS.map(c => `<div class="ms-row"><div><b>${escapeHtml(c.name)}</b> <span class="hub-sub">${hubStarText(c.star)} · ${(charCollection[c.name] && charCollection[c.name].n) || 0}장${charEvo(c.name) ? ' · ✨진화' : ''}</span></div>
-      <div style="display:flex;gap:6px;"><button class="hub-btn sm" data-g="${escapeHtml(c.name)}">+1</button>${c.star >= 4 ? `<button class="hub-btn sm b3" data-e="${escapeHtml(c.name)}">✨</button>` : ''}</div></div>`).join('')}`;
+      <div style="display:flex;gap:6px;"><button class="hub-btn sm" data-g="${escapeHtml(c.name)}">+1</button>${canEvo(c.name) ? `<button class="hub-btn sm b3" data-e="${escapeHtml(c.name)}">✨</button>` : ''}</div></div>`).join('')}`;
   v.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', () => { hubGrant(b.dataset.g, 1); renderMasterView(); }));
   v.querySelectorAll('[data-e]').forEach(b => b.addEventListener('click', () => { masterEvoToggle(b.dataset.e); renderMasterView(); }));
   v.querySelectorAll('[data-ms]').forEach(b => b.addEventListener('click', () => { masterAction(b.dataset.ms); renderMasterView(); }));
@@ -9581,7 +9644,7 @@ function btExit(){
 function btStartVs(uid){
   const m = (latestMembers || []).find(x => x.uid === uid);
   if(!m || !m.hub || !HUB_BY_NAME[m.hub.name]){ hubToast('상대의 캐릭터를 찾지 못했어요'); return; }
-  btOpp = { uid, nick: btMemberName(m), name: m.hub.name, evo: (m.hub.evo && HUB_BY_NAME[m.hub.name].star >= 4) ? 1 : 0, lv: Math.max(1, Math.min(5, m.hub.lv || 1)), lvl: Math.max(1, Math.min(30, m.hub.lvl || 1)), kb: Math.max(0, Math.min(0.5, m.hub.kb || 0)),
+  btOpp = { uid, nick: btMemberName(m), name: m.hub.name, evo: (m.hub.evo && canEvo(m.hub.name)) ? 1 : 0, lv: Math.max(1, Math.min(5, m.hub.lv || 1)), lvl: Math.max(1, Math.min(30, m.hub.lvl || 1)), kb: Math.max(0, Math.min(0.5, m.hub.kb || 0)),
     pet: petSanitize(m.hub.pet),
     bs: m.hub.bs ? { atk: Math.max(0, Math.min(0.9, m.hub.bs.a || 0)), def: Math.max(0, Math.min(0.9, m.hub.bs.d || 0)), hp: Math.max(0, Math.min(0.9, m.hub.bs.h || 0)), spd: Math.max(0, Math.min(0.9, m.hub.bs.s || 0)) } : null };
   btStart();
@@ -9598,9 +9661,9 @@ async function btStart(){
   document.getElementById('btResult').classList.add('hidden');
   document.getElementById('btPops').innerHTML = '';
   const sL = charStatsOf(me), sR = charStatsOf(btOpp.name, btOpp.lv, { lvl: btOpp.lvl, kb: btOpp.kb, bs: btOpp.bs || undefined });
-  const trOf = (n) => { const t = lib.TRAIT_INFO[lib.CHAR_TRAIT[n]]; return t ? ` · ${t.icon}${t.name}` : ''; };
-  document.getElementById('btNameL').textContent = `나 · ${me}${charEvo(me) ? ' ✨' : ''}${trOf(me)}`;
-  document.getElementById('btNameR').textContent = `${btOpp.nick} · ${btOpp.name}${btOpp.evo ? ' ✨' : ''}${trOf(btOpp.name)}`;
+  const trOf = (n, e) => { const t = traitOf(n, e); return t ? ` · ${t.icon}${t.name}` : ''; };
+  document.getElementById('btNameL').textContent = `나 · ${me}${charEvo(me) ? ' ✨' : ''}${trOf(me, charEvo(me))}`;
+  document.getElementById('btNameR').textContent = `${btOpp.nick} · ${btOpp.name}${btOpp.evo ? ' ✨' : ''}${trOf(btOpp.name, btOpp.evo)}`;
   const names = lib.VARIANTS.map(v => v.name);
   const hpEls = { 0:{ bar:document.querySelector('#btL .bt-bar i'), txt:document.querySelector('#btL .bt-hp') }, 1:{ bar:document.querySelector('#btR .bt-bar i'), txt:document.querySelector('#btR .bt-hp') } };
   const banner = document.getElementById('btBanner');
