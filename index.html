@@ -1326,6 +1326,7 @@
 
   <!-- 대결 오버레이 -->
   <div id="battleOverlay" class="drawer-overlay game-screen hidden">
+    <button type="button" id="battleSpeedBtn" style="position:absolute;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:500;font:inherit;font-size:14px;padding:10px 16px;border-radius:999px;border:1px solid #7fdcff;background:rgba(10,20,40,0.85);color:#bfefff;cursor:pointer;box-shadow:0 0 12px rgba(127,220,255,0.35);">⏩ 빨리 감기 1x</button>
     <div class="drawer" style="max-width:420px;">
       <div class="drawer-header">
         <h2>대결</h2>
@@ -1346,7 +1347,6 @@
           <div class="hp-text" id="battleFoeHpText">100/100</div>
         </div>
       </div>
-      <div style="text-align:right;margin:4px 8px 0;"><button type="button" id="battleSpeedBtn" style="font:inherit;font-size:13px;padding:4px 12px;border-radius:999px;border:1px solid #888;background:#fff;color:#333;cursor:pointer;">⏩ 빨리 감기 1x</button></div>
       <div class="battle-log" id="battleLog"></div>
       <div class="battle-result hidden" id="battleResult"></div>
     </div>
