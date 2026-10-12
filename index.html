@@ -1100,6 +1100,12 @@
   }
 
   .hidden{display:none!important;}
+  .tr-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0;}
+  .tr-head{text-align:center;}
+  .tr-stage{position:relative;width:100%;max-width:520px;height:340px;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#2a2457 0%,#0b0f22 70%);}
+  .tr-stage canvas{width:100%;height:100%;display:block;}
+  .tr-pop{position:absolute;font-weight:800;font-size:20px;color:#ffd24a;text-shadow:0 2px 6px rgba(0,0,0,.7);pointer-events:none;transform:translate(-50%,0);opacity:1;transition:transform .9s ease-out,opacity .9s;}
+  .tr-actions{width:100%;max-width:520px;display:flex;justify-content:center;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
@@ -1285,6 +1291,7 @@
       </section>
       <section id="hubPetView" class="hub-view hidden"></section>
       <section id="hubMasterView" class="hub-view hidden"></section>
+      <section id="hubTrampView" class="hub-view hidden"></section>
     </div>
     <div class="hub-nav" id="hubNav">
       <button data-hub="col" class="on">도감</button>
@@ -1292,6 +1299,7 @@
       <button data-hub="battle">전투</button>
       <button data-hub="king">왕국</button>
       <button data-hub="pet">키우기</button>
+      <button data-hub="tramp">트램펄린</button>
       <button data-hub="master" id="hubMasterTab" style="display:none;">마스터</button>
     </div>
   </div>
@@ -1508,6 +1516,7 @@
         <div class="en-word" id="quizWord">word</div>
       </div>
       <div class="options" id="quizOptions"></div>
+      <button type="button" id="quizQuitBtn" class="back" disabled style="margin-top:14px;width:100%;">5문제마다 그만둘 수 있어요</button>
     </div>
 
     <!-- 단어 암기 (스와이프 카드) -->
@@ -6158,7 +6167,166 @@
     return out;
   }
 
-    return { VARIANTS:VARIANTS, buildMascot:buildMascot, makeViewer:makeViewer, makeThumbs:makeThumbs, makeBattle:makeBattle, makeKingdom:makeKingdom, makePet:makePet, TRAIT_INFO:TRAIT_INFO, CHAR_TRAIT:CHAR_TRAIT, KDECO_IDS:Object.keys(KDECO_BUILD) };
+    // ---- 트램펄린: 대표 슬라임이 튀어 오르며 코인을 벌어요 (8단계) ----
+    var TR_PAL = ['#f5d26b', '#8fe3ff', '#ffb3e1', '#a6f0a0', '#ffa64d', '#c9b6ff', '#ffd86b', '#ff6b9a'];
+    function makeTrampoline(canvas, cfg, hooks){
+      hooks = hooks || {};
+      var ti = Math.max(0, Math.min(7, (cfg.tier | 0) - 1));
+      var spd = cfg.speed || 1;
+      var renderer = new T.WebGLRenderer({ canvas:canvas, antialias:true, alpha:true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      if(T.ACESFilmicToneMapping){ renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0; }
+      var scene = new T.Scene();
+      var camera = new T.PerspectiveCamera(36, 1, 0.1, 200);
+      camera.position.set(0, 3.2 + ti * 0.05, 10.5 - ti * 0.1); camera.lookAt(0, 1.3, 0);
+      var envTex = makeEnv(renderer); ENV_CUR = envTex;
+      scene.add(new T.HemisphereLight(0xdfe6ff, 0x3a2a66, 1.1));
+      var sun = new T.DirectionalLight(0xffffff, 0.9); sun.position.set(3, 8, 6); scene.add(sun);
+      var palN = parseInt(TR_PAL[ti].slice(1), 16);
+      var key = new T.PointLight(palN, 1.2 + ti * 0.25, 22); key.position.set(0, 1.4, 4); scene.add(key);
+
+      var floor = new T.Mesh(new T.CircleGeometry(5.2, 48), new T.MeshStandardMaterial({ color:0x1d2741, roughness:0.9 }));
+      floor.rotation.x = -Math.PI / 2; floor.position.y = -0.01; scene.add(floor);
+      if(ti >= 3){
+        var aura = new T.Sprite(new T.SpriteMaterial({ map:glowTex(), color:palN, transparent:true, opacity:0.45, blending:T.AdditiveBlending, depthWrite:false }));
+        aura.scale.set(7 + ti * 0.4, 3.6 + ti * 0.2, 1); aura.position.set(0, 0.5, -0.4); scene.add(aura);
+      }
+
+      // 틀: 단계가 높을수록 기둥이 많고, 금속 느낌이 나요
+      var R = 1.9 + ti * 0.16, H = 0.9 + ti * 0.06, MR = R - 0.15;
+      var frameColor = ti < 2 ? 0x9a6a3a : (ti < 4 ? 0xbfc8d6 : (ti < 6 ? 0xd9b24a : 0xf0d060));
+      var frameMat = new T.MeshStandardMaterial({ color:frameColor, roughness:0.4, metalness: ti >= 2 ? 0.45 : 0.05 });
+      var frame = new T.Group(); scene.add(frame);
+      var flags = [];
+      var legN = ti < 2 ? 4 : (ti < 4 ? 6 : 8);
+      for(var l = 0; l < legN; l++){
+        var a = l / legN * Math.PI * 2, px = Math.cos(a) * R, pz = Math.sin(a) * R;
+        var leg = new T.Mesh(new T.CylinderGeometry(0.07 + ti * 0.006, 0.1 + ti * 0.006, H, 12), frameMat);
+        leg.position.set(px, H / 2, pz); frame.add(leg);
+        var ball = new T.Mesh(new T.SphereGeometry(0.13 + ti * 0.012, 14, 10), new T.MeshStandardMaterial({ color:palN, emissive:palN, emissiveIntensity: ti >= 2 ? 0.6 : 0.15, roughness:0.25 }));
+        ball.position.set(px, H + 0.05, pz); frame.add(ball);
+        if(ti >= 2){
+          var ph = 1.1 + ti * 0.12;
+          var post = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, ph, 8), frameMat);
+          post.position.set(px, H + ph / 2 + 0.05, pz); frame.add(post);
+          var fl = new T.Mesh(new T.PlaneGeometry(0.42, 0.26), new T.MeshStandardMaterial({ color:palN, emissive:palN, emissiveIntensity:0.35, side:T.DoubleSide }));
+          fl.position.set(px, H + ph - 0.1, pz); frame.add(fl);
+          flags.push({ m:fl, a:a, i:l });
+        }
+      }
+      var rim = new T.Mesh(new T.TorusGeometry(R, 0.1 + ti * 0.012, 14, 72), frameMat);
+      rim.rotation.x = Math.PI / 2; rim.position.y = H; frame.add(rim);
+      var base = new T.Mesh(new T.CylinderGeometry(R + 0.25, R + 0.35, 0.22, 48), new T.MeshStandardMaterial({ color:0x2a3350, roughness:0.8 }));
+      base.position.y = 0.11; frame.add(base);
+
+      // 방수포(매트): 줄무늬, 가운데가 꺼졌다 튕겨요
+      var matTex = (function(){
+        var cv = document.createElement('canvas'); cv.width = 256; cv.height = 256; var c = cv.getContext('2d'), N = 12;
+        for(var s = 0; s < N; s++){ c.fillStyle = s % 2 ? '#fff8e6' : TR_PAL[ti]; c.beginPath(); c.moveTo(128, 128); c.arc(128, 128, 128, s / N * Math.PI * 2, (s + 1) / N * Math.PI * 2); c.closePath(); c.fill(); }
+        return new T.CanvasTexture(cv);
+      })();
+      var mat = new T.Mesh(new T.CircleGeometry(MR, 48), new T.MeshStandardMaterial({ map:matTex, roughness:0.6, side:T.DoubleSide }));
+      mat.rotation.x = -Math.PI / 2; scene.add(mat);
+
+      // 고무줄: 틀 끝에서 매트 끝까지 이어져 매트와 함께 출렁여요
+      var BN = 24, bpos = new Float32Array(BN * 12);
+      var bgeo = new T.BufferGeometry(); bgeo.setAttribute('position', new T.BufferAttribute(bpos, 3));
+      scene.add(new T.LineSegments(bgeo, new T.LineBasicMaterial({ color:palN, transparent:true, opacity:0.95 })));
+      function setP(i, x, y, z){ bpos[i] = x; bpos[i + 1] = y; bpos[i + 2] = z; }
+      function updBands(){
+        for(var b = 0; b < BN; b++){
+          var ang = b / BN * Math.PI * 2, c = Math.cos(ang), s = Math.sin(ang), o = b * 12;
+          var yA = H + 0.02, yB = (H + matY) / 2, yC = matY + 0.02;
+          setP(o, c * (R + 0.08), yA, s * (R + 0.08));
+          setP(o + 3, c * (R - 0.02), yB, s * (R - 0.02));
+          setP(o + 6, c * (R - 0.02), yB, s * (R - 0.02));
+          setP(o + 9, c * MR, yC, s * MR);
+        }
+        bgeo.attributes.position.needsUpdate = true;
+      }
+
+      // 단계별 장식: 빛 고리, 반짝이
+      var ringG = null;
+      if(ti >= 3){
+        ringG = new T.Mesh(new T.TorusGeometry(R + 0.4, 0.04, 8, 64), new T.MeshBasicMaterial({ color:palN, transparent:true, opacity:0.8, blending:T.AdditiveBlending, depthWrite:false }));
+        ringG.rotation.x = Math.PI / 2; scene.add(ringG);
+      }
+      var sparks = null, spN = 0, sd = [];
+      if(ti >= 5){
+        spN = 40;
+        var sp = new Float32Array(spN * 3);
+        sparks = new T.Points(new T.BufferGeometry(), new T.PointsMaterial({ color:palN, size:0.12, transparent:true, opacity:0.9, depthWrite:false }));
+        sparks.geometry.setAttribute('position', new T.BufferAttribute(sp, 3)); scene.add(sparks);
+        for(var q = 0; q < spN; q++) sd.push(Math.random() * 6.283, 0.8 + Math.random() * 2.6, Math.random());
+        sparks.userData.p = sp;
+      }
+
+      // 대표 슬라임
+      ENV_CUR = envTex;
+      var slime = buildMascot(cfg.v, cfg.evo ? { evo:true } : undefined);
+      scene.add(slime);
+      var SB = 0.9; slime.scale.setScalar(SB);
+      var shadow = new T.Mesh(new T.CircleGeometry(0.9, 32), new T.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35 }));
+      shadow.rotation.x = -Math.PI / 2; shadow.position.y = H + 0.01; scene.add(shadow);
+
+      // 물리: 매트 스프링 + 슬라임 점프 + 출렁이는 찌그러짐
+      var GRAV = 9.0, HB = 1.7 + ti * 0.12, VY = Math.sqrt(2 * GRAV * HB);
+      var K = 46 + ti * 3, C = 2.8;
+      var matY = H, matV = 0, air = 0, vy = VY, sq = 0, sqV = 0;
+      var KQ = 95, CQ = 6.5;
+      var coinChance = 0.22 + ti * 0.02;
+      function land(imp){
+        sqV += Math.min(14, imp * 1.1);           // 철푸덕
+        matV = -Math.min(3.2, imp * 0.22);        // 매트가 쑥 꺼졌다 튕겨요
+        if(hooks.onLand) hooks.onLand();
+        if(Math.random() < coinChance && hooks.onCoin){
+          hooks.onCoin((2 + ti * 2 + Math.floor(Math.random() * (3 + ti))) * 5);
+        }
+      }
+      function step(dt){
+        matV += (-K * (matY - H) - C * matV) * dt; matY += matV * dt;
+        vy -= GRAV * dt; air += vy * dt;
+        if(air <= 0 && vy < 0){ var imp = -vy; air = 0; vy = VY; land(imp); }
+        sqV += (-KQ * sq - CQ * sqV) * dt; sq += sqV * dt;
+        sq = Math.max(-0.55, Math.min(0.75, sq));
+        slime.position.set(0, matY + air, 0);
+        slime.scale.set(SB * (1 + sq * 0.32), SB * (1 - sq * 0.42), SB * (1 + sq * 0.32));
+        var pool = 1 + Math.max(0, sq) * 0.35;
+        shadow.scale.set(pool, 1, pool);
+        shadow.position.y = H + 0.01;
+        mat.position.y = matY;
+      }
+
+      var running = false, rafId = 0, lastNow = 0, tt = 0;
+      function frame(now){
+        if(!running) return;
+        var dt = Math.min(0.033, Math.max(0.001, (now - lastNow) / 1000)); lastNow = now; tt += dt;
+        step(dt * spd);
+        flags.forEach(function(f){ f.m.rotation.y = -f.a + Math.sin(tt * 3 + f.i) * 0.35; });
+        if(ringG){ ringG.position.y = H + 0.4 + Math.sin(tt * 2) * 0.1; ringG.rotation.z = tt * 0.6; }
+        if(sparks){
+          var P = sparks.userData.p;
+          for(var k = 0; k < spN; k++){
+            var ang2 = sd[k * 3] + tt * (0.5 + sd[k * 3 + 2]), rr = R + 0.5 + Math.sin(tt + k) * 0.2;
+            P[k * 3] = Math.cos(ang2) * rr; P[k * 3 + 1] = sd[k * 3 + 1] + Math.sin(tt * 2 + k) * 0.2; P[k * 3 + 2] = Math.sin(ang2) * rr;
+          }
+          sparks.geometry.attributes.position.needsUpdate = true;
+        }
+        if(ti === 7){ key.color.setHSL((tt * 0.12) % 1, 0.9, 0.6); }   // 무지개 단계: 빛이 색을 바꿔요
+        updBands();
+        renderer.render(scene, camera);
+        rafId = requestAnimationFrame(frame);
+      }
+      function resize(){
+        var w = canvas.clientWidth || 320, h = canvas.clientHeight || 320;
+        renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+      }
+      function start(){ if(running) return; running = true; resize(); lastNow = performance.now(); rafId = requestAnimationFrame(frame); }
+      function stop(){ running = false; if(rafId) cancelAnimationFrame(rafId); rafId = 0; }
+      function dispose(){ stop(); renderer.dispose(); if(renderer.forceContextLoss) renderer.forceContextLoss(); }
+      return { start:start, stop:stop, dispose:dispose, resize:resize };
+    }
+    return { VARIANTS:VARIANTS, buildMascot:buildMascot, makeViewer:makeViewer, makeThumbs:makeThumbs, makeBattle:makeBattle, makeKingdom:makeKingdom, makePet:makePet, makeTrampoline:makeTrampoline, TRAIT_INFO:TRAIT_INFO, CHAR_TRAIT:CHAR_TRAIT, KDECO_IDS:Object.keys(KDECO_BUILD) };
   }
   global.createMascotLib = createMascotLib;
 })(window);
@@ -7199,7 +7367,7 @@ function giveWordCoins(count){
   if(!wordCoinLog || wordCoinLog.d !== today) wordCoinLog = { d:today, n:0 };
   const room = Math.max(0, WORD_COIN_CAP - wordCoinLog.n), n = Math.min(count, room);
   let total = 0;
-  for(let i = 0; i < n; i++) total += 1 + Math.floor(Math.random() * 3);   // 1, 2, 3 중 하나
+  for(let i = 0; i < n; i++) total += (1 + Math.floor(Math.random() * 3)) * 10;   // 10, 20, 30 중 하나
   if(n > 0){ wordCoinLog.n += n; kingdom.coins += total; saveCharacter(); if(typeof kRefresh === 'function' && typeof hubTab !== 'undefined') try{ kRefresh(); }catch(e){} }
   return { total, n, capped: n < count };
 }
@@ -7938,7 +8106,7 @@ const THREE_UMD_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/thre
 
 function hubStarText(star){ return star >= 7 ? '측정불가' : (star >= 6 ? '신화' : '★'.repeat(star)); }
 // ----- 진화 (★4 이상): 승급과 레벨을 채우고 코인을 내면 더 화려한 모습으로 진화해요 -----
-const EVO_RULE = { 4:{ cost:2500, lv:1 }, 5:{ cost:6000, lv:1 }, 6:{ cost:20000, lv:1 }, 7:{ cost:80000, lv:1 } };
+const EVO_RULE = { 4:{ cost:25000, lv:1 }, 5:{ cost:60000, lv:1 }, 6:{ cost:200000, lv:1 }, 7:{ cost:800000, lv:1 } };
 const EVO_MIN_PROMO = 1, EVO_MULT = 1.5, EVO_KINGDOM = 0.3;
 function evoRaw(name){ return (charCollection[name] && charCollection[name].evo) ? 1 : 0; }
 function charEvo(name){ const c = HUB_BY_NAME[name]; return (c && c.star >= 4 && evoRaw(name)) ? 1 : 0; }
@@ -7967,7 +8135,7 @@ function charLvl(name){ return Math.max(1, (charCollection[name] && charCollecti
 function charLvlCap(name){ return Math.min(30, 6 + 6 * Math.max(1, charLevel(name))); }
 function lvlCost(name){
   const c = HUB_BY_NAME[name], m = ({2:0.8, 3:1, 4:1.5, 5:2.2, 6:4, 7:8})[c.star] || 1;
-  return Math.round(50 * Math.pow(1.18, charLvl(name) - 1) * m * (1 - kDiscount()));
+  return Math.round(500 * Math.pow(1.18, charLvl(name) - 1) * m * (1 - kDiscount()));
 }
 // 왕성 레벨이 주는 전투 보너스 (모든 캐릭터의 공격·방어·체력)
 function kBuffPct(){ return (kingdom && kingdom.b) ? 0.02 * (kLv('castle') - 1) : 0; }
@@ -8097,23 +8265,23 @@ const PET_FEED_GAIN = 10, PET_SAT_MIN = 3, PET_MOOD_MIN = 8;
 const PET_WARM_COST = 100, PET_WARM_GAIN = 25, PET_TREAT_COST = 50;
 const PET_NAMES = ['몽글이', '말랑이', '뽀짝이', '푸딩이', '찰떡이', '방울이', '쫀득이', '젤리', '구름이', '보들이', '토실이', '반짝이'];
 const PET_DECO = [
-  { id:'flowers',   name:'꽃밭',       icon:'🌸', cost:150 },
-  { id:'mushrooms', name:'버섯 마을',  icon:'🍄', cost:160 },
-  { id:'ball',      name:'통통 공',    icon:'⚽', cost:180 },
-  { id:'cushion',   name:'폭신 방석',  icon:'🛋️', cost:200 },
-  { id:'balloon',   name:'풍선',       icon:'🎈', cost:220 },
-  { id:'tree',      name:'사과나무',   icon:'🌳', cost:250 },
-  { id:'fence',     name:'하얀 울타리', icon:'🧱', cost:300 },
-  { id:'lantern',   name:'별빛 가로등', icon:'🏮', cost:350 },
-  { id:'pond',      name:'작은 연못',  icon:'💧', cost:400 },
-  { id:'rainbow',   name:'무지개',     icon:'🌈', cost:500 },
-  { id:'house',     name:'슬라임 집',  icon:'🏠', cost:600 }
+  { id:'flowers',   name:'꽃밭',       icon:'🌸', cost:1500 },
+  { id:'mushrooms', name:'버섯 마을',  icon:'🍄', cost:1600 },
+  { id:'ball',      name:'통통 공',    icon:'⚽', cost:1800 },
+  { id:'cushion',   name:'폭신 방석',  icon:'🛋️', cost:2000 },
+  { id:'balloon',   name:'풍선',       icon:'🎈', cost:2200 },
+  { id:'tree',      name:'사과나무',   icon:'🌳', cost:2500 },
+  { id:'fence',     name:'하얀 울타리', icon:'🧱', cost:3000 },
+  { id:'lantern',   name:'별빛 가로등', icon:'🏮', cost:3500 },
+  { id:'pond',      name:'작은 연못',  icon:'💧', cost:4000 },
+  { id:'rainbow',   name:'무지개',     icon:'🌈', cost:5000 },
+  { id:'house',     name:'슬라임 집',  icon:'🏠', cost:6000 }
 ];
 const PET_THEMES = [
   { id:'meadow',  name:'여름 초원', icon:'🌿', cost:0 },
-  { id:'autumn',  name:'가을 단풍', icon:'🍁', cost:500 },
-  { id:'snow',    name:'겨울 눈',   icon:'❄️', cost:600 },
-  { id:'blossom', name:'봄 벚꽃',   icon:'💮', cost:700 }
+  { id:'autumn',  name:'가을 단풍', icon:'🍁', cost:5000 },
+  { id:'snow',    name:'겨울 눈',   icon:'❄️', cost:6000 },
+  { id:'blossom', name:'봄 벚꽃',   icon:'💮', cost:7000 }
 ];
 let petTimeMode = 'auto';
 let petBusy = false, petRenderedSig = '';
@@ -8199,7 +8367,7 @@ function petFeed(){
   if(pet.lastDay !== today){
     pet.streak = (pet.lastDay === petDayKey(yd)) ? (pet.streak || 0) + 1 : 1;
     pet.lastDay = today;
-    const c = 30 * (st + 1); kingdom.coins += c; notes.push(`오늘의 첫 먹이! 코인 +${c}`);
+    const c = 300 * (st + 1); kingdom.coins += c; notes.push(`오늘의 첫 먹이! 코인 +${c}`);
     if(pet.streak === 3){ tickets += 1; notes.push('3일 연속! 티켓 +1'); }
     if(pet.streak === 7){ tickets += 2; notes.push('7일 연속! 티켓 +2'); }
   }
@@ -8272,7 +8440,7 @@ function petOpenGift(){
   pet.gifts--;
   const st = Math.max(1, petStage()), r = Math.random();
   let text;
-  if(r < 0.8){ const c = Math.round((60 + Math.random() * 140) * st); kingdom.coins += c; text = `코인 ${c}개`; }
+  if(r < 0.8){ const c = Math.round((600 + Math.random() * 1400) * st); kingdom.coins += c; text = `코인 ${c}개`; }
   else if(r < 0.95){ tickets += 1; text = '티켓 1장'; }
   else{ tickets += 2; text = '티켓 2장'; }
   saveCharacter(); updateHubTickets(); playFanfare();
@@ -8479,8 +8647,8 @@ function petVisitReward(uid){
   v.last = today; v.n++; pet.visits[uid] = v;
   const keys = Object.keys(pet.visits); if(keys.length > 60){ delete pet.visits[keys[0]]; }
   if(!kingdom) kNorm();
-  kingdom.coins += 40; petSetMood(petVals().mood + 10);
-  let msg = '놀러가서 코인 40개를 받았어요!';
+  kingdom.coins += 400; petSetMood(petVals().mood + 10);
+  let msg = '놀러가서 코인 400개를 받았어요!';
   if(v.n % 5 === 0){ tickets += 1; msg += ' (5번째 방문! 티켓 +1)'; updateHubTickets(); }
   saveCharacter();
   setTimeout(() => hubToast(msg), 1200);
@@ -8637,24 +8805,94 @@ function closeHub(){
   petStop(); petVisit = null;
   if(typeof kgStop === 'function'){ kgStop(); kClosePanel(); }
   if(typeof btStop === 'function'){ btStop(); document.getElementById('battleHubOv').classList.add('hidden'); }
+  trampStop();
   ['hubDetail', 'hubReveal'].forEach(id => document.getElementById(id).classList.add('hidden'));
   document.getElementById('hubOverlay').classList.add('hidden');
+}
+
+// ----- 트램펄린 -----
+const TRAMP_NAMES = ['나무', '돌', '철', '은', '황금', '루비', '사파이어', '무지개'];
+const TRAMP_COST = [0, 0, 5000, 12000, 25000, 50000, 90000, 150000, 250000];
+let trampInst = null, trampSaveT = null;
+function trampTier(){
+  kNorm();
+  const t = kingdom.tramp && Number(kingdom.tramp.tier);
+  return Math.max(1, Math.min(8, t || 1));
+}
+function trampRate(tier){
+  const ti = tier - 1, chance = 0.22 + ti * 0.02, avg = 2 + ti * 2 + (3 + ti) / 2;
+  return chance * avg * 5 * 0.7;   // 초당 대략 착지 0.7번 기준, 획득량 5배
+}
+function renderTrampView(){
+  const v = document.getElementById('hubTrampView'); if(!v) return;
+  kNorm();
+  const tier = trampTier(), next = tier < 8 ? tier + 1 : null;
+  v.innerHTML = `<div class="tr-wrap">
+    <div class="tr-head"><b>${TRAMP_NAMES[tier - 1]} 트램펄린 · ${tier}/8단계</b>
+      <div class="hub-sub" style="margin:2px 0 0;">코인 <b id="trCoin">${kingdom.coins.toLocaleString()}</b> · 약 초당 ${trampRate(tier).toFixed(1)}코인</div></div>
+    <div class="tr-stage"><canvas id="trCanvas"></canvas><div id="trCoinPops"></div></div>
+    ${mainChar ? '' : '<div class="hub-sub">대표 캐릭터를 먼저 정해 주세요</div>'}
+    <div class="tr-actions">${next ? `<button type="button" class="hub-btn" id="trUpBtn">${TRAMP_NAMES[next - 1]} 트램펄린 (${TRAMP_COST[next].toLocaleString()} 코인)</button>` : '<div class="hub-sub">최고 단계예요!</div>'}</div>
+    <p class="hint">튈 때마다 확률로 코인을 얻어요</p>
+  </div>`;
+  const up = document.getElementById('trUpBtn');
+  if(up) up.addEventListener('click', trampUpgrade);
+  if(!mainChar) return;
+  ensureHubLib().then(lib => {
+    if(hubTab !== 'tramp') return;
+    const vv = lib.VARIANTS.find(x => x.name === mainChar);
+    if(!vv) return;
+    trampStop();
+    const canvas = document.getElementById('trCanvas'); if(!canvas) return;
+    const spd = Math.min(3, 1 + (charLvl(mainChar) - 1) * 0.04);
+    trampInst = lib.makeTrampoline(canvas, { v:vv, tier, evo:!!charEvo(mainChar), speed:spd }, { onCoin: trampCoin });
+    trampInst.start();
+  }).catch(e => hubToast(e.message));
+}
+function trampStop(){
+  if(trampInst){ try{ trampInst.dispose(); }catch(e){} trampInst = null; }
+}
+function trampCoin(n){
+  kNorm(); kingdom.coins += n;
+  const el = document.getElementById('trCoin'); if(el) el.textContent = kingdom.coins.toLocaleString();
+  const pops = document.getElementById('trCoinPops');
+  if(pops){
+    const p = document.createElement('div');
+    p.className = 'tr-pop'; p.textContent = `+${n} 🪙`;
+    p.style.left = (35 + Math.random() * 30) + '%'; p.style.top = (22 + Math.random() * 14) + '%';
+    pops.appendChild(p);
+    requestAnimationFrame(() => requestAnimationFrame(() => { p.style.transform = 'translate(-50%, -60px)'; p.style.opacity = '0'; }));
+    setTimeout(() => p.remove(), 1000);
+  }
+  if(!trampSaveT) trampSaveT = setTimeout(() => { trampSaveT = null; saveCharacter(); }, 2000);
+}
+function trampUpgrade(){
+  kNorm();
+  const tier = trampTier(); if(tier >= 8) return;
+  const cost = TRAMP_COST[tier + 1];
+  if(kingdom.coins < cost){ hubToast(`코인이 ${(cost - kingdom.coins).toLocaleString()}개 모자라요`); return; }
+  kingdom.coins -= cost; kingdom.tramp = { tier: tier + 1 };
+  saveCharacter();
+  hubToast(`${TRAMP_NAMES[tier]} → ${TRAMP_NAMES[tier + 1]} 트램펄린!`);
+  renderTrampView();
 }
 function showHubTab(tab){
   if(tab === 'master' && !isMaster()) tab = 'col';
   hubTab = tab;
-  const map = { col:'hubColView', gacha:'hubGachaView', battle:'hubBattleView', king:'hubKingView', pet:'hubPetView', master:'hubMasterView' };
+  const map = { col:'hubColView', gacha:'hubGachaView', battle:'hubBattleView', king:'hubKingView', pet:'hubPetView', master:'hubMasterView', tramp:'hubTrampView' };
   if(tab !== 'king' && typeof kgStop === 'function'){ kgStop(); kClosePanel(); }
   if(tab !== 'pet'){ petStop(); petVisit = null; }
+  if(tab !== 'tramp') trampStop();
   if(tab === 'king') kgRetry = 0;
   document.querySelector('.hub-main').classList.toggle('kg-mode', tab === 'king');
   Object.keys(map).forEach(k => document.getElementById(map[k]).classList.toggle('hidden', k !== tab));
   document.querySelectorAll('#hubNav [data-hub]').forEach(b => b.classList.toggle('on', b.dataset.hub === tab));
-  document.getElementById('hubTitle').textContent = ({ col:'도감', gacha:'뽑기', battle:'전투', king:'왕국', pet:'키우기', master:'마스터' })[tab];
+  document.getElementById('hubTitle').textContent = ({ col:'도감', gacha:'뽑기', battle:'전투', king:'왕국', pet:'키우기', master:'마스터', tramp:'트램펄린' })[tab];
   if(tab === 'king') kgStart();
   if(tab === 'gacha') renderGachaView();
   if(tab === 'battle'){ renderBattleView(); ensureHubLib().then(() => { if(hubTab === 'battle') renderBattleView(); }).catch(() => {}); }
   if(tab === 'master') renderMasterView();
+  if(tab === 'tramp') renderTrampView();
   if(tab === 'pet'){ renderPetView(); ensureHubLib().then(() => { if(hubTab === 'pet' && !petQuiz && !petViewer) renderPetView(); }).catch(() => {}); }
 }
 
@@ -9155,16 +9393,16 @@ async function btStart(){
 }
 // ---------- 왕국: 건물에서 코인과 티켓을 벌고, 캐릭터를 배치해서 더 빨리 벌어요 ----------
 const KB = {
-  mine:   { name:'별빛 광산',    kind:'coin',    cost0:0,   up0:150, base:12, role:'공격', desc:'슬라임들이 광석을 캐서 코인을 벌어요' },
-  farm:   { name:'슬라임 작업장', kind:'coin',    cost0:300, up0:250, base:28, role:'방어', desc:'캐온 광석을 가공해서 코인을 더 벌어요' },
-  tower:  { name:'탐험 전망대',  kind:'explore', cost0:800, up0:600, role:'마법', desc:'캐릭터들을 탐험 보내서 코인을 벌어요' },
-  castle: { name:'왕성',         kind:'castle',  cost0:0,   up0:400, desc:'왕국 레벨이에요. 올리면 모든 건물이 더 빨리 벌고, 더 먼 곳을 탐험할 수 있어요' },
-  barracks:   { name:'훈련소', kind:'buff', stat:'atk',  per:0.03, need:2, cost0:500,  up0:300, desc:'병사들을 훈련시켜요. 모든 캐릭터의 공격력이 올라요' },
-  blacksmith: { name:'대장간', kind:'buff', stat:'def',  per:0.03, need:3, cost0:700,  up0:350, desc:'튼튼한 방어구를 만들어요. 모든 캐릭터의 방어력이 올라요' },
-  church:     { name:'교회',   kind:'buff', stat:'hp',   per:0.03, need:4, cost0:1000, up0:400, desc:'따뜻한 기도로 치유해요. 모든 캐릭터의 체력이 올라요' },
-  archery:    { name:'궁술장', kind:'buff', stat:'spd',  per:0.03, need:5, cost0:1500, up0:500, desc:'날쌘 몸놀림을 익혀요. 모든 캐릭터의 속도가 올라요' },
-  market:     { name:'시장',   kind:'buff', stat:'coin', per:0.05, need:6, cost0:2000, up0:600, desc:'장사가 잘돼요. 광산과 작업장이 코인을 더 많이 벌어요' },
-  windmill:   { name:'풍차',   kind:'buff', stat:'disc', per:0.03, need:7, cost0:3000, up0:700, desc:'돌아가는 날개가 일을 도와요. 캐릭터 레벨업 비용이 줄어요' }
+  mine:   { name:'별빛 광산',    kind:'coin',    cost0:0,   up0:1500, base:120, role:'공격', desc:'슬라임들이 광석을 캐서 코인을 벌어요' },
+  farm:   { name:'슬라임 작업장', kind:'coin',    cost0:3000, up0:2500, base:280, role:'방어', desc:'캐온 광석을 가공해서 코인을 더 벌어요' },
+  tower:  { name:'탐험 전망대',  kind:'explore', cost0:8000, up0:6000, role:'마법', desc:'캐릭터들을 탐험 보내서 코인을 벌어요' },
+  castle: { name:'왕성',         kind:'castle',  cost0:0,   up0:4000, desc:'왕국 레벨이에요. 올리면 모든 건물이 더 빨리 벌고, 더 먼 곳을 탐험할 수 있어요' },
+  barracks:   { name:'훈련소', kind:'buff', stat:'atk',  per:0.03, need:2, cost0:5000,  up0:3000, desc:'병사들을 훈련시켜요. 모든 캐릭터의 공격력이 올라요' },
+  blacksmith: { name:'대장간', kind:'buff', stat:'def',  per:0.03, need:3, cost0:7000,  up0:3500, desc:'튼튼한 방어구를 만들어요. 모든 캐릭터의 방어력이 올라요' },
+  church:     { name:'교회',   kind:'buff', stat:'hp',   per:0.03, need:4, cost0:10000, up0:4000, desc:'따뜻한 기도로 치유해요. 모든 캐릭터의 체력이 올라요' },
+  archery:    { name:'궁술장', kind:'buff', stat:'spd',  per:0.03, need:5, cost0:15000, up0:5000, desc:'날쌘 몸놀림을 익혀요. 모든 캐릭터의 속도가 올라요' },
+  market:     { name:'시장',   kind:'buff', stat:'coin', per:0.05, need:6, cost0:20000, up0:6000, desc:'장사가 잘돼요. 광산과 작업장이 코인을 더 많이 벌어요' },
+  windmill:   { name:'풍차',   kind:'buff', stat:'disc', per:0.03, need:7, cost0:30000, up0:7000, desc:'돌아가는 날개가 일을 도와요. 캐릭터 레벨업 비용이 줄어요' }
 };
 const K_STAT_LABEL = { atk:'공격력', def:'방어력', hp:'체력', spd:'속도', coin:'코인 생산', disc:'레벨업 비용' };
 // 탐험 지역: 왕성 레벨이 높아야 열려요
@@ -9189,18 +9427,18 @@ function kDefault(){
 }
 // 코인으로 사는 왕국 장식 (왕성 레벨이 되면 살 수 있어요)
 const KDECO = [
-  { id:'banners',   name:'깃발 거리',          icon:'🚩', cost:800,   need:1, desc:'왕성에서 전망대까지 알록달록 깃발이 펄럭여요' },
-  { id:'lamps',     name:'별빛 가로등 길',     icon:'🏮', cost:1200,  need:2, desc:'길을 따라 따뜻한 가로등이 반짝여요' },
-  { id:'fountain',  name:'황금 분수대',        icon:'⛲', cost:2500,  need:2, desc:'왕국 한가운데서 물줄기가 솟아올라요' },
-  { id:'wall',      name:'웅장한 성벽',        icon:'🧱', cost:3000,  need:3, desc:'성 양옆으로 높은 성벽과 붉은 지붕 탑이 서요' },
-  { id:'cannon',    name:'축포 대포',          icon:'💣', cost:3500,  need:3, desc:'가끔 "펑!" 하고 불꽃과 연기를 내며 축포를 쏴요' },
-  { id:'rose',      name:'장미 정원',          icon:'🌹', cost:1800,  need:4, desc:'장미 아치와 벤치가 있는 아늑한 정원이에요' },
-  { id:'crystal',   name:'마법 수정탑',        icon:'🔮', cost:4000,  need:4, desc:'공중에 뜬 보랏빛 수정이 빛나며 돌아요' },
-  { id:'gate',      name:'황금 대문',          icon:'🚪', cost:5000,  need:5, desc:'왕국의 큰길에 우뚝 선 황금 장식 대문이에요' },
-  { id:'statue',    name:'황금 슬라임 왕 동상', icon:'🗿', cost:6000,  need:5, desc:'왕관을 쓴 황금 슬라임 동상이 반짝여요' },
-  { id:'fireworks', name:'불꽃놀이 광장',      icon:'🎆', cost:7000,  need:6, desc:'하늘 가득 알록달록 불꽃이 터져요' },
-  { id:'balloon',   name:'하늘 열기구',        icon:'🎈', cost:9000,  need:7, desc:'커다란 열기구가 왕국 위를 천천히 돌아요' },
-  { id:'dragon',    name:'용암의 흑룡',        icon:'🐉', cost:12000, need:8, desc:'검은 비늘에 용암이 흐르는 거대한 용이 하늘을 날다 내려앉아 불을 뿜어요' }
+  { id:'banners',   name:'깃발 거리',          icon:'🚩', cost:8000,   need:1, desc:'왕성에서 전망대까지 알록달록 깃발이 펄럭여요' },
+  { id:'lamps',     name:'별빛 가로등 길',     icon:'🏮', cost:12000,  need:2, desc:'길을 따라 따뜻한 가로등이 반짝여요' },
+  { id:'fountain',  name:'황금 분수대',        icon:'⛲', cost:25000,  need:2, desc:'왕국 한가운데서 물줄기가 솟아올라요' },
+  { id:'wall',      name:'웅장한 성벽',        icon:'🧱', cost:30000,  need:3, desc:'성 양옆으로 높은 성벽과 붉은 지붕 탑이 서요' },
+  { id:'cannon',    name:'축포 대포',          icon:'💣', cost:35000,  need:3, desc:'가끔 "펑!" 하고 불꽃과 연기를 내며 축포를 쏴요' },
+  { id:'rose',      name:'장미 정원',          icon:'🌹', cost:18000,  need:4, desc:'장미 아치와 벤치가 있는 아늑한 정원이에요' },
+  { id:'crystal',   name:'마법 수정탑',        icon:'🔮', cost:40000,  need:4, desc:'공중에 뜬 보랏빛 수정이 빛나며 돌아요' },
+  { id:'gate',      name:'황금 대문',          icon:'🚪', cost:50000,  need:5, desc:'왕국의 큰길에 우뚝 선 황금 장식 대문이에요' },
+  { id:'statue',    name:'황금 슬라임 왕 동상', icon:'🗿', cost:60000,  need:5, desc:'왕관을 쓴 황금 슬라임 동상이 반짝여요' },
+  { id:'fireworks', name:'불꽃놀이 광장',      icon:'🎆', cost:70000,  need:6, desc:'하늘 가득 알록달록 불꽃이 터져요' },
+  { id:'balloon',   name:'하늘 열기구',        icon:'🎈', cost:90000,  need:7, desc:'커다란 열기구가 왕국 위를 천천히 돌아요' },
+  { id:'dragon',    name:'용암의 흑룡',        icon:'🐉', cost:120000, need:8, desc:'검은 비늘에 용암이 흐르는 거대한 용이 하늘을 날다 내려앉아 불을 뿜어요' }
 ];
 const KDECO_IDS = KDECO.map(d => d.id);
 function kNorm(){
@@ -9294,7 +9532,7 @@ function kExpBonus(names){
   if(roles.size >= 3) sum += 0.2; else if(roles.size === 2) sum += 0.08;
   return sum;
 }
-function kExpReward(region, hrs, names){ return region.rate * hrs * (1 + kExpBonus(names) + 0.03 * (kLv('castle') - 1)); }
+function kExpReward(region, hrs, names){ return region.rate * hrs * 10 * (1 + kExpBonus(names) + 0.03 * (kLv('castle') - 1)); }
 function kExpStart(){
   const r = kRegion(kxRegion);
   if(kLv('castle') < r.need){ hubToast(`왕성 Lv.${r.need}가 필요해요`); return false; }
@@ -10606,10 +10844,12 @@ function pickWeightedEquipment(){
 }
 let saveCharacterQueue = Promise.resolve();
 function saveCharacter(){
+  // 얻은 순간 이 기기에 백업을 바로 남겨요. 서버 응답이 늦어도, 새로고침해도 캐릭터가 사라지지 않게요.
+  if(currentUser && charDataLoaded){ try{ localStorage.setItem('lx_col_' + currentUser.uid, JSON.stringify(charCollection)); }catch(e){} }
   // 저장 요청이 겹쳐서 순서가 뒤바뀌면 최신 데이터가 예전 데이터에 덮어써질 수 있어서,
-  // 한 번에 하나씩, 호출된 순서대로만 서버에 보내도록 줄 세워요.
+  // 한 번에 하나씩, 호출된 순서대로만 서버에 보내도록 줄 세워요. 응답이 멈춰도 다음 저장이 막히지 않게 시간 제한을 둬요.
   pendingSaves++;
-  saveCharacterQueue = saveCharacterQueue.then(() => doSaveCharacter()).finally(() => { pendingSaves = Math.max(0, pendingSaves - 1); lastSaveDone = Date.now(); });
+  saveCharacterQueue = saveCharacterQueue.then(() => withTimeout(doSaveCharacter(), 8000, '캐릭터 저장').catch(() => {})).finally(() => { pendingSaves = Math.max(0, pendingSaves - 1); lastSaveDone = Date.now(); });
   return saveCharacterQueue;
 }
 async function doSaveCharacter(){
@@ -11188,7 +11428,9 @@ function endGame(){
   document.getElementById('gameRestartBtn').addEventListener('click', resetQuizToSetup);
 }
 
+var quizFullPool = [];
 function startQuiz(pool){
+  quizFullPool = pool.slice();
   if(pool.length < 2){
     alert('시험을 보려면 단어가 2개 이상 필요해요!');
     return;
@@ -11203,8 +11445,16 @@ function startQuiz(pool){
   renderQuestion();
 }
 
+function updateQuitBtn(){
+  const b = document.getElementById('quizQuitBtn');
+  if(!b) return;
+  const ok = quizIndex > 0 && quizIndex % 5 === 0 && !quizLocked && quizIndex < quizQueue.length;
+  b.disabled = !ok;
+  b.textContent = ok ? `${quizIndex}문제 채우고 그만두기 (티켓 받기)` : '5문제마다 그만둘 수 있어요';
+}
 function renderQuestion(){
   quizLocked = false;
+  updateQuitBtn();
   const total = quizQueue.length;
   const current = quizQueue[quizIndex];
   document.getElementById('quizProgressText').textContent = `${quizIndex+1} / ${total}`;
@@ -11231,6 +11481,7 @@ function renderQuestion(){
 function handleAnswer(btn, current){
   if(quizLocked) return;
   quizLocked = true;
+  updateQuitBtn();
   const chosen = btn.dataset.ko;
   const allBtns = document.querySelectorAll('.opt-btn');
   allBtns.forEach(b => b.disabled = true);
@@ -11291,6 +11542,12 @@ function showResult(){
     wrongWrap.classList.add('hidden');
   }
 }
+
+document.getElementById('quizQuitBtn').addEventListener('click', () => {
+  if(quizLocked || quizIndex === 0 || quizIndex % 5 !== 0 || quizIndex >= quizQueue.length) return;
+  quizQueue = quizQueue.slice(0, quizIndex);   // 지금까지 푼 문제만 채점
+  showResult();
+});
 
 // ---------- 이벤트 바인딩 ----------
 document.getElementById('loginBtn').addEventListener('click', doLogin);
@@ -11435,7 +11692,7 @@ document.getElementById('memBackBtn').addEventListener('click', resetQuizToSetup
   card.addEventListener('pointerup', release);
   card.addEventListener('pointercancel', release);
 })();
-document.getElementById('retryBtn').addEventListener('click', () => startQuiz(quizQueue));
+document.getElementById('retryBtn').addEventListener('click', () => startQuiz(quizFullPool));
 document.getElementById('backBtn').addEventListener('click', () => showTab('list'));
 document.getElementById('menuBtn').addEventListener('click', openMenu);
 document.getElementById('closeMenuOverlayBtn').addEventListener('click', closeMenu);
