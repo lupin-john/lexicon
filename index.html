@@ -6575,7 +6575,16 @@ function subscribeWords(){
     // 인터넷이 없을 때 오는 '비어 있는 임시 응답'은 진짜 내 데이터가 아니라서 무시해요
     if(snap.metadata && snap.metadata.fromCache && !snap.exists()) return;
     wordsLoaded = true;
-    const data = snap.exists() ? snap.data() : {};
+    let data = snap.exists() ? snap.data() : {};
+    // 서버 데이터가 비었거나 일부가 빠졌으면, 이 기기에 남은 계정 백업으로 채워요 (초기화 방지)
+    if(currentUser && !wipeCollection && !wipeKingdom){
+      const fb = readFullBackup(currentUser.uid);
+      if(fb){
+        const before = JSON.stringify(data);
+        Object.keys(fb).forEach(k => { if(data[k] === undefined || data[k] === null) data[k] = fb[k]; });
+        if(JSON.stringify(data) !== before){ needFullRestore = true; setTimeout(() => hubToast('기기에 남은 계정 기록으로 되살렸어요'), 900); }
+      }
+    }
     words = Array.isArray(data.words) ? data.words : [];
     renderList();
     updateQuizCounts();
@@ -6625,7 +6634,8 @@ function subscribeWords(){
     const memColl = charDataLoaded ? (charCollection || {}) : {};
     const bkColl = (uid && !wipeCollection) ? readCollBackup(uid) : {};
     charCollection = wipeCollection ? serverColl : mergeColl(serverColl, mergeColl(memColl, bkColl));
-    if(JSON.stringify(charCollection) !== JSON.stringify(serverColl)) needEquipReset = true;   // 합쳐진 것이 있으면 서버에도 다시 저장
+    const fullNow = needFullRestore; needFullRestore = false;
+    if(!sameColl(charCollection, serverColl) || fullNow) needEquipReset = true;   // 합쳐진 것이 있을 때만 서버에 다시 저장
     if(hubRecover(data) > 0) needEquipReset = true;
     pity5 = data.pity5 || 0; pity6 = data.pity6 || 0; pity7 = data.pity7 || 0; mainChar = data.mainChar || null;
     btWins = data.btWins || 0; btLosses = data.btLosses || 0;
@@ -10872,7 +10882,16 @@ function mergeColl(base, extra){
 function readCollBackup(uid){
   try{ const raw = localStorage.getItem('lx_col_' + uid); const v = raw ? JSON.parse(raw) : {}; return (v && typeof v === 'object') ? v : {}; }catch(e){ return {}; }
 }
-let collDirty = false, collRetryT = null, collAlerted = false;
+let collDirty = false, collRetryT = null, collAlerted = false, needFullRestore = false;
+function sameColl(a, b){
+  const ka = Object.keys(a || {}).filter(n => a[n] && a[n].n > 0).sort();
+  const kb = Object.keys(b || {}).filter(n => b[n] && b[n].n > 0).sort();
+  if(ka.join('|') !== kb.join('|')) return false;
+  return ka.every(n => a[n].n === b[n].n && (a[n].lv || 1) === (b[n].lv || 1) && (a[n].evo ? 1 : 0) === (b[n].evo ? 1 : 0));
+}
+function readFullBackup(uid){
+  try{ const raw = localStorage.getItem('lx_full_' + uid); const v = raw ? JSON.parse(raw) : null; return (v && typeof v === 'object') ? v : null; }catch(e){ return null; }
+}
 function scheduleCollRetry(){
   collDirty = true;
   if(collRetryT) return;
@@ -10898,6 +10917,11 @@ async function doSaveCharacter(){
   hubTrackOwned();
   try{ localStorage.setItem('lx_col_' + currentUser.uid, JSON.stringify(charCollection)); }catch(e){}
   const wipingNow = wipeCollection;
+  if(!wipingNow && !wipeKingdom){
+    try{ localStorage.setItem('lx_full_' + currentUser.uid, JSON.stringify(fsClean({
+      stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: charCollection, pity5, pity6, pity7, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: kingdom || null, pet: pet || null, wordCoin: wordCoinLog, ownedEver
+    }))); }catch(e){}
+  }
   try{
     await setDoc(doc(db, 'vocab', currentUser.uid), fsClean({
       stats: charStats, tickets, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: wipeCollection ? deleteField() : charCollection, pity5, pity6, pity7, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: wipeKingdom ? deleteField() : (kingdom || null), pet: pet || null, wordCoin: wordCoinLog, ownedEver
