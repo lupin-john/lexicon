@@ -528,7 +528,10 @@
   .hub-main{flex:1;overflow-y:auto;padding:4px 14px 20px;-webkit-overflow-scrolling:touch;}
   .hub-view.hidden,.hub-screen.hidden{display:none !important;}
   .hub-nav{display:flex;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:#0e1230;border-top:1px solid #2b3262;}
-  .hub-nav button{flex:1;border:none;border-radius:14px;padding:11px 4px;background:transparent;color:#8d95b8;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:1px;}
+  .hub-nav button{flex:1;min-width:0;white-space:nowrap;border:none;border-radius:14px;padding:11px 4px;background:transparent;color:#8d95b8;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:1px;}
+  .hub-nav{overflow-x:auto;scrollbar-width:none;}
+  .hub-nav::-webkit-scrollbar{display:none;}
+  @media (max-width:520px){ .hub-nav{gap:3px;padding-left:6px;padding-right:6px;} .hub-nav button{font-size:11.5px;letter-spacing:0;padding:10px 2px;border-radius:12px;} }
   .hub-nav button.on{background:linear-gradient(180deg,#3a3f86,#2a2f66);color:#fff;box-shadow:inset 0 -3px 0 #ffd24a;}
   .hub-sub{font-size:12px;opacity:.65;margin:2px 0 12px;}
   .hc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
@@ -6880,6 +6883,7 @@ function subscribeWords(){
     if(snap.metadata && snap.metadata.fromCache && !snap.exists()) return;
     wordsLoaded = true;
     let data = snap.exists() ? snap.data() : {};
+    const rawServer = JSON.parse(JSON.stringify(data));   // 백업으로 채우기 전, 진짜 서버 값
     // 서버 데이터가 비었거나 일부가 빠졌으면, 이 기기에 남은 계정 백업으로 채워요 (초기화 방지)
     if(currentUser && !wipeCollection && !wipeKingdom){
       const fb = readFullBackup(currentUser.uid);
@@ -6956,6 +6960,7 @@ function subscribeWords(){
     pet = (data.pet && typeof data.pet === 'object') ? data.pet : null;
     wordCoinLog = (data.wordCoin && typeof data.wordCoin === 'object') ? { d:String(data.wordCoin.d || ''), n:Number(data.wordCoin.n) || 0 } : { d:'', n:0 };
     if(data.gameVersion !== 5){ tickets += 10; needEquipReset = true; }   // 새 게임 시작 선물: 티켓 10장
+    syncedTop = rawServer;   // 진짜 서버 값을 기준으로, 바뀐 것(또는 서버에 없는 것)만 보내요
     charDataLoaded = true;
     try{
       robotColor = data.robotColor || null;
@@ -11201,7 +11206,25 @@ function readCollBackup(uid){
   try{ const raw = localStorage.getItem('lx_col_' + uid); const v = raw ? JSON.parse(raw) : {}; return (v && typeof v === 'object') ? v : {}; }catch(e){ return {}; }
 }
 let collDirty = false, collRetryT = null, collAlerted = false, needFullRestore = false;
-let deferredSnap = null, deferredFn = null, deferredT = null, lastSavedTk = null, lastSavedCoin = null;
+let deferredSnap = null, deferredFn = null, deferredT = null, lastSavedTk = null, lastSavedCoin = null, syncedTop = null;
+// 왕국은 항목별(건물은 건물마다)로 바뀐 것만 골라요. 코인은 바뀐 만큼 더하기
+function kgDiff(cur, base){
+  if(!cur) return null;
+  const o = {};
+  if(lastSavedCoin == null || !base || typeof base.coins !== 'number') o.coins = cur.coins || 0;
+  else if((cur.coins || 0) !== lastSavedCoin) o.coins = increment((cur.coins || 0) - lastSavedCoin);
+  Object.keys(cur).forEach(k => {
+    if(k === 'coins') return;
+    if(k === 'b' && cur.b && typeof cur.b === 'object'){
+      const bb = {}, bs = (base && base.b) || {};
+      Object.keys(cur.b).forEach(id => { if(JSON.stringify(cur.b[id]) !== JSON.stringify(bs[id])) bb[id] = cur.b[id]; });
+      if(Object.keys(bb).length) o.b = bb;
+      return;
+    }
+    if(JSON.stringify(cur[k]) !== JSON.stringify(base ? base[k] : undefined)) o[k] = cur[k];
+  });
+  return Object.keys(o).length ? o : null;
+}
 function deferSnap(s, fn){
   deferredSnap = s; deferredFn = fn;
   if(deferredT) clearTimeout(deferredT);
@@ -11253,13 +11276,30 @@ async function doSaveCharacter(){
   }
   try{
     const savedTk = tickets, savedCoin = kingdom ? (kingdom.coins || 0) : null;
-    // 티켓·코인은 '바뀐 만큼'만 서버에서 더해요. 다른 기기에서 동시에 바꿔도 둘 다 반영돼요
-    const useInc = !wipingNow && !wipeKingdom && typeof increment === 'function';
-    const tkField = (useInc && lastSavedTk != null) ? increment(savedTk - lastSavedTk) : savedTk;
-    const kgField = wipeKingdom ? deleteField() : (kingdom ? Object.assign({}, kingdom, { coins: (useInc && lastSavedCoin != null) ? increment(savedCoin - lastSavedCoin) : savedCoin }) : null);
-    await setDoc(doc(db, 'vocab', currentUser.uid), fsClean({
-      stats: charStats, tickets: tkField, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: wipeCollection ? deleteField() : charCollection, pity5, pity6, pity7, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: kgField, pet: pet || null, wordCoin: wordCoinLog, ownedEver
-    }), { merge:true });
+    const P = fsClean({
+      stats: charStats, tickets: savedTk, totalCorrect, equipment, gender: myGender, equippedWeapon, equippedEssence, equippedShield, robotColor, selectedModel, unlockedModels, equipmentVersion: 4, collection: charCollection, pity5, pity6, pity7, mainChar, gameVersion: 5, legacyWipe: 1, btWins, btLosses, kingdom: kingdom || null, pet: pet || null, wordCoin: wordCoinLog, ownedEver
+    });
+    let out;
+    if(!syncedTop || wipingNow || wipeKingdom || typeof increment !== 'function'){
+      // 처음 저장이거나 초기화할 때는 전체를 써요
+      out = Object.assign({}, P);
+      if(wipingNow) out.collection = deleteField();
+      if(wipeKingdom) out.kingdom = deleteField();
+    } else {
+      // 이 기기에서 실제로 바뀐 것만 보내요. 다른 기기에서 바꾼 내용을 옛날 값으로 덮어쓰지 않게요
+      out = {};
+      Object.keys(P).forEach(k => {
+        if(k === 'tickets'){
+          if(lastSavedTk == null || typeof syncedTop.tickets !== 'number') out.tickets = savedTk; else if(savedTk !== lastSavedTk) out.tickets = increment(savedTk - lastSavedTk);
+          return;
+        }
+        if(k === 'kingdom'){ const kd = kgDiff(P.kingdom, syncedTop.kingdom); if(kd) out.kingdom = kd; return; }
+        if(JSON.stringify(P[k]) !== JSON.stringify(syncedTop[k])) out[k] = P[k];
+      });
+    }
+    if(Object.keys(out).length) await setDoc(doc(db, 'vocab', currentUser.uid), out, { merge:true });
+    if(!syncedTop) syncedTop = {};
+    Object.keys(P).forEach(k => { syncedTop[k] = P[k] === undefined ? null : JSON.parse(JSON.stringify(P[k])); });
     lastSavedTk = savedTk; if(savedCoin != null) lastSavedCoin = savedCoin;
     if(wipingNow){ wipeCollection = false; wipeKingdom = false; }
   }catch(e){
