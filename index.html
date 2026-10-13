@@ -1105,12 +1105,18 @@
   .hidden{display:none!important;}
   .tr-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0;}
   .tr-head{text-align:center;}
-  .tr-stage{position:relative;width:100%;max-width:560px;height:420px;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#2a2457 0%,#0b0f22 70%);}
-  .tr-stage canvas{width:100%;height:100%;display:block;}
+  #hubTrampView{position:absolute;inset:0;}
+  .tr-wrap2{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#2a2457 0%,#0b0f22 70%);}
+  .tr-wrap2 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  .tr-topbar{position:absolute;left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;background:linear-gradient(180deg,rgba(6,8,20,.78),rgba(6,8,20,0));pointer-events:none;color:#f1ecff;}
+  .tr-topbar b{font-size:15px;}
+  .tr-topbar .hub-sub{color:#cfd3ef;margin:2px 0 0;}
+  .tr-coinpops{position:absolute;inset:0;pointer-events:none;z-index:5;}
   .tr-pop{position:absolute;font-weight:800;font-size:20px;color:#ffd24a;text-shadow:0 2px 6px rgba(0,0,0,.7);pointer-events:none;transform:translate(-50%,0);opacity:1;transition:transform .9s ease-out,opacity .9s;}
-  .tr-actions{width:100%;max-width:520px;display:flex;justify-content:center;}
-  .tr-pad{position:absolute;right:10px;bottom:10px;width:132px;height:132px;display:grid;grid-template-areas:". u ." "l . r" ". d .";grid-template-columns:40px 40px 40px;grid-template-rows:40px 40px 40px;gap:4px;opacity:0.88;}
-  .tr-pad-btn{border:none;border-radius:10px;background:rgba(10,14,30,0.6);color:#fff;font-size:17px;touch-action:none;user-select:none;}
+  .tr-bottom{position:absolute;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(0deg,rgba(6,8,20,.82),rgba(6,8,20,0));display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .tr-bottom .hint{color:#dfe2fa;text-align:center;margin:0;max-width:420px;}
+  .tr-pad{position:absolute;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:148px;height:148px;display:grid;grid-template-areas:". u ." "l . r" ". d .";grid-template-columns:46px 46px 46px;grid-template-rows:46px 46px 46px;gap:5px;opacity:0.9;z-index:6;}
+  .tr-pad-btn{border:none;border-radius:12px;background:rgba(10,14,30,0.6);color:#fff;font-size:19px;touch-action:none;user-select:none;}
   .tr-pad-btn:active{background:rgba(127,220,255,0.55);}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -6408,8 +6414,9 @@
 
       // ---- 조작: 방향키 + 화면 버튼 ----
       var held = { up:false, down:false, left:false, right:false };
-      function kd(e){ var k = e.key; if(k === 'ArrowUp' || k === 'w') held.up = true; else if(k === 'ArrowDown' || k === 's') held.down = true; else if(k === 'ArrowLeft' || k === 'a') held.left = true; else if(k === 'ArrowRight' || k === 'd') held.right = true; }
-      function ku(e){ var k = e.key; if(k === 'ArrowUp' || k === 'w') held.up = false; else if(k === 'ArrowDown' || k === 's') held.down = false; else if(k === 'ArrowLeft' || k === 'a') held.left = false; else if(k === 'ArrowRight' || k === 'd') held.right = false; }
+      var NAVKEYS = { ArrowUp:1, ArrowDown:1, ArrowLeft:1, ArrowRight:1, ' ':1, 'Spacebar':1 };
+      function kd(e){ var k = e.key; if(NAVKEYS[k]) e.preventDefault(); if(k === 'ArrowUp' || k === 'w') held.up = true; else if(k === 'ArrowDown' || k === 's') held.down = true; else if(k === 'ArrowLeft' || k === 'a') held.left = true; else if(k === 'ArrowRight' || k === 'd') held.right = true; }
+      function ku(e){ var k = e.key; if(NAVKEYS[k]) e.preventDefault(); if(k === 'ArrowUp' || k === 'w') held.up = false; else if(k === 'ArrowDown' || k === 's') held.down = false; else if(k === 'ArrowLeft' || k === 'a') held.left = false; else if(k === 'ArrowRight' || k === 'd') held.right = false; }
       window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
       if(hooks.bindPad) hooks.bindPad(held);
 
@@ -6419,7 +6426,7 @@
         var bb = new T.Box3().setFromObject(m), bc = Math.max(0.55, (bb.max.y - bb.min.y) * 0.45) || 0.9;
         var holder = new T.Group(), pivot = new T.Group(); park.add(holder); holder.add(pivot); pivot.add(m);
         pivot.position.y = bc; m.position.y = -bc;
-        return { m:m, u:m.userData || {}, holder:holder, pivot:pivot, SB:0.78, standIdx:-1, x:0, z:0, ox:0, oz:0, yaw:0, air:0, vy:0, matY:0, matV:0, sq:0, sqV:0, trick:'none', tAir:0, tFlight:1, walkT:0, lastLandDay:'', walking:false, wT:0, wFrom:{ x:0, z:0 } };
+        return { m:m, u:m.userData || {}, holder:holder, pivot:pivot, SB:0.78, standIdx:-1, x:0, z:0, ox:0, oz:0, yaw:0, air:0, vy:0, matY:0, matV:0, sq:0, sqV:0, trick:'none', tAir:0, tFlight:1, walkT:0, walkDist:0, lastLandDay:'', walking:false, wT:0, wFrom:{ x:0, z:0 } };
       }
       var me = spawnRider(riders[0]); me.x = layout[0].x; me.z = layout[0].z + 1.6;
       var npcs = riders.slice(1).map(function(r, i){ var n = spawnRider(r); n.standIdx = i + 1; n.x = layout[i + 1].x; n.z = layout[i + 1].z; n.uid = r.uid; n.name = r.name; n.ownIdx = i + 1; n.visitedTick = false; return n; });
@@ -6428,7 +6435,8 @@
       function pickTrick(){ var tot = 0; TRICKS.forEach(function(k){ tot += k[1]; }); var r = Math.random() * tot; for(var i = 0; i < TRICKS.length; i++){ r -= TRICKS[i][1]; if(r <= 0) return TRICKS[i][0]; } return 'front'; }
       function ease(p){ return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
       function lerp(a, b, p){ return a + (b - a) * p; }
-      var GRAV = 9.0, WALK_SPD = 2.1, DRIFT_SPD = 2.4;
+      var GRAV = 9.0, WALK_SPD = 2.1, DRIFT_SPD = 2.4, STEP_LEN = 0.62;
+      function stepSquash(ph){ if(ph < 0.18) return 1; if(ph < 0.42) return 1 - (ph - 0.18) / 0.24; var q = (ph - 0.42) / 0.58; return q * q; }
 
       function bounceStep(R2, dt, isPlayer){
         var S = stands[R2.standIdx], H = S.H, HB = 1.7 + (riders[R2.standIdx].tier - 1) * 0.1, VY = Math.sqrt(2 * GRAV * HB);
@@ -6497,18 +6505,24 @@
             if(L > 0){
               me.x += dx * WALK_SPD * dt; me.z += dz * WALK_SPD * dt;
               var r2 = Math.hypot(me.x, me.z + 1); if(r2 > 7.2){ var k2 = 7.2 / r2; me.x *= k2; me.z = (me.z + 1) * k2 - 1; }
-              me.yaw = Math.atan2(dx, dz); me.walkT += dt;
-            }
-            var bob = L > 0 ? Math.abs(Math.sin(me.walkT * 9)) * 0.1 : 0;
-            me.pivot.rotation.set(0, me.yaw, Math.sin(me.walkT * 9) * 0.08 * (L > 0 ? 1 : 0));
-            me.holder.position.set(me.x, 0.05 + bob, me.z); me.holder.scale.setScalar(me.SB * (1 - bob * 0.4 + 0.08));
+              me.yaw = Math.atan2(dx, dz); me.walkDist = (me.walkDist || 0) + WALK_SPD * dt;
+            } else { me.walkDist = me.walkDist || 0; }
+            var ph = (me.walkDist % STEP_LEN) / STEP_LEN, sq2 = L > 0 ? stepSquash(ph) : 0;   // 탱탱볼처럼: 바닥에 붙었다(끈적) 탁 튕겨 늘어나요
+            me.pivot.rotation.set(0, me.yaw, 0);
+            me.holder.position.set(me.x, 0.02 + sq2 * 0.02, me.z);
+            me.holder.scale.set(me.SB * (1.28 - (1 - sq2) * 0.4), me.SB * (0.62 + (1 - sq2) * 0.56), me.SB * (1.28 - (1 - sq2) * 0.4));
             for(var si = 0; si < stands.length; si++){ var S2 = stands[si], d2 = Math.hypot(me.x - S2.center.x, me.z - S2.center.z); if(d2 < S2.R * 0.72){ me.standIdx = si; me.ox = me.x - S2.center.x; me.oz = me.z - S2.center.z; me.air = 0.3; me.vy = 1; me.matY = 0; break; } }
           } else {
             var grounded = bounceStep(me, dt, true);
             me.ox += dx * DRIFT_SPD * dt; me.oz += dz * DRIFT_SPD * dt;
             var S3 = stands[me.standIdx], od = Math.hypot(me.ox, me.oz), maxO = S3.R * 0.55;
             if(od > maxO){ var k3 = maxO / od; me.ox *= k3; me.oz *= k3; }
-            if(grounded && od >= maxO * 0.96){ me.x = S3.center.x + me.ox; me.z = S3.center.z + me.oz; me.standIdx = -1; me.matY = 0; me.vy = 0; me.air = 0; }
+            if(grounded && od >= maxO * 0.96){
+              var pushDir = od > 0.001 ? { x:me.ox / od, z:me.oz / od } : { x:dx || 0, z:dz || 1 };
+              var pushLen = Math.hypot(pushDir.x, pushDir.z) || 1, pushR = S3.R * 0.82;
+              me.x = S3.center.x + (pushDir.x / pushLen) * pushR; me.z = S3.center.z + (pushDir.z / pushLen) * pushR;
+              me.standIdx = -1; me.matY = 0; me.vy = 0; me.air = 0; me.walkDist = me.walkDist || 0;
+            }
           }
           if(me.u.anims) me.u.anims.forEach(function(f){ try{ f(t); }catch(e){} });
           if(hooks.beacon) hooks.beacon(me.standIdx > 0 ? ('visit:' + riders[me.standIdx].uid) : 'home');
@@ -9096,20 +9110,23 @@ function renderTrampView(){
   kNorm();
   const tier = trampTier(), next = tier < 8 ? tier + 1 : null, friends = trampPresentFriends();
   trampRosterKey = friends.map(f => f.uid).sort().join(',');
-  v.innerHTML = `<div class="tr-wrap">
-    <div class="tr-head"><b>${TRAMP_NAMES[tier - 1]} 트램펄린 파크 · 내 단계 ${tier}/8</b>
-      <div class="hub-sub" style="margin:2px 0 0;">코인 <b id="trCoin">${kingdom.coins.toLocaleString()}</b> · 약 초당 ${trampRate(tier).toFixed(1)}코인</div></div>
-    <div class="tr-stage"><canvas id="trCanvas"></canvas><div id="trCoinPops"></div>
-      <div class="tr-pad" id="trPad">
-        <button type="button" class="tr-pad-btn" data-k="up" style="grid-area:u;">▲</button>
-        <button type="button" class="tr-pad-btn" data-k="left" style="grid-area:l;">◀</button>
-        <button type="button" class="tr-pad-btn" data-k="right" style="grid-area:r;">▶</button>
-        <button type="button" class="tr-pad-btn" data-k="down" style="grid-area:d;">▼</button>
-      </div>
+  v.innerHTML = `<div class="tr-wrap2">
+    <canvas id="trCanvas"></canvas>
+    <div class="tr-coinpops" id="trCoinPops"></div>
+    <div class="tr-topbar">
+      <b>${TRAMP_NAMES[tier - 1]} 트램펄린 파크 · 내 단계 ${tier}/8</b>
+      <div class="hub-sub">코인 <b id="trCoin">${kingdom.coins.toLocaleString()}</b> · 약 초당 ${trampRate(tier).toFixed(1)}코인${mainChar ? '' : ' · 대표 캐릭터를 먼저 정해 주세요'}</div>
     </div>
-    ${mainChar ? '' : '<div class="hub-sub">대표 캐릭터를 먼저 정해 주세요</div>'}
-    <p class="hint">${friends.length ? `지금 같이 있어요: ${friends.map(f => f.nick).join(', ')} · 친구 트램펄린에 가면 하루 한 번 크게 슬쩍하고, 그 뒤로도 갈 때마다 조금씩 더 받아요. 내 트램펄린에 친구가 놀러오면 같이 뛸 때 콤보 보너스!` : '방향키나 화면 버튼으로 걸어다녀요. 그룹 친구가 지금 이 화면을 열면 바로 같이 보여요'}</p>
-    <div class="tr-actions">${next ? `<button type="button" class="hub-btn" id="trUpBtn">${TRAMP_NAMES[next - 1]} 트램펄린 (${TRAMP_COST[next].toLocaleString()} 코인)</button>` : '<div class="hub-sub">최고 단계예요!</div>'}</div>
+    <div class="tr-pad" id="trPad">
+      <button type="button" class="tr-pad-btn" data-k="up" style="grid-area:u;">▲</button>
+      <button type="button" class="tr-pad-btn" data-k="left" style="grid-area:l;">◀</button>
+      <button type="button" class="tr-pad-btn" data-k="right" style="grid-area:r;">▶</button>
+      <button type="button" class="tr-pad-btn" data-k="down" style="grid-area:d;">▼</button>
+    </div>
+    <div class="tr-bottom">
+      <p class="hint">${friends.length ? `지금 같이 있어요: ${friends.map(f => f.nick).join(', ')} · 친구 트램펄린에 가면 하루 한 번 크게 슬쩍하고, 갈 때마다 조금씩 더 받아요. 내 트램펄린에 친구가 놀러오면 콤보 보너스!` : '방향키나 화면 버튼으로 걸어다녀요. 그룹 친구가 지금 이 화면을 열면 바로 같이 보여요'}</p>
+      ${next ? `<button type="button" class="hub-btn" id="trUpBtn">${TRAMP_NAMES[next - 1]} 트램펄린 (${TRAMP_COST[next].toLocaleString()} 코인)</button>` : '<div class="hub-sub">최고 단계예요!</div>'}
+    </div>
   </div>`;
   const up = document.getElementById('trUpBtn');
   if(up) up.addEventListener('click', trampUpgrade);
