@@ -1109,6 +1109,9 @@
   .tr-stage canvas{width:100%;height:100%;display:block;}
   .tr-pop{position:absolute;font-weight:800;font-size:20px;color:#ffd24a;text-shadow:0 2px 6px rgba(0,0,0,.7);pointer-events:none;transform:translate(-50%,0);opacity:1;transition:transform .9s ease-out,opacity .9s;}
   .tr-actions{width:100%;max-width:520px;display:flex;justify-content:center;}
+  .tr-pad{position:absolute;right:10px;bottom:10px;width:132px;height:132px;display:grid;grid-template-areas:". u ." "l . r" ". d .";grid-template-columns:40px 40px 40px;grid-template-rows:40px 40px 40px;gap:4px;opacity:0.88;}
+  .tr-pad-btn{border:none;border-radius:10px;background:rgba(10,14,30,0.6);color:#fff;font-size:17px;touch-action:none;user-select:none;}
+  .tr-pad-btn:active{background:rgba(127,220,255,0.55);}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
@@ -4345,7 +4348,7 @@
     var lostH = function(e){ if(e && e.preventDefault) e.preventDefault(); if(hooks.onLost) hooks.onLost(); };
     canvas.addEventListener('webglcontextlost', lostH, false);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    if(T.ACESFilmicToneMapping){ renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0; }
+    if(T.ACESFilmicToneMapping){ renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.18; }
     if(renderer.shadowMap){ renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap; }
     var scene = new T.Scene();
     var camera = new T.PerspectiveCamera(40, 1, 0.1, 2600);
@@ -5441,12 +5444,12 @@
     var renderer = new T.WebGLRenderer({ canvas:canvas, antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     if(renderer.shadowMap){ renderer.shadowMap.enabled = true; if(T.PCFSoftShadowMap) renderer.shadowMap.type = T.PCFSoftShadowMap; }
-    if(T.ACESFilmicToneMapping){ renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.12; }
+    if(T.ACESFilmicToneMapping){ renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.3; }
     var scene = new T.Scene();
     var camera = new T.PerspectiveCamera(40, 1, 0.1, 400);
     camera.position.set(0, 2.5, 9.4); camera.lookAt(0, 1.5, 0);
-    var hemi = new T.HemisphereLight(0xffffff, 0x8fa870, 0.62); scene.add(hemi);
-    var sun = new T.DirectionalLight(0xfff1d8, 0.9); sun.position.set(4, 8, 6); scene.add(sun);
+    var hemi = new T.HemisphereLight(0xfff6e0, 0x9fc088, 0.8); scene.add(hemi);
+    var sun = new T.DirectionalLight(0xfff1d8, 1.05); sun.position.set(4, 8, 6); scene.add(sun);
     if(sun.shadow){ sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); var sc = sun.shadow.camera; sc.left = -9; sc.right = 9; sc.top = 9; sc.bottom = -9; sc.near = 1; sc.far = 40; sun.shadow.bias = -0.0008; if(sun.target) scene.add(sun.target); }
     var rimLight = new T.DirectionalLight(0xbcd4ff, 0.35); rimLight.position.set(-5, 4, -6); scene.add(rimLight);
     var env = null; try{ env = makeEnv(renderer); }catch(e){}
@@ -5501,7 +5504,7 @@
       }
       if(kind !== 'snow'){ c.lineWidth = 1; for(var j = 0; j < 500; j++){ c.strokeStyle = 'hsla(' + (hues[0] + Math.random() * 30) + ',50%,' + (22 + Math.random() * 28) + '%,0.5)'; var x = Math.random() * 256, y = Math.random() * 256; c.beginPath(); c.moveTo(x, y); c.lineTo(x + (Math.random() - 0.5) * 4, y - 3 - Math.random() * 6); c.stroke(); } }
       else{ for(var q = 0; q < 120; q++){ c.fillStyle = 'rgba(255,255,255,0.95)'; c.fillRect(Math.random() * 256, Math.random() * 256, 1.5, 1.5); } }
-      for(var bl = 0; bl < 40; bl++){ var bx = Math.random() * 256, by = Math.random() * 256, br = 12 + Math.random() * 36; var bgr = c.createRadialGradient(bx, by, 0, bx, by, br); var dk = Math.random() < 0.5; bgr.addColorStop(0, dk ? 'rgba(30,70,20,0.26)' : 'rgba(210,245,150,0.2)'); bgr.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = bgr; c.fillRect(bx - br, by - br, br * 2, br * 2); }
+      for(var bl = 0; bl < 40; bl++){ var bx = Math.random() * 256, by = Math.random() * 256, br = 12 + Math.random() * 36; var bgr = c.createRadialGradient(bx, by, 0, bx, by, br); var dk = Math.random() < 0.5; bgr.addColorStop(0, dk ? 'rgba(40,95,30,0.14)' : 'rgba(225,255,170,0.26)'); bgr.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = bgr; c.fillRect(bx - br, by - br, br * 2, br * 2); }
       var t = new T.CanvasTexture(cv); if(T.RepeatWrapping){ t.wrapS = t.wrapT = T.RepeatWrapping; } t.repeat.set(16, 16); if(t.anisotropy !== undefined) t.anisotropy = 4; return (TEXC[kind] = t);
     }
     var groundMat = new T.MeshStandardMaterial({ color:0xffffff, map:groundTex('grass'), roughness:1 });
@@ -5530,8 +5533,8 @@
         var nx = x / L, ny = y / L, nz = z / L;
         var k = 1 + amt * (Math.sin(nx * 5.3 + sd) * 0.5 + Math.sin(nz * 6.1 - sd * 0.7) * 0.4 + Math.sin((nx + nz) * 13.7 + ny * 4.1 + sd) * 0.18);
         p.setXYZ(i, x * k, y * k, z * k);
-        var sh = 0.55 + 0.45 * Math.max(0, Math.min(1, (ny + 1) / 2));
-        col[i * 3] = sh; col[i * 3 + 1] = sh; col[i * 3 + 2] = sh * 0.96;
+        var sh = 0.7 + 0.3 * Math.max(0, Math.min(1, (ny + 1) / 2));
+        col[i * 3] = sh; col[i * 3 + 1] = sh; col[i * 3 + 2] = sh * 0.99;
       }
       geo.setAttribute('color', new T.BufferAttribute(col, 3));
       geo.computeVertexNormals(); return geo;
@@ -5545,9 +5548,9 @@
         var x = p.getX(i), y = p.getY(i), z = p.getZ(i);
         var k = 1 + rough * nz3(x, y, z, sd) + 0.07 * Math.sin(x * 17 + z * 13 + y * 11 + sd);
         p.setXYZ(i, x * k * r, y * k * r * (flat || 0.9), z * k * r);
-        var sh = 0.42 + 0.58 * Math.max(0, Math.min(1, (y + 1) / 2));
-        sh *= 0.88 + 0.12 * Math.sin(x * 23 + y * 19 + z * 29 + sd);
-        col[i * 3] = sh; col[i * 3 + 1] = sh; col[i * 3 + 2] = sh * 0.94;
+        var sh = 0.64 + 0.36 * Math.max(0, Math.min(1, (y + 1) / 2));
+        sh *= 0.93 + 0.07 * Math.sin(x * 23 + y * 19 + z * 29 + sd);
+        col[i * 3] = sh; col[i * 3 + 1] = sh; col[i * 3 + 2] = sh * 0.99;
       }
       g.setAttribute('color', new T.BufferAttribute(col, 3)); g.computeVertexNormals(); return g;
     }
@@ -5558,8 +5561,8 @@
         var rim = Math.max(0, 1 - t * 3);
         var rr = 1 + 0.16 * Math.sin(a * 9 + sd) * (1 - t) + 0.06 * Math.sin(a * 23 + sd * 2);
         p.setXYZ(i, x * rr, y - rim * h * 0.12 * (0.6 + 0.4 * Math.sin(a * 9 + sd)), z * rr);
-        var sh = 0.38 + 0.62 * Math.min(1, t * 1.2 + 0.1); sh *= 0.9 + 0.1 * Math.sin(a * 31 + y * 9);
-        col[i * 3] = sh; col[i * 3 + 1] = sh; col[i * 3 + 2] = sh * 0.95;
+        var sh = 0.62 + 0.38 * Math.min(1, t * 1.2 + 0.1); sh *= 0.94 + 0.06 * Math.sin(a * 31 + y * 9);
+        col[i * 3] = sh; col[i * 3 + 1] = sh; col[i * 3 + 2] = sh * 0.99;
       }
       g.setAttribute('color', new T.BufferAttribute(col, 3)); g.computeVertexNormals(); return g;
     }
@@ -6314,322 +6317,209 @@
       { frame:0xf4f4ff, metal:0.85, rough:0.15, padA:0xffffff, padB:0xffffff, spring:0xffffff, mat:'#1a1030', band:'rainbow', skirt:'rainbow' }
     ];
     var TR_NAMES = ['나무', '돌', '철', '은', '황금', '루비', '사파이어', '무지개'];
-    function makeTrampoline(canvas, cfg, hooks){
+    // ---- 트램펄린 파크: 내 트램펄린 + 그룹 친구들의 트램펄린이 한 화면에 있고, 방향키/화면 버튼으로 걸어다녀요 ----
+    function parkHsl(h, s, l){ var c = new T.Color(); c.setHSL(((h % 1) + 1) % 1, s, l); return c; }
+    function parkTex(w, h, draw){ var cv = document.createElement('canvas'); cv.width = w; cv.height = h; draw(cv.getContext('2d'), w, h); return new T.CanvasTexture(cv); }
+    function buildTrampStand(root, tier, pos, envTex){
+      tier = Math.max(0, Math.min(7, tier | 0)); var TH = TR_THEMES[tier], RAIN = tier === 7, accent = parseInt(TR_PAL[tier].slice(1), 16);
+      var R = 1.9 + tier * 0.12, H = 0.95 + tier * 0.04, MR = R - 0.38;
+      var g = new T.Group(); g.position.set(pos.x, 0, pos.z); root.add(g);
+      var metalMat = new T.MeshStandardMaterial({ color:TH.frame, roughness:TH.rough, metalness:TH.metal, envMap:envTex, envMapIntensity:1.1 });
+      var darkMat = new T.MeshStandardMaterial({ color:0x2a2f3a, roughness:0.6, metalness:0.4 });
+      var gsh = new T.Mesh(new T.CircleGeometry(R + 0.6, 36), new T.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.2, depthWrite:false })); gsh.rotation.x = -Math.PI / 2; gsh.position.y = 0.015; g.add(gsh);
+      var legN = tier < 2 ? 6 : 8, legTops = [];
+      for(var l = 0; l < legN; l++){
+        var la = l / legN * Math.PI * 2 + 0.2, lx = Math.sin(la) * (R - 0.02), lz = Math.cos(la) * (R - 0.02);
+        var leg = new T.Mesh(new T.CylinderGeometry(0.055 + tier * 0.003, 0.075 + tier * 0.003, H, 12), metalMat); leg.position.set(lx, H / 2, lz); g.add(leg);
+        var ft = new T.Mesh(new T.CylinderGeometry(0.15, 0.17, 0.07, 12), darkMat); ft.position.set(lx, 0.035, lz); g.add(ft);
+        legTops.push({ x:lx, z:lz, a:la });
+      }
+      var ring = new T.Mesh(new T.TorusGeometry(R, 0.06 + tier * 0.004, 12, 80), metalMat); ring.rotation.x = Math.PI / 2; ring.position.y = H; g.add(ring);
+      var padN = 14, pads = [];
+      for(var p = 0; p < padN; p++){
+        var pm = new T.MeshStandardMaterial({ color: RAIN ? parkHsl(p / padN, 0.85, 0.6) : (p % 2 ? TH.padB : TH.padA), roughness:0.55 });
+        var pad = new T.Mesh(new T.TorusGeometry(R + 0.1, 0.1 + tier * 0.006, 10, 8, Math.PI * 2 / padN * 0.94), pm);
+        pad.rotation.x = Math.PI / 2; pad.rotation.z = p / padN * Math.PI * 2; pad.position.y = H + 0.03; g.add(pad); pads.push(pm);
+      }
+      var matTex = parkTex(256, 256, function(c, w, h){
+        var cx = w / 2, cy = h / 2, rr = w / 2;
+        c.fillStyle = TH.mat; c.fillRect(0, 0, w, h);
+        var bandIn = rr * 0.84;
+        if(TH.band === 'rainbow'){ for(var s = 0; s < 48; s++){ c.fillStyle = 'hsl(' + (s * 7.5) + ',90%,60%)'; c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, rr, s / 48 * Math.PI * 2, (s + 1.2) / 48 * Math.PI * 2); c.closePath(); c.fill(); } }
+        else { c.fillStyle = TH.band; c.beginPath(); c.arc(cx, cy, rr, 0, Math.PI * 2); c.fill(); }
+        c.fillStyle = TH.mat; c.beginPath(); c.arc(cx, cy, bandIn, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = 'rgba(255,255,255,0.7)'; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, bandIn - 5, 0, Math.PI * 2); c.stroke();
+        var sr = rr * 0.2; c.fillStyle = TH.band === 'rainbow' ? '#ffffff' : TH.band; c.beginPath();
+        for(var k = 0; k < 10; k++){ var r2 = k % 2 ? sr * 0.45 : sr, a2 = -Math.PI / 2 + k * Math.PI / 5; c.lineTo(cx + Math.cos(a2) * r2, cy + Math.sin(a2) * r2); }
+        c.closePath(); c.fill();
+      });
+      var matGeo = new T.RingGeometry(0.02, MR, 56, 12);
+      var mPos = matGeo.attributes.position, mOrig = mPos.array.slice();
+      var matMesh = new T.Mesh(matGeo, new T.MeshStandardMaterial({ map:matTex, roughness:0.5, side:T.DoubleSide, envMap:envTex, envMapIntensity:0.3 }));
+      matMesh.rotation.x = -Math.PI / 2; matMesh.position.y = H; g.add(matMesh);
+      function prof(r){ var q = Math.min(1, r / MR); return 1 - 0.82 * q * q; }
+      function deformMat(d){ for(var i = 0; i < mPos.count; i++){ var x = mOrig[i * 3], y = mOrig[i * 3 + 1]; mPos.setZ(i, d * prof(Math.sqrt(x * x + y * y))); } mPos.needsUpdate = true; matGeo.computeVertexNormals(); }
+      var springGeo = (function(){ var pts = [], turns = 7, N = turns * 10; for(var i = 0; i <= N; i++){ var t = i / N, a = t * turns * Math.PI * 2; pts.push(new T.Vector3(Math.cos(a) * 0.04, t - 0.5, Math.sin(a) * 0.04)); } return new T.TubeGeometry(new T.CatmullRomCurve3(pts), N, 0.01, 5, false); })();
+      var springN = 16 + tier, springs = [], upV = new T.Vector3(0, 1, 0), pA = new T.Vector3(), pB = new T.Vector3(), dV = new T.Vector3();
+      for(var sp = 0; sp < springN; sp++){ var sm = new T.Mesh(springGeo, new T.MeshStandardMaterial({ color: RAIN ? parkHsl(sp / springN, 0.8, 0.65) : TH.spring, roughness:0.3, metalness:0.85 })); g.add(sm); springs.push({ m:sm, a:sp / springN * Math.PI * 2 }); }
+      function updSprings(d){ var edgeY = H + d * prof(MR); for(var k = 0; k < springs.length; k++){ var S = springs[k], c3 = Math.sin(S.a), s3 = Math.cos(S.a); pA.set(c3 * (R - 0.05), H, s3 * (R - 0.05)); pB.set(c3 * MR, edgeY, s3 * MR); dV.subVectors(pB, pA); var len = Math.max(0.01, dV.length()); S.m.position.addVectors(pA, pB).multiplyScalar(0.5); S.m.scale.set(1, len, 1); S.m.quaternion.setFromUnitVectors(upV, dV.normalize()); } }
+      var gems = [];
+      if(tier >= 3) legTops.forEach(function(L, i){
+        var gm = new T.Mesh(new T.OctahedronGeometry(0.12 + tier * 0.008, 0), new T.MeshStandardMaterial({ color: RAIN ? parkHsl(i / legTops.length, 0.9, 0.6) : accent, emissive: RAIN ? parkHsl(i / legTops.length, 0.9, 0.4) : accent, emissiveIntensity:0.55, roughness:0.15 }));
+        gm.position.set(L.x * 1.08, H + 0.3, L.z * 1.08); g.add(gm); gems.push(gm);
+      });
+      var bulbs = [];
+      if(tier >= 2){
+        var BN2 = 12 + tier * 2;
+        for(var b = 0; b < BN2; b++){
+          var ba = b / BN2 * Math.PI * 2, bx = Math.sin(ba) * (R + 0.11), bz = Math.cos(ba) * (R + 0.11);
+          var bm = new T.Mesh(new T.SphereGeometry(0.035, 7, 5), new T.MeshBasicMaterial({ color:0xffffff })); bm.position.set(bx, H + 0.15, bz); g.add(bm); bulbs.push({ m:bm, i:b, n:BN2 });
+        }
+      }
+      return {
+        g:g, H:H, R:R, MR:MR, center:pos,
+        setDeform:function(d){ deformMat(d); updSprings(d); },
+        tick:function(t){ gems.forEach(function(gm, i){ gm.rotation.y = t * 1.4 + i; }); bulbs.forEach(function(B){ var on = ((B.i + Math.floor(t * 8)) % 3) === 0; B.m.material.color.copy(RAIN ? parkHsl(B.i / B.n + t * 0.25, 0.95, on ? 0.65 : 0.3) : (on ? new T.Color(0xffffff) : new T.Color(accent).multiplyScalar(0.5))); }); if(RAIN) pads.forEach(function(pm, i){ pm.color.copy(parkHsl(i / pads.length + t * 0.08, 0.85, 0.6)); }); }
+      };
+    }
+    function makeTrampolinePark(canvas, cfg, hooks){
       hooks = hooks || {};
-      var ti = Math.max(0, Math.min(7, (cfg.tier | 0) - 1)), TH = TR_THEMES[ti], RAIN = ti === 7;
-      var spd = cfg.speed || 1;
       var tr = null;
       var pv = makePet(canvas, { onFrame: function(dt){ if(tr) tr.tick(dt); } });
       pv.hideActors(true);
-      var scene = pv.scene, camera = pv.camera, renderer = pv.renderer;
-      var envTex = makeEnv(renderer); ENV_CUR = envTex;
-      var accent = parseInt(TR_PAL[ti].slice(1), 16);
-      var rimA = new T.PointLight(0xfff2d8, 0.9 + ti * 0.1, 18); rimA.position.set(-4, 4, 4); scene.add(rimA);
-      var rimB = new T.PointLight(accent, 0.8 + ti * 0.15, 18); rimB.position.set(4, 3, 3); scene.add(rimB);
-      function hsl(h, s, l){ var c = new T.Color(); c.setHSL(((h % 1) + 1) % 1, s, l); return c; }
-      function cvTex(w, h, draw){ var cv = document.createElement('canvas'); cv.width = w; cv.height = h; draw(cv.getContext('2d'), w, h); var tx = new T.CanvasTexture(cv); if(tx.anisotropy !== undefined) tx.anisotropy = 4; return tx; }
-
-      var R = 2.0 + ti * 0.14, H = 0.95 + ti * 0.05, MR = R - 0.4;
-      var metalMat = new T.MeshStandardMaterial({ color:TH.frame, roughness:TH.rough, metalness:TH.metal, envMap:envTex, envMapIntensity:1.2 });
-      var darkMat = new T.MeshStandardMaterial({ color:0x2a2f3a, roughness:0.6, metalness:0.4, envMap:envTex, envMapIntensity:0.6 });
-      var root = new T.Group(); scene.add(root);
-
-      // 땅 그림자
-      var gsh = new T.Mesh(new T.CircleGeometry(R + 0.7, 48), new T.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.22, depthWrite:false }));
-      gsh.rotation.x = -Math.PI / 2; gsh.position.y = 0.02; root.add(gsh);
-
-      // 다리 + 바닥 고리 + 볼트
-      var legN = ti < 2 ? 6 : 8, legTops = [];
-      for(var l = 0; l < legN; l++){
-        var la = l / legN * Math.PI * 2 + 0.2, lx = Math.sin(la) * (R - 0.02), lz = Math.cos(la) * (R - 0.02);
-        var leg = new T.Mesh(new T.CylinderGeometry(0.06 + ti * 0.004, 0.08 + ti * 0.004, H, 14), metalMat); leg.position.set(lx, H / 2, lz); root.add(leg);
-        var ft = new T.Mesh(new T.CylinderGeometry(0.17, 0.2, 0.08, 14), darkMat); ft.position.set(lx, 0.04, lz); root.add(ft);
-        var bolt = new T.Mesh(new T.SphereGeometry(0.05, 10, 8), darkMat); bolt.position.set(lx * 1.02, H * 0.55, lz * 1.02); root.add(bolt);
-        legTops.push({ x:lx, z:lz, a:la });
-      }
-      var gring = new T.Mesh(new T.TorusGeometry(R - 0.02, 0.045, 10, 96), metalMat); gring.rotation.x = Math.PI / 2; gring.position.y = 0.08; root.add(gring);
-
-      // 치마(단계 2부터): 알록달록 세로 줄무늬
-      if(TH.skirt){
-        var skTex = cvTex(512, 64, function(c, w, h){
-          var N = 32;
-          for(var s = 0; s < N; s++){ c.fillStyle = TH.skirt === 'rainbow' ? 'hsl(' + (s / N * 360) + ',85%,62%)' : TH.skirt[s % 2]; c.fillRect(s * w / N, 0, w / N + 1, h); }
-          c.fillStyle = 'rgba(255,255,255,0.35)'; c.fillRect(0, 0, w, 5);
-          c.fillStyle = 'rgba(0,0,0,0.25)'; for(var k = 0; k < 64; k++){ c.beginPath(); c.arc((k + 0.5) * w / 64, h, w / 128, Math.PI, 0); c.fill(); }
-        });
-        if(skTex.wrapS !== undefined && T.RepeatWrapping){ skTex.wrapS = T.RepeatWrapping; }
-        var skirt = new T.Mesh(new T.CylinderGeometry(R + 0.05, R + 0.12, H - 0.14, 96, 1, true), new T.MeshStandardMaterial({ map:skTex, roughness:0.8, side:T.DoubleSide }));
-        skirt.position.y = (H - 0.14) / 2 + 0.06; root.add(skirt);
-      }
-
-      // 위쪽 강철 고리
-      var topRing = new T.Mesh(new T.TorusGeometry(R, 0.075 + ti * 0.006, 16, 128), metalMat);
-      topRing.rotation.x = Math.PI / 2; topRing.position.y = H; root.add(topRing);
-
-      // 폭신한 안전 패드(색이 번갈아요)
-      var padN = 16, pads = [];
-      for(var p = 0; p < padN; p++){
-        var pm = new T.MeshStandardMaterial({ color: RAIN ? hsl(p / padN, 0.85, 0.6) : (p % 2 ? TH.padB : TH.padA), roughness:0.55, envMap:envTex, envMapIntensity:0.5 });
-        var pad = new T.Mesh(new T.TorusGeometry(R + 0.14, 0.14 + ti * 0.008, 12, 10, Math.PI * 2 / padN * 0.94), pm);
-        pad.rotation.x = Math.PI / 2; pad.rotation.z = p / padN * Math.PI * 2; pad.position.y = H + 0.04; root.add(pad); pads.push(pm);
-      }
-
-      // 매트: 촘촘한 직물 + 테두리 띠 + 가운데 별 문양. 가운데가 실제로 움푹 꺼져요
-      var matTex = cvTex(512, 512, function(c, w, h){
-        var cx = w / 2, cy = h / 2, rr = w / 2;
-        c.fillStyle = TH.mat; c.fillRect(0, 0, w, h);
-        c.strokeStyle = 'rgba(255,255,255,0.07)'; c.lineWidth = 1;
-        for(var g = 0; g < w; g += 4){ c.beginPath(); c.moveTo(g, 0); c.lineTo(g, h); c.stroke(); c.beginPath(); c.moveTo(0, g); c.lineTo(w, g); c.stroke(); }
-        var bandIn = rr * 0.86;
-        if(TH.band === 'rainbow'){ for(var s = 0; s < 72; s++){ c.fillStyle = 'hsl(' + (s * 5) + ',90%,60%)'; c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, rr, s / 72 * Math.PI * 2, (s + 1.2) / 72 * Math.PI * 2); c.closePath(); c.fill(); } }
-        else { c.fillStyle = TH.band; c.beginPath(); c.arc(cx, cy, rr, 0, Math.PI * 2); c.fill(); }
-        c.fillStyle = TH.mat; c.beginPath(); c.arc(cx, cy, bandIn, 0, Math.PI * 2); c.fill();
-        c.save(); c.beginPath(); c.arc(cx, cy, bandIn, 0, Math.PI * 2); c.clip();
-        c.strokeStyle = 'rgba(255,255,255,0.08)'; for(var g2 = 0; g2 < w; g2 += 4){ c.beginPath(); c.moveTo(g2, 0); c.lineTo(g2, h); c.stroke(); c.beginPath(); c.moveTo(0, g2); c.lineTo(w, g2); c.stroke(); }
-        c.restore();
-        c.strokeStyle = 'rgba(255,255,255,0.75)'; c.lineWidth = 4; c.beginPath(); c.arc(cx, cy, bandIn - 6, 0, Math.PI * 2); c.stroke();
-        for(var dd = 0; dd < 48; dd++){ var aa = dd / 48 * Math.PI * 2; c.fillStyle = '#e8e8f0'; c.beginPath(); c.arc(cx + Math.cos(aa) * (rr - 8), cy + Math.sin(aa) * (rr - 8), 4, 0, Math.PI * 2); c.fill(); }
-        var sr = rr * 0.2; c.fillStyle = TH.band === 'rainbow' ? '#ffffff' : TH.band; c.globalAlpha = 0.9; c.beginPath();
-        for(var k = 0; k < 10; k++){ var r2 = k % 2 ? sr * 0.45 : sr, a2 = -Math.PI / 2 + k * Math.PI / 5; c.lineTo(cx + Math.cos(a2) * r2, cy + Math.sin(a2) * r2); }
-        c.closePath(); c.fill(); c.globalAlpha = 1;
-        c.strokeStyle = 'rgba(255,255,255,0.5)'; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, sr * 1.35, 0, Math.PI * 2); c.stroke();
-      });
-      var matGeo = new T.RingGeometry(0.02, MR, 72, 14);
-      var mPos = matGeo.attributes.position, mOrig = mPos.array.slice();
-      var matMesh = new T.Mesh(matGeo, new T.MeshStandardMaterial({ map:matTex, roughness:0.5, metalness:0.05, side:T.DoubleSide, envMap:envTex, envMapIntensity:0.35 }));
-      matMesh.rotation.x = -Math.PI / 2; matMesh.position.y = H; root.add(matMesh);
-      function prof(r){ var q = Math.min(1, r / MR); return 1 - 0.82 * q * q; }
-      function deformMat(d){
-        for(var i = 0; i < mPos.count; i++){ var x = mOrig[i * 3], y = mOrig[i * 3 + 1]; mPos.setZ(i, d * prof(Math.sqrt(x * x + y * y))); }
-        mPos.needsUpdate = true; matGeo.computeVertexNormals();
-      }
-      // 슬라임 그림자: 매트 모양을 따라 휘어요
-      var shGeo = new T.RingGeometry(0.001, 1, 32, 3), shPos = shGeo.attributes.position, shOrig = shPos.array.slice();
-      var shMesh = new T.Mesh(shGeo, new T.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2 }));
-      matMesh.add(shMesh);
-      function deformShadow(d, s){
-        for(var i = 0; i < shPos.count; i++){ var x = shOrig[i * 3] * s, y = shOrig[i * 3 + 1] * s; shPos.setXYZ(i, x, y, d * prof(Math.sqrt(x * x + y * y)) + 0.02); }
-        shPos.needsUpdate = true;
-      }
-
-      // 스프링: 진짜 용수철 모양. 매트가 꺼지면 늘어났다 줄어요
-      var springGeo = (function(){
-        var pts = [], turns = 9, N = turns * 14;
-        for(var i = 0; i <= N; i++){ var t = i / N, a = t * turns * Math.PI * 2; pts.push(new T.Vector3(Math.cos(a) * 0.045, t - 0.5, Math.sin(a) * 0.045)); }
-        return new T.TubeGeometry(new T.CatmullRomCurve3(pts), N, 0.012, 5, false);
-      })();
-      var springN = 28 + ti * 2, springs = [], springMats = [];
-      var hookGeo = new T.SphereGeometry(0.035, 8, 6);
-      for(var sp = 0; sp < springN; sp++){
-        var smat = new T.MeshStandardMaterial({ color: RAIN ? hsl(sp / springN, 0.8, 0.65) : TH.spring, roughness:0.25, metalness:0.9, envMap:envTex, envMapIntensity:1.2 });
-        springMats.push(smat);
-        var sm = new T.Mesh(springGeo, smat); root.add(sm);
-        var hk = new T.Mesh(hookGeo, darkMat); root.add(hk);
-        springs.push({ m:sm, hk:hk, a:sp / springN * Math.PI * 2 });
-      }
-      var upV = new T.Vector3(0, 1, 0), pA = new T.Vector3(), pB = new T.Vector3(), dV = new T.Vector3();
-      function updSprings(d){
-        var edgeY = H + d * prof(MR);
-        for(var k = 0; k < springs.length; k++){
-          var S = springs[k], c3 = Math.sin(S.a), s3 = Math.cos(S.a);
-          pA.set(c3 * (R - 0.06), H, s3 * (R - 0.06)); pB.set(c3 * MR, edgeY, s3 * MR);
-          dV.subVectors(pB, pA); var len = Math.max(0.01, dV.length());
-          S.m.position.addVectors(pA, pB).multiplyScalar(0.5); S.m.scale.set(1, len, 1);
-          S.m.quaternion.setFromUnitVectors(upV, dV.normalize());
-          S.hk.position.copy(pB);
+      var scene = pv.scene, camera = pv.camera;
+      var envTex = makeEnv(pv.renderer); ENV_CUR = envTex;
+      var pLight = new T.PointLight(0xfff2d8, 0.6, 24); pLight.position.set(0, 5, 6); scene.add(pLight);
+      var park = new T.Group(); scene.add(park);
+      var riders = cfg.riders;          // [{ v, evo, tier, name, isMe, uid }], riders[0] = 나
+      var myUid = cfg.myUid || null, liveMap = hooks.live || {};
+      var N = riders.length, layout = [{ x:0, z:0.5 }];
+      for(var i = 1; i < N; i++){ var a0 = (i - 1) / Math.max(1, N - 1) * Math.PI * 0.86 - Math.PI * 0.43; layout.push({ x:Math.sin(a0) * 4.6, z:Math.cos(a0) * 4.6 - 3.0 }); }
+      var stands = riders.map(function(r, i){ return buildTrampStand(park, r.tier, layout[i], envTex); });
+      var uidToIdx = {}; riders.forEach(function(r, i){ if(r.uid) uidToIdx[r.uid] = i; });
+      function resolveTarget(stateStr, ownIdx){
+        if(stateStr && stateStr.indexOf('visit:') === 0){
+          var target = stateStr.slice(6);
+          if(target === myUid) return 0;
+          if(uidToIdx[target] !== undefined) return uidToIdx[target];
         }
+        return ownIdx;
       }
 
-      // 다리 위 장식: 단계가 높으면 회전하는 보석
-      var gems = [];
-      legTops.forEach(function(L, i){
-        if(ti >= 4){
-          var gm = new T.Mesh(new T.OctahedronGeometry(0.16 + ti * 0.01, 0), new T.MeshStandardMaterial({ color: RAIN ? hsl(i / legTops.length, 0.9, 0.6) : accent, emissive: RAIN ? hsl(i / legTops.length, 0.9, 0.4) : accent, emissiveIntensity:0.6, roughness:0.1, metalness:0.3, envMap:envTex, envMapIntensity:1.5 }));
-          gm.position.set(L.x * 1.07, H + 0.42, L.z * 1.07); root.add(gm); gems.push(gm);
-        } else {
-          var kb = new T.Mesh(new T.SphereGeometry(0.1 + ti * 0.012, 14, 10), new T.MeshStandardMaterial({ color:accent, roughness:0.3, envMap:envTex, envMapIntensity:0.8 }));
-          kb.position.set(L.x * 1.07, H + 0.28, L.z * 1.07); root.add(kb);
-        }
-      });
+      // ---- 조작: 방향키 + 화면 버튼 ----
+      var held = { up:false, down:false, left:false, right:false };
+      function kd(e){ var k = e.key; if(k === 'ArrowUp' || k === 'w') held.up = true; else if(k === 'ArrowDown' || k === 's') held.down = true; else if(k === 'ArrowLeft' || k === 'a') held.left = true; else if(k === 'ArrowRight' || k === 'd') held.right = true; }
+      function ku(e){ var k = e.key; if(k === 'ArrowUp' || k === 'w') held.up = false; else if(k === 'ArrowDown' || k === 's') held.down = false; else if(k === 'ArrowLeft' || k === 'a') held.left = false; else if(k === 'ArrowRight' || k === 'd') held.right = false; }
+      window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
+      if(hooks.bindPad) hooks.bindPad(held);
 
-      // 반짝이는 전구 줄(단계 4부터): 차례로 깜빡여요
-      var bulbs = [];
-      if(ti >= 3){
-        var BN2 = 16 + ti * 3, gTex = glowTex();
-        for(var b = 0; b < BN2; b++){
-          var ba = b / BN2 * Math.PI * 2, bx = Math.sin(ba) * (R + 0.14), bz = Math.cos(ba) * (R + 0.14), by = H + 0.2 + ti * 0.008;
-          var bm = new T.Mesh(new T.SphereGeometry(0.045, 8, 6), new T.MeshBasicMaterial({ color:0xffffff }));
-          bm.position.set(bx, by, bz); root.add(bm);
-          var bg = new T.Sprite(new T.SpriteMaterial({ map:gTex, color:accent, transparent:true, opacity:0.6, blending:T.AdditiveBlending, depthWrite:false }));
-          bg.scale.set(0.42, 0.42, 1); bg.position.set(bx, by, bz); root.add(bg);
-          bulbs.push({ m:bm, g:bg, i:b, n:BN2 });
-        }
-      }
-
-      // 안전 그물과 기둥(단계 5부터, 뒤쪽 반만 둘러서 슬라임이 잘 보여요)
-      var flags = [];
-      if(ti >= 4){
-        var netH = 1.9 + ti * 0.08, th0 = Math.PI * 0.45, thL = Math.PI * 1.1;
-        var netTex = cvTex(128, 128, function(c, w, h){ c.clearRect(0, 0, w, h); c.strokeStyle = 'rgba(255,255,255,0.85)'; c.lineWidth = 3; c.beginPath(); c.moveTo(0, 0); c.lineTo(w, h); c.moveTo(w, 0); c.lineTo(0, h); c.stroke(); });
-        if(T.RepeatWrapping){ netTex.wrapS = netTex.wrapT = T.RepeatWrapping; } netTex.repeat.set(26, 4);
-        var net = new T.Mesh(new T.CylinderGeometry(R + 0.02, R + 0.02, netH, 72, 1, true, th0, thL), new T.MeshBasicMaterial({ map:netTex, transparent:true, opacity:0.45, side:T.DoubleSide, depthWrite:false }));
-        net.position.y = H + netH / 2 + 0.05; root.add(net);
-        var poleN = 6, topPts = [];
-        for(var q = 0; q <= 24; q++){ var tq = th0 + thL * q / 24; topPts.push(new T.Vector3(Math.sin(tq) * (R + 0.02), H + netH + 0.05, Math.cos(tq) * (R + 0.02))); }
-        var topTube = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(topPts), 48, 0.07, 10, false), new T.MeshStandardMaterial({ color:TH.padA, roughness:0.5, envMap:envTex, envMapIntensity:0.5 }));
-        root.add(topTube);
-        for(var pp = 0; pp < poleN; pp++){
-          var tp = th0 + thL * pp / (poleN - 1), px2 = Math.sin(tp) * (R + 0.02), pz2 = Math.cos(tp) * (R + 0.02);
-          var pole = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, netH, 12), metalMat); pole.position.set(px2, H + netH / 2 + 0.05, pz2); root.add(pole);
-          var sleeve = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, netH * 0.8, 12), new T.MeshStandardMaterial({ color: RAIN ? hsl(pp / poleN, 0.85, 0.6) : TH.padB, roughness:0.6 }));
-          sleeve.position.set(px2, H + netH * 0.45, pz2); root.add(sleeve);
-          var fl = new T.Mesh(new T.PlaneGeometry(0.55, 0.32, 10, 3), new T.MeshStandardMaterial({ color: RAIN ? hsl(pp / poleN + 0.3, 0.9, 0.6) : accent, emissive:accent, emissiveIntensity:0.25, side:T.DoubleSide, roughness:0.6 }));
-          fl.position.set(px2 + 0.28, H + netH + 0.45, pz2); root.add(fl);
-          var fpole = new T.Mesh(new T.CylinderGeometry(0.02, 0.02, 0.6, 8), metalMat); fpole.position.set(px2, H + netH + 0.35, pz2); root.add(fpole);
-          var fPos = fl.geometry.attributes.position; flags.push({ m:fl, i:pp, pos:fPos, org:fPos.array.slice() });
-        }
-      }
-
-      // 아치 간판(단계 7부터)
-      var archBulbs = [];
-      if(ti >= 6){
-        var az = -(R + 1.1), aw = R + 0.5, ah = H + 2.6;
-        [-1, 1].forEach(function(sx){
-          var pil = new T.Mesh(new T.CylinderGeometry(0.16, 0.2, ah, 16), metalMat); pil.position.set(sx * aw, ah / 2, az); root.add(pil);
-          var cap = new T.Mesh(new T.SphereGeometry(0.24, 16, 12), new T.MeshStandardMaterial({ color:accent, emissive:accent, emissiveIntensity:0.5, roughness:0.2 })); cap.position.set(sx * aw, ah + 0.05, az); root.add(cap);
-        });
-        var arc = new T.Mesh(new T.TorusGeometry(aw, 0.13, 12, 64, Math.PI), metalMat); arc.scale.y = 0.42; arc.position.set(0, ah, az); root.add(arc);
-        var sign = cvTex(512, 128, function(c, w, h){
-          var g = c.createLinearGradient(0, 0, w, 0);
-          if(RAIN){ for(var s = 0; s <= 6; s++) g.addColorStop(s / 6, 'hsl(' + (s * 60) + ',90%,55%)'); } else { g.addColorStop(0, TR_PAL[ti]); g.addColorStop(1, '#ffffff'); }
-          c.fillStyle = '#1a1030'; c.fillRect(0, 0, w, h); c.fillStyle = g; c.fillRect(6, 6, w - 12, h - 12);
-          c.fillStyle = '#1a1030'; c.font = 'bold 64px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('★ ' + TR_NAMES[ti] + ' ★', w / 2, h / 2 + 4);
-        });
-        var signM = new T.Mesh(new T.PlaneGeometry(2.6, 0.65), new T.MeshBasicMaterial({ map:sign, side:T.DoubleSide })); signM.position.set(0, ah + 0.42, az + 0.05); root.add(signM);
-        for(var ab = 0; ab < 22; ab++){ var aa2 = ab / 21 * Math.PI, abm = new T.Mesh(new T.SphereGeometry(0.06, 8, 6), new T.MeshBasicMaterial({ color:0xffffff })); abm.position.set(Math.cos(aa2) * aw, ah + Math.sin(aa2) * aw * 0.42, az + 0.15); root.add(abm); archBulbs.push(abm); }
-      }
-
-      // 꽃가루(단계 8): 알록달록 종이가 계속 흩날려요
-      var confetti = [];
-      if(ti >= 7){
-        var cGeo = new T.PlaneGeometry(0.1, 0.16);
-        for(var cf = 0; cf < 46; cf++){
-          var cm = new T.Mesh(cGeo, new T.MeshBasicMaterial({ color:hsl(Math.random(), 0.9, 0.6), side:T.DoubleSide }));
-          cm.position.set((Math.random() - 0.5) * 9, Math.random() * 6, (Math.random() - 0.5) * 5 - 1); root.add(cm);
-          confetti.push({ m:cm, vy:0.5 + Math.random() * 0.8, sw:Math.random() * 6, rs:1 + Math.random() * 3 });
-        }
-      }
-
-      // 착지 효과: 퍼지는 고리 + 튀는 반짝이 / 코인 효과: 금화가 빙글 돌며 떠올라요
-      var shocks = [], sparks = [], coins3 = [];
-      for(var sh2 = 0; sh2 < 3; sh2++){ var shm = new T.Mesh(new T.TorusGeometry(1, 0.03, 6, 48), new T.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0, depthWrite:false })); shm.rotation.x = Math.PI / 2; shm.visible = false; root.add(shm); shocks.push({ m:shm, t:9 }); }
-      var spGeo = new T.SphereGeometry(0.05, 6, 5);
-      for(var sk = 0; sk < 36; sk++){ var skm = new T.Mesh(spGeo, new T.MeshBasicMaterial({ color:accent, transparent:true, opacity:1, blending:T.AdditiveBlending, depthWrite:false })); skm.visible = false; root.add(skm); sparks.push({ m:skm, t:9, life:1, vx:0, vy:0, vz:0 }); }
-      var coinMat = new T.MeshStandardMaterial({ color:0xffd24a, metalness:1, roughness:0.25, emissive:0x8a5a00, emissiveIntensity:0.3, envMap:envTex, envMapIntensity:1.5 });
-      var coinGeo = new T.CylinderGeometry(0.22, 0.22, 0.05, 24);
-      for(var co = 0; co < 8; co++){ var cmm = new T.Mesh(coinGeo, coinMat); cmm.rotation.x = Math.PI / 2; cmm.visible = false; root.add(cmm); coins3.push({ m:cmm, t:9, x:0 }); }
-      function spawnLandFx(y){
-        for(var i = 0; i < shocks.length; i++){ if(shocks[i].t >= 0.6){ shocks[i].t = 0; shocks[i].m.position.y = y; shocks[i].m.visible = true; break; } }
-        var n = 0;
-        for(var j = 0; j < sparks.length && n < 7 + ti; j++){
-          var P = sparks[j]; if(P.t < P.life) continue;
-          var a = Math.random() * Math.PI * 2, s = 1.5 + Math.random() * 2.5;
-          P.t = 0; P.life = 0.5 + Math.random() * 0.4; P.vx = Math.cos(a) * s; P.vz = Math.sin(a) * s; P.vy = 2 + Math.random() * 3;
-          P.m.position.set(0, y + 0.1, 0); P.m.visible = true;
-          if(RAIN) P.m.material.color.copy(hsl(Math.random(), 0.9, 0.6)); n++;
-        }
-      }
-      function spawnCoin(y){
-        for(var i = 0; i < coins3.length; i++){ var C = coins3[i]; if(C.t >= 1.1){ C.t = 0; C.x = (Math.random() - 0.5) * 1.2; C.y0 = y; C.m.visible = true; return; } }
-      }
-
-      // 대표 슬라임
       ENV_CUR = envTex;
-      var slime = buildMascot(cfg.v, { battle:true, noFx:true, evo:!!cfg.evo });
-      var SB = 0.9, bodyBox = new T.Box3().setFromObject(slime), bodyC = Math.max(0.6, (bodyBox.max.y - bodyBox.min.y) * 0.45) || 1;
-      var holder = new T.Group(), pivot = new T.Group(); root.add(holder); holder.add(pivot); pivot.add(slime);
-      pivot.position.y = bodyC * SB; slime.position.y = -bodyC; holder.scale.setScalar(SB); slime.scale.setScalar(1);
-      var sU = slime.userData || {};
-      // 공중 기술: 뛸 때마다 무작위로 골라요
-      var TRICKS = [['none', 2], ['front', 3], ['back', 3], ['sideL', 2], ['sideR', 2], ['spin', 2], ['twist', 2], ['double', 1], ['roll', 2]];
-      var trick = 'none', tAir = 0, tFlight = 1, tx0 = 0, tz0 = 0, tx1 = 0, tz1 = 0, lean = 0;
-      function pickTrick(){
-        var tot = 0; TRICKS.forEach(function(k){ tot += k[1]; }); var r = Math.random() * tot;
-        for(var i = 0; i < TRICKS.length; i++){ r -= TRICKS[i][1]; if(r <= 0) return TRICKS[i][0]; }
-        return 'front';
+      function spawnRider(r){
+        var m = buildMascot(r.v, { battle:true, noFx:true, evo:!!r.evo });
+        var bb = new T.Box3().setFromObject(m), bc = Math.max(0.55, (bb.max.y - bb.min.y) * 0.45) || 0.9;
+        var holder = new T.Group(), pivot = new T.Group(); park.add(holder); holder.add(pivot); pivot.add(m);
+        pivot.position.y = bc; m.position.y = -bc;
+        return { m:m, u:m.userData || {}, holder:holder, pivot:pivot, SB:0.78, standIdx:-1, x:0, z:0, ox:0, oz:0, yaw:0, air:0, vy:0, matY:0, matV:0, sq:0, sqV:0, trick:'none', tAir:0, tFlight:1, walkT:0, lastLandDay:'', walking:false, wT:0, wFrom:{ x:0, z:0 } };
       }
-      function easeIO(p){ return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
+      var me = spawnRider(riders[0]); me.x = layout[0].x; me.z = layout[0].z + 1.6;
+      var npcs = riders.slice(1).map(function(r, i){ var n = spawnRider(r); n.standIdx = i + 1; n.x = layout[i + 1].x; n.z = layout[i + 1].z; n.uid = r.uid; n.name = r.name; n.ownIdx = i + 1; n.visitedTick = false; return n; });
 
-      // 물리: 매트 스프링 + 점프 + 출렁이는 찌그러짐
-      var GRAV = 9.0, HB = 1.7 + ti * 0.12, VY = Math.sqrt(2 * GRAV * HB);
-      var K = 46 + ti * 3, CD = 2.8, matY = H, matV = 0, air = 0, vy = VY, sq = 0, sqV = 0, KQ = 95, CQ = 6.5;
-      var coinChance = 0.22 + ti * 0.02;
-      function land(imp){
-        sqV += Math.min(14, imp * 1.1);
-        matV = -Math.min(3.4, imp * 0.24);
-        spawnLandFx(matY);
-        if(hooks.onLand) hooks.onLand();
-        // 착지할 때마다 코인이 나와요 (한 번에 받는 양은 확률을 곱한 만큼이라 전체 수입은 그대로예요)
-        spawnCoin(matY + 1);
-        if(hooks.onCoin) hooks.onCoin(Math.max(1, Math.round(coinChance * (2 + ti * 2 + Math.random() * (3 + ti)) * 5)));
-      }
-      function step(dt){
-        matV += (-K * (matY - H) - CD * matV) * dt; matY += matV * dt;
-        vy -= GRAV * dt; air += vy * dt;
-        if(air <= 0 && vy < 0){
-          var imp = -vy; air = 0; vy = VY * (0.9 + Math.random() * 0.2); land(imp);
-          trick = pickTrick(); tAir = 0; tFlight = 2 * vy / GRAV;
-          tx0 = tx1; tz0 = tz1; var ra = Math.random() * Math.PI * 2, rd = Math.random() * 0.45; tx1 = Math.cos(ra) * rd; tz1 = Math.sin(ra) * rd * 0.6;
-          lean = (Math.random() - 0.5) * 0.5;
+      var TRICKS = [['none', 2], ['front', 3], ['back', 3], ['sideL', 2], ['sideR', 2], ['spin', 2]];
+      function pickTrick(){ var tot = 0; TRICKS.forEach(function(k){ tot += k[1]; }); var r = Math.random() * tot; for(var i = 0; i < TRICKS.length; i++){ r -= TRICKS[i][1]; if(r <= 0) return TRICKS[i][0]; } return 'front'; }
+      function ease(p){ return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
+      function lerp(a, b, p){ return a + (b - a) * p; }
+      var GRAV = 9.0, WALK_SPD = 2.1, DRIFT_SPD = 2.4;
+
+      function bounceStep(R2, dt, isPlayer){
+        var S = stands[R2.standIdx], H = S.H, HB = 1.7 + (riders[R2.standIdx].tier - 1) * 0.1, VY = Math.sqrt(2 * GRAV * HB);
+        var K = 46 + riders[R2.standIdx].tier * 2, C = 2.8, KQ = 95, CQ = 6.5;
+        if(R2.matY === 0 && R2.vy === 0 && R2.air === 0){ R2.matY = H; R2.vy = VY; }
+        R2.matV += (-K * (R2.matY - H) - C * R2.matV) * dt; R2.matY += R2.matV * dt;
+        R2.vy -= GRAV * dt; R2.air += R2.vy * dt;
+        if(R2.air <= 0 && R2.vy < 0){
+          var imp = -R2.vy; R2.air = 0; R2.vy = VY * (0.92 + Math.random() * 0.16);
+          R2.sqV += Math.min(13, imp * 1.1); R2.matV = -Math.min(3.2, imp * 0.22);
+          R2.trick = pickTrick(); R2.tAir = 0; R2.tFlight = 2 * R2.vy / GRAV;
+          if(isPlayer && R2.standIdx === 0){
+            if(Math.random() < 0.22 + (riders[0].tier - 1) * 0.02 && hooks.onCoin) hooks.onCoin(Math.max(1, Math.round((2 + riders[0].tier * 2) * 2.5)));
+            var visitors = 0; npcs.forEach(function(n){ if(n.standIdx === 0) visitors++; });
+            if(visitors > 0 && hooks.onCombo && Math.random() < 0.6) hooks.onCombo(Math.max(3, Math.round(8 * visitors)));
+          }
+          if(isPlayer && R2.standIdx > 0){
+            var targetR = riders[R2.standIdx];
+            var dayKey = new Date().toDateString();
+            if(R2.lastLandDay !== dayKey){ R2.lastLandDay = dayKey; if(hooks.onSteal) hooks.onSteal(targetR.uid, targetR.tier, targetR.name); }
+            else if(hooks.onCombo && Math.random() < 0.5) hooks.onCombo(Math.max(2, Math.round(4 + targetR.tier)));
+          }
         }
-        sqV += (-KQ * sq - CQ * sqV) * dt; sq += sqV * dt; sq = Math.max(-0.55, Math.min(0.75, sq));
-        tAir += dt; var p = Math.min(1, tAir / Math.max(0.2, tFlight)), e = easeIO(p), F = Math.PI * 2;
-        var hx = tx0 + (tx1 - tx0) * p, hz = tz0 + (tz1 - tz0) * p;
-        holder.position.set(hx, matY + air, hz);
-        holder.scale.set(SB * (1 + sq * 0.32), SB * (1 - sq * 0.42), SB * (1 + sq * 0.32));
-        var rx = 0, ry = 0, rz = 0;
-        if(trick === 'front') rx = e * F; else if(trick === 'back') rx = -e * F;
-        else if(trick === 'sideL') rz = e * F; else if(trick === 'sideR') rz = -e * F;
-        else if(trick === 'spin') ry = e * F; else if(trick === 'twist'){ rx = e * F; ry = e * F; }
-        else if(trick === 'double') rx = e * F * 2; else if(trick === 'roll'){ rz = e * F; ry = -e * F; }
-        else { rz = Math.sin(p * Math.PI) * lean; rx = Math.sin(p * Math.PI * 2) * 0.15; }
-        pivot.rotation.set(rx + (tx1 - tx0) * 0.4 * Math.sin(p * Math.PI), ry, rz - (tx1 - tx0) * 0.5 * Math.sin(p * Math.PI));
+        R2.sqV += (-KQ * R2.sq - CQ * R2.sqV) * dt; R2.sq += R2.sqV * dt; R2.sq = Math.max(-0.5, Math.min(0.7, R2.sq));
+        S.setDeform(R2.matY - H);
+        R2.tAir += dt; var p = Math.min(1, R2.tAir / Math.max(0.2, R2.tFlight)), e = ease(p), F = Math.PI * 2, rx = 0, ry = 0, rz = 0;
+        if(R2.trick === 'front') rx = e * F; else if(R2.trick === 'back') rx = -e * F; else if(R2.trick === 'sideL') rz = e * F; else if(R2.trick === 'sideR') rz = -e * F; else if(R2.trick === 'spin') ry = e * F; else rz = Math.sin(p * Math.PI) * 0.22;
+        R2.pivot.rotation.set(rx, ry, rz);
+        R2.holder.position.set(S.center.x + R2.ox, R2.matY + R2.air, S.center.z + R2.oz);
+        R2.holder.scale.setScalar(R2.SB); R2.holder.scale.y = R2.SB * (1 - R2.sq * 0.4); R2.holder.scale.x = R2.holder.scale.z = R2.SB * (1 + R2.sq * 0.3);
+        var grounded = R2.air < 0.06 && Math.abs(R2.vy - VY) < VY * 0.25;
+        return grounded;
       }
 
-      var tt = 0;
+      var t = 0, lastVisitSet = {};
       tr = {
         tick: function(dt){
-          tt += dt;
-          camera.position.set(Math.sin(tt * 0.12) * 0.8, 3.7 + ti * 0.08, 11.8 - ti * 0.05); camera.lookAt(0, 1.6 + ti * 0.04, 0);
-          var sdt = dt * spd;
-          step(sdt);
-          if(sU.anims) sU.anims.forEach(function(f){ try{ f(tt); }catch(e){} });
-          var d = matY - H;
-          deformMat(d); updSprings(d);
-          var hi = Math.min(1, air / (HB + 0.01));
-          deformShadow(d, 0.85 * (1 + Math.max(0, sq) * 0.35) * (1 - hi * 0.35)); shMesh.position.set(holder.position.x, -holder.position.z, 0);
-          shMesh.material.opacity = 0.38 * (1 - hi * 0.6);
-          gems.forEach(function(g, i){ g.rotation.y = tt * 1.5 + i; g.position.y = H + 0.42 + Math.sin(tt * 2 + i) * 0.06; });
-          bulbs.forEach(function(B){
-            var on = ((B.i + Math.floor(tt * 9)) % 3) === 0;
-            var col = RAIN ? hsl(B.i / B.n + tt * 0.25, 0.95, on ? 0.65 : 0.3) : (on ? new T.Color(0xffffff) : new T.Color(accent).multiplyScalar(0.5));
-            B.m.material.color.copy(col); B.g.material.opacity = on ? 0.9 : 0.15; if(RAIN) B.g.material.color.copy(col);
+          t += dt;
+          camera.position.set(0, 5.4, 10.5); camera.lookAt(0, 1.2, -1.2);
+
+          // 친구들: 그룹 친구가 실시간으로 보낸 상태(자기 트램펄린 / 누구를 방문 중)를 따라가요
+          npcs.forEach(function(n){
+            var info = n.uid ? liveMap[n.uid] : null;
+            var want = resolveTarget(info && info.s, n.ownIdx);
+            if(want !== n.standIdx && !n.walking){ n.walking = true; n.wT = 0; n.wFrom = { x:stands[n.standIdx].center.x + n.ox, z:stands[n.standIdx].center.z + n.oz }; n._want = want; }
+            if(n.walking){
+              n.wT += dt; var p2 = Math.min(1, n.wT / 0.55), e2 = ease(p2), toC = stands[n._want].center;
+              var nx = lerp(n.wFrom.x, toC.x, e2), nz = lerp(n.wFrom.z, toC.z, e2);
+              n.pivot.rotation.set(0, Math.atan2(toC.x - n.wFrom.x, toC.z - n.wFrom.z), Math.sin(t * 9) * 0.08);
+              n.holder.position.set(nx, 0.05 + Math.abs(Math.sin(t * 9)) * 0.1, nz); n.holder.scale.setScalar(n.SB);
+              if(p2 >= 1){ n.walking = false; n.standIdx = n._want; n.ox = 0; n.oz = 0; n.air = 0.3; n.vy = 1; n.matY = 0; }
+            } else {
+              bounceStep(n, dt, false);
+            }
+            if(n.u.anims) n.u.anims.forEach(function(f){ try{ f(t); }catch(e){} });
+            var visitingMe = !n.walking && n.standIdx === 0;
+            if(visitingMe && !lastVisitSet[n.uid] && hooks.onFriendVisit) hooks.onFriendVisit(n.name);
+            lastVisitSet[n.uid] = visitingMe;
           });
-          archBulbs.forEach(function(m, i){ var on = ((i + Math.floor(tt * 7)) % 2) === 0; m.material.color.copy(RAIN ? hsl(i / 22 + tt * 0.3, 0.95, on ? 0.7 : 0.35) : (on ? new T.Color(0xffffff) : new T.Color(accent).multiplyScalar(0.4))); });
-          flags.forEach(function(F){
-            for(var v = 0; v < F.pos.count; v++){ var x = F.org[v * 3]; F.pos.setZ(v, Math.sin(tt * 6 + x * 9 + F.i) * 0.06 * (x + 0.28)); }
-            F.pos.needsUpdate = true;
-          });
-          if(RAIN){ pads.forEach(function(pm, i){ pm.color.copy(hsl(i / pads.length + tt * 0.08, 0.85, 0.6)); }); rimB.color.copy(hsl(tt * 0.12, 0.9, 0.6)); }
-          confetti.forEach(function(C){ C.m.position.y -= C.vy * dt; C.m.position.x += Math.sin(tt * 2 + C.sw) * 0.01; C.m.rotation.x += C.rs * dt; C.m.rotation.y += C.rs * 0.7 * dt; if(C.m.position.y < 0.05){ C.m.position.y = 6 + Math.random() * 1.5; C.m.position.x = (Math.random() - 0.5) * 9; } });
-          shocks.forEach(function(S){ if(S.t >= 0.6){ S.m.visible = false; return; } S.t += dt; var k = S.t / 0.6, r = 0.5 + k * (MR - 0.3); S.m.scale.set(r, r, 1); S.m.material.opacity = 0.7 * (1 - k); });
-          sparks.forEach(function(P){ if(P.t >= P.life){ P.m.visible = false; return; } P.t += dt; P.vy -= 9 * dt; P.m.position.x += P.vx * dt; P.m.position.y += P.vy * dt; P.m.position.z += P.vz * dt; P.m.material.opacity = 1 - P.t / P.life; });
-          coins3.forEach(function(C){ if(C.t >= 1.1){ C.m.visible = false; return; } C.t += dt; var k = C.t / 1.1; C.m.position.set(C.x, C.y0 + k * 1.8, 0.4); C.m.rotation.z = tt * 10; var s2 = k < 0.15 ? k / 0.15 : (k > 0.8 ? (1 - k) / 0.2 : 1); C.m.scale.setScalar(Math.max(0.01, s2)); });
+          stands.forEach(function(S){ S.tick(t); });
+
+          // 나: 걷기 또는 바운스
+          var dx = (held.right ? 1 : 0) - (held.left ? 1 : 0), dz = (held.down ? 1 : 0) - (held.up ? 1 : 0);
+          var L = Math.hypot(dx, dz); if(L > 0){ dx /= L; dz /= L; }
+          if(me.standIdx === -1){
+            if(L > 0){
+              me.x += dx * WALK_SPD * dt; me.z += dz * WALK_SPD * dt;
+              var r2 = Math.hypot(me.x, me.z + 1); if(r2 > 7.2){ var k2 = 7.2 / r2; me.x *= k2; me.z = (me.z + 1) * k2 - 1; }
+              me.yaw = Math.atan2(dx, dz); me.walkT += dt;
+            }
+            var bob = L > 0 ? Math.abs(Math.sin(me.walkT * 9)) * 0.1 : 0;
+            me.pivot.rotation.set(0, me.yaw, Math.sin(me.walkT * 9) * 0.08 * (L > 0 ? 1 : 0));
+            me.holder.position.set(me.x, 0.05 + bob, me.z); me.holder.scale.setScalar(me.SB * (1 - bob * 0.4 + 0.08));
+            for(var si = 0; si < stands.length; si++){ var S2 = stands[si], d2 = Math.hypot(me.x - S2.center.x, me.z - S2.center.z); if(d2 < S2.R * 0.72){ me.standIdx = si; me.ox = me.x - S2.center.x; me.oz = me.z - S2.center.z; me.air = 0.3; me.vy = 1; me.matY = 0; break; } }
+          } else {
+            var grounded = bounceStep(me, dt, true);
+            me.ox += dx * DRIFT_SPD * dt; me.oz += dz * DRIFT_SPD * dt;
+            var S3 = stands[me.standIdx], od = Math.hypot(me.ox, me.oz), maxO = S3.R * 0.55;
+            if(od > maxO){ var k3 = maxO / od; me.ox *= k3; me.oz *= k3; }
+            if(grounded && od >= maxO * 0.96){ me.x = S3.center.x + me.ox; me.z = S3.center.z + me.oz; me.standIdx = -1; me.matY = 0; me.vy = 0; me.air = 0; }
+          }
+          if(me.u.anims) me.u.anims.forEach(function(f){ try{ f(t); }catch(e){} });
+          if(hooks.beacon) hooks.beacon(me.standIdx > 0 ? ('visit:' + riders[me.standIdx].uid) : 'home');
         }
       };
-      return { start: function(){ pv.start(); }, stop: function(){ pv.stop(); }, dispose: function(){ tr = null; pv.dispose(); } };
+      return {
+        start:function(){ pv.start(); }, stop:function(){ pv.stop(); },
+        dispose:function(){ tr = null; window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); pv.dispose(); }
+      };
     }
-    return { VARIANTS:VARIANTS, buildMascot:buildMascot, makeViewer:makeViewer, makeThumbs:makeThumbs, makeBattle:makeBattle, makeKingdom:makeKingdom, makePet:makePet, makeTrampoline:makeTrampoline, TRAIT_INFO:TRAIT_INFO, CHAR_TRAIT:CHAR_TRAIT, KDECO_IDS:Object.keys(KDECO_BUILD) };
+    return { VARIANTS:VARIANTS, buildMascot:buildMascot, makeViewer:makeViewer, makeThumbs:makeThumbs, makeBattle:makeBattle, makeKingdom:makeKingdom, makePet:makePet, makeTrampolinePark:makeTrampolinePark, TRAIT_INFO:TRAIT_INFO, CHAR_TRAIT:CHAR_TRAIT, KDECO_IDS:Object.keys(KDECO_BUILD) };
   }
   global.createMascotLib = createMascotLib;
 })(window);
@@ -7015,6 +6905,7 @@ async function updateGroupCount(){
       ? { name: btMyName(), lv: Math.max(1, charLevel(btMyName())), lvl: charLvl(btMyName()), evo: charEvo(btMyName()), kb: Math.round(kBuffPct() * 1000) / 1000, bs: (() => { const b = kBuffs(); return { a: Math.round(b.atk * 1000) / 1000, d: Math.round(b.def * 1000) / 1000, h: Math.round(b.hp * 1000) / 1000, s: Math.round(b.spd * 1000) / 1000 }; })() }
       : null;
     if(hubInfo && pet && pet.hatched && pet.genes) hubInfo.pet = { g: pet.genes, s: petStage(), n: pet.name || '', d: (pet.deco.on || []).filter(id => (pet.deco.owned || []).includes(id)), t: pet.deco.theme || 'meadow' };
+    if(hubInfo && kingdom && kingdom.tramp && kingdom.tramp.tier) hubInfo.tt = kingdom.tramp.tier;
     const payload = { email: currentUser.email, count: words.length, updatedAt: Date.now(), battle: deleteField(), hub: hubInfo };
     await Promise.all(groupCodes.map(c => setDoc(doc(db, 'groups', c, 'members', currentUser.uid), payload, { merge:true })));
   }catch(e){ /* 조용히 무시 */ }
@@ -9159,17 +9050,66 @@ function trampRate(tier){
   const ti = tier - 1, chance = 0.22 + ti * 0.02, avg = 2 + ti * 2 + (3 + ti) / 2;
   return chance * avg * 5 * 0.7;   // 초당 대략 착지 0.7번 기준, 획득량 5배
 }
+const TRAMP_ONLINE_MS = 3500;   // 이만큼 신호가 없으면 자리를 비운 걸로 봐요
+let trampLive = {};              // uid -> 마지막으로 받은 실시간 상태
+let trampLastBeacon = 0, trampRosterKey = '';
+let trampLastState = '';
+function trampPresentFriends(){
+  const me = currentUser ? currentUser.uid : null, now = Date.now();
+  return (typeof latestMembers !== 'undefined' ? latestMembers : [])
+    .filter(m => m.uid !== me && m.hub && m.hub.name && HUB_BY_NAME[m.hub.name] && m.tramp && (now - (m.tramp.t || 0)) < TRAMP_ONLINE_MS)
+    .sort((a, b) => (a.tramp.t || 0) - (b.tramp.t || 0))
+    .slice(0, 5)
+    .map(m => { trampLive[m.uid] = m.tramp; return { uid:m.uid, nick:btMemberName(m), name:m.hub.name, evo:(m.hub.evo && canEvo(m.hub.name)) ? 1 : 0, tier:Math.max(1, Math.min(8, m.hub.tt || 1)) }; });
+}
+function trampOnPresence(){
+  if(!trampInst) return;
+  const key = trampPresentFriends().map(f => f.uid).sort().join(',');
+  if(key !== trampRosterKey) renderTrampView();   // 들어오거나 나간 친구가 있으면 화면을 다시 만들어요
+}
+function trampBeacon(state){
+  const now = Date.now();
+  if(now - trampLastBeacon < 500 && state === trampLastState) return;   // 상태가 바뀌면 바로, 아니면 0.5초에 한 번만 보내요
+  trampLastBeacon = now; trampLastState = state;
+  if(!currentUser || !groupCodes.length) return;
+  const payload = { tramp:{ s: state, t: now } };
+  groupCodes.forEach(c => { try{ setDoc(doc(db, 'groups', c, 'members', currentUser.uid), payload, { merge:true }); }catch(e){} });
+}
+function trampClearBeacon(){
+  if(!currentUser || !groupCodes.length) return;
+  groupCodes.forEach(c => { try{ setDoc(doc(db, 'groups', c, 'members', currentUser.uid), { tramp: deleteField() }, { merge:true }); }catch(e){} });
+}
+function trampSteal(uid, tier, name){
+  kNorm();
+  const reward = Math.max(5, Math.round((30 + tier * 20) * 2.5));
+  kingdom.coins += reward;
+  const el = document.getElementById('trCoin'); if(el) el.textContent = kingdom.coins.toLocaleString();
+  hubToast(`${name}의 트램펄린에서 코인 ${reward}개를 슬쩍했어요!`);
+  saveCharacter();
+}
+function trampCombo(n){
+  kNorm(); kingdom.coins += n;
+  const el = document.getElementById('trCoin'); if(el) el.textContent = kingdom.coins.toLocaleString();
+}
 function renderTrampView(){
   const v = document.getElementById('hubTrampView'); if(!v) return;
   kNorm();
-  const tier = trampTier(), next = tier < 8 ? tier + 1 : null;
+  const tier = trampTier(), next = tier < 8 ? tier + 1 : null, friends = trampPresentFriends();
+  trampRosterKey = friends.map(f => f.uid).sort().join(',');
   v.innerHTML = `<div class="tr-wrap">
-    <div class="tr-head"><b>${TRAMP_NAMES[tier - 1]} 트램펄린 · ${tier}/8단계</b>
+    <div class="tr-head"><b>${TRAMP_NAMES[tier - 1]} 트램펄린 파크 · 내 단계 ${tier}/8</b>
       <div class="hub-sub" style="margin:2px 0 0;">코인 <b id="trCoin">${kingdom.coins.toLocaleString()}</b> · 약 초당 ${trampRate(tier).toFixed(1)}코인</div></div>
-    <div class="tr-stage"><canvas id="trCanvas"></canvas><div id="trCoinPops"></div></div>
+    <div class="tr-stage"><canvas id="trCanvas"></canvas><div id="trCoinPops"></div>
+      <div class="tr-pad" id="trPad">
+        <button type="button" class="tr-pad-btn" data-k="up" style="grid-area:u;">▲</button>
+        <button type="button" class="tr-pad-btn" data-k="left" style="grid-area:l;">◀</button>
+        <button type="button" class="tr-pad-btn" data-k="right" style="grid-area:r;">▶</button>
+        <button type="button" class="tr-pad-btn" data-k="down" style="grid-area:d;">▼</button>
+      </div>
+    </div>
     ${mainChar ? '' : '<div class="hub-sub">대표 캐릭터를 먼저 정해 주세요</div>'}
+    <p class="hint">${friends.length ? `지금 같이 있어요: ${friends.map(f => f.nick).join(', ')} · 친구 트램펄린에 가면 하루 한 번 크게 슬쩍하고, 그 뒤로도 갈 때마다 조금씩 더 받아요. 내 트램펄린에 친구가 놀러오면 같이 뛸 때 콤보 보너스!` : '방향키나 화면 버튼으로 걸어다녀요. 그룹 친구가 지금 이 화면을 열면 바로 같이 보여요'}</p>
     <div class="tr-actions">${next ? `<button type="button" class="hub-btn" id="trUpBtn">${TRAMP_NAMES[next - 1]} 트램펄린 (${TRAMP_COST[next].toLocaleString()} 코인)</button>` : '<div class="hub-sub">최고 단계예요!</div>'}</div>
-    <p class="hint">튈 때마다 확률로 코인을 얻어요</p>
   </div>`;
   const up = document.getElementById('trUpBtn');
   if(up) up.addEventListener('click', trampUpgrade);
@@ -9180,8 +9120,24 @@ function renderTrampView(){
     if(!vv) return;
     trampStop();
     const canvas = document.getElementById('trCanvas'); if(!canvas) return;
-    const spd = Math.min(3, 1 + (charLvl(mainChar) - 1) * 0.04);
-    trampInst = lib.makeTrampoline(canvas, { v:vv, tier, evo:!!charEvo(mainChar), speed:spd }, { onCoin: trampCoin });
+    const riders = [{ v:vv, evo:!!charEvo(mainChar), tier, name:mainChar, isMe:true }].concat(
+      friends.map(f => { const fv = lib.VARIANTS.find(x => x.name === f.name); return fv ? { v:fv, evo:!!f.evo, tier:f.tier, name:f.nick, uid:f.uid } : null; }).filter(Boolean)
+    );
+    trampLastBeacon = 0; trampLastState = '';
+    trampInst = lib.makeTrampolinePark(canvas, { riders, myUid: currentUser ? currentUser.uid : null }, {
+      onCoin: trampCoin, onSteal: trampSteal, onCombo: trampCombo,
+      onFriendVisit: (name) => hubToast(`🤝 ${name}님이 내 트램펄린에 놀러왔어요!`),
+      live: trampLive, beacon: trampBeacon,
+      bindPad: (held) => {
+        const pad = document.getElementById('trPad'); if(!pad) return;
+        pad.querySelectorAll('.tr-pad-btn').forEach(b => {
+          const k = b.dataset.k;
+          const on = (e) => { e.preventDefault(); held[k] = true; };
+          const off = (e) => { if(e) e.preventDefault(); held[k] = false; };
+          b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
+        });
+      }
+    });
     trampInst.start();
   }).catch(e => hubToast(e.message));
 }
@@ -9218,7 +9174,7 @@ function showHubTab(tab){
   const map = { col:'hubColView', gacha:'hubGachaView', battle:'hubBattleView', king:'hubKingView', pet:'hubPetView', master:'hubMasterView', tramp:'hubTrampView' };
   if(tab !== 'king' && typeof kgStop === 'function'){ kgStop(); kClosePanel(); }
   if(tab !== 'pet'){ petStop(); petVisit = null; }
-  if(tab !== 'tramp') trampStop();
+  if(tab !== 'tramp'){ trampStop(); trampClearBeacon(); }
   if(tab === 'king') kgRetry = 0;
   document.querySelector('.hub-main').classList.toggle('kg-mode', tab === 'king');
   Object.keys(map).forEach(k => document.getElementById(map[k]).classList.toggle('hidden', k !== tab));
@@ -9631,6 +9587,7 @@ function renderBattleView(){
 }
 function hubOnMembers(){
   if(!document.getElementById('hubOverlay').classList.contains('hidden') && hubTab === 'battle') renderBattleView();
+  if(hubTab === 'tramp') trampOnPresence();
 }
 function btPicker(){
   const ov = document.getElementById('hubDetail');
